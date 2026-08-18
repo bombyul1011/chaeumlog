@@ -57,7 +57,7 @@
 
   #app { height:100%; display:flex; flex-direction:column; }
   #app-topbar { flex-shrink:0; background:var(--bg); padding-top:env(safe-area-inset-top); position:relative; z-index:10; }
-  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:calc(84px + env(safe-area-inset-bottom)); }
+  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:calc(28px + env(safe-area-inset-bottom)); }
 
   /* 로딩 상태 (스플래시) — iikoto와 동일한 구조: fadeUp 애니메이션, 일정 시간 후 hide */
   #loading {
@@ -84,7 +84,7 @@
   /* 하단 플로팅 메뉴 버튼(FAB) + 위로 펼쳐지는 메뉴 */
   #app-tabbar { flex-shrink:0; height:0; z-index:50; }
   #app-tabbar:empty { display:none; }
-  .fab-wrap { position:fixed; right:20px; bottom:calc(36px + env(safe-area-inset-bottom)); z-index:60; }
+  .fab-wrap { position:fixed; right:20px; bottom:calc(24px + env(safe-area-inset-bottom)); z-index:60; }
   .fab-btn {
     width:52px; height:52px; border-radius:50%;
     background:var(--sage); color:var(--card);

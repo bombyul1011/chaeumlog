@@ -1,6 +1,6 @@
 // 채움로그 서비스워커
 // 배포 시 CACHE_VERSION만 올리면 이전 캐시가 자동 무효화됨 (iikoto와 동일 패턴)
-const CACHE_VERSION = 'chaeumlog-v20260819-21-reload-on-bfcache-return';
+const CACHE_VERSION = 'chaeumlog-v20260819-22-fab-lower-and-padding-fix';
 const CORE_ASSETS = [
   './',
   './index.html',
