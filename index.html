@@ -280,7 +280,7 @@ function setClaudeKey(key) { S.set('claude_api_key', key); }
 
 async function callClaude(systemPrompt, messages, maxTokens) {
   const key = getClaudeKey();
-  if (!key) return null;
+  if (!key) return '__ERR__API 키가 설정되지 않았어요';
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 45000);
@@ -302,15 +302,27 @@ async function callClaude(systemPrompt, messages, maxTokens) {
     });
     clearTimeout(timer);
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: { message: res.status } }));
-      console.error('Claude API err:', err);
-      return '__ERR__' + (err.error?.message || res.status);
+      let errText = String(res.status);
+      try {
+        const err = await res.json();
+        errText = (err.error && err.error.message) ? `${res.status}: ${err.error.message}` : String(res.status);
+      } catch (parseErr) {
+        try { errText = `${res.status}: ${await res.text()}`; } catch (e2) {}
+      }
+      console.error('Claude API err:', errText);
+      return '__ERR__' + errText;
     }
     const data = await res.json();
-    return (data.content && data.content[0] && data.content[0].text) || null;
+    const text = data.content && data.content[0] && data.content[0].text;
+    if (!text) {
+      console.error('Claude API — empty content:', JSON.stringify(data));
+      return '__ERR__응답에 콘텐츠가 없어요 (stop_reason: ' + (data.stop_reason || '?') + ')';
+    }
+    return text;
   } catch (e) {
     console.error('Claude fetch err:', e);
-    return '__ERR__' + (e.message || 'network error');
+    if (e.name === 'AbortError') return '__ERR__요청 시간 초과 (45초)';
+    return '__ERR__네트워크 오류: ' + (e.message || String(e));
   }
 }
 
