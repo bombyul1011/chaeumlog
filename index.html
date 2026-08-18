@@ -202,6 +202,21 @@
   .toast-btn-row .cta { margin-bottom:0; }
   .toast-btn-secondary { flex:0 0 auto; padding:16px 18px; background:var(--paper); color:var(--sub-ink); border:1px solid var(--line); border-radius:14px; font-size:14px; font-weight:600; cursor:pointer; }
 
+  /* ===== 아카이브 세션 액션 메뉴 (확인/삭제/수정/재학습) ===== */
+  .action-menu-list { display:flex; flex-direction:column; gap:2px; }
+  .action-menu-item { display:flex; align-items:center; gap:12px; padding:14px 6px; background:none; border:none; text-align:left; cursor:pointer; font-size:14px; color:var(--ink); border-radius:10px; }
+  .action-menu-item:active { background:var(--paper); }
+  .action-menu-item .ti { font-size:18px; color:var(--sage); width:20px; }
+  .action-menu-item.danger { color:#c0504d; }
+  .action-menu-item.danger .ti { color:#c0504d; }
+
+  .edit-field-label { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; text-transform:uppercase; margin:16px 0 6px; }
+  .edit-field-label:first-child { margin-top:0; }
+  .edit-input, .edit-textarea { width:100%; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit; color:var(--ink); background:var(--card); }
+  .edit-textarea { resize:vertical; min-height:60px; line-height:1.6; }
+  .edit-outline-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .edit-outline-row .num { font-family:var(--font-mono); font-size:11px; color:var(--muted); width:16px; flex-shrink:0; }
+
   /* ===== 완료 화면 ===== */
   .complete-wrap { min-height:100vh; padding:0 24px 88px; }
   .paper-card { margin-top:40px; background:var(--card); border:1px solid var(--ink); border-radius:2px; padding:28px 24px 24px; box-shadow:4px 4px 0 var(--line); }
@@ -1134,9 +1149,9 @@ function renderPaperInner(session) {
     <div>
       <div class="topbar">
         <button class="back" onclick="history.back()"><i class="ti ti-chevron-left"></i> 아카이브</button>
-        <button class="icon-btn"><i class="ti ti-dots"></i></button>
+        <button class="icon-btn" onclick="showSessionActionMenu('${session.id}')"><i class="ti ti-dots"></i></button>
       </div>
-      <div class="paper-detail">
+      <div class="paper-detail" id="paper-detail-body">
         <div class="pd-masthead">
           <div class="name">C H A E U M L O G</div>
           <div class="vol">${escapeHtml(session.category.toUpperCase())} EDITION</div>
@@ -1169,6 +1184,157 @@ function renderPaperInner(session) {
     </div>
     ${renderTabbar('archive')}
   `;
+}
+
+// ---- 아카이브 세션 액션: 확인(기본)/재학습/수정/삭제 ----
+function showSessionActionMenu(sessionId) {
+  const el = document.createElement('div');
+  el.id = 'session-action-menu';
+  el.className = 'toast-backdrop';
+  el.onclick = (e) => { if (e.target === el) el.remove(); };
+  el.innerHTML = `
+    <div class="toast-sheet">
+      <div class="toast-title" style="margin-bottom:14px;">이 기록에 대해</div>
+      <div class="action-menu-list">
+        <button class="action-menu-item" onclick="document.getElementById('session-action-menu').remove(); relearnSession('${sessionId}');">
+          <i class="ti ti-refresh"></i> 다시 학습하기 (프롬프트 복사)
+        </button>
+        <button class="action-menu-item" onclick="document.getElementById('session-action-menu').remove(); openEditSession('${sessionId}');">
+          <i class="ti ti-pencil"></i> 수정하기
+        </button>
+        <button class="action-menu-item danger" onclick="document.getElementById('session-action-menu').remove(); confirmDeleteSession('${sessionId}');">
+          <i class="ti ti-trash"></i> 삭제하기
+        </button>
+      </div>
+      <button class="toast-btn-secondary" style="width:100%; margin-top:8px;" onclick="document.getElementById('session-action-menu').remove()">닫기</button>
+    </div>`;
+  document.body.appendChild(el);
+}
+
+// ---- 재학습: 기존 세션 정보로 학습 프롬프트를 다시 만들어 복사 ----
+async function relearnSession(sessionId) {
+  const session = await fetchSessionById(sessionId);
+  if (!session) return;
+  const prompt = buildLearningPrompt(session);
+  try {
+    await navigator.clipboard.writeText(prompt);
+    showClaudeHandoffToast();
+  } catch (e) {
+    alert('복사에 실패했어요. 아래 내용을 직접 복사해주세요:\n\n' + prompt);
+  }
+}
+
+// ---- 삭제: 확인 후 Supabase에서 제거, 캐시/목록 갱신, 아카이브로 이동 ----
+function confirmDeleteSession(sessionId) {
+  const el = document.createElement('div');
+  el.id = 'delete-confirm-toast';
+  el.className = 'toast-backdrop';
+  el.onclick = (e) => { if (e.target === el) el.remove(); };
+  el.innerHTML = `
+    <div class="toast-sheet">
+      <div class="toast-icon" style="background:#f5e5e3; color:#c0504d;"><i class="ti ti-alert-triangle"></i></div>
+      <div class="toast-title">이 기록을 삭제할까요?</div>
+      <div class="toast-sub">삭제하면 되돌릴 수 없어요. 제목, 목차, 요약이 모두 사라져요.</div>
+      <div class="toast-btn-row">
+        <button class="toast-btn-secondary" onclick="document.getElementById('delete-confirm-toast').remove()">취소</button>
+        <button class="cta" style="flex:1; background:#c0504d;" onclick="executeDeleteSession('${sessionId}')">삭제하기</button>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+}
+
+async function executeDeleteSession(sessionId) {
+  const toast = document.getElementById('delete-confirm-toast');
+  if (toast) toast.remove();
+  try {
+    const { error } = await sb.from('sessions').delete().eq('id', sessionId);
+    if (error) throw error;
+    delete _sessionCache[sessionId];
+    navigate('archive');
+  } catch (e) {
+    alert('삭제에 실패했어요: ' + (e.message || e));
+  }
+}
+
+// ---- 수정: 제목/카테고리/태그/목차/요약/느낀점 인라인 편집 ----
+async function openEditSession(sessionId) {
+  const session = await fetchSessionById(sessionId);
+  if (!session) return;
+  const outline = session.outline || [];
+
+  const el = document.createElement('div');
+  el.id = 'edit-session-modal';
+  el.className = 'toast-backdrop';
+  el.style.alignItems = 'center';
+  el.onclick = (e) => { if (e.target === el) el.remove(); };
+  el.innerHTML = `
+    <div class="toast-sheet" style="max-height:85vh; overflow-y:auto; border-radius:20px;">
+      <div class="toast-title" style="margin-bottom:14px;">기록 수정하기</div>
+
+      <div class="edit-field-label">제목</div>
+      <input class="edit-input" id="edit-title" value="${escapeHtml(session.title)}">
+
+      <div class="edit-field-label">태그 (쉼표로 구분)</div>
+      <input class="edit-input" id="edit-tags" value="${escapeHtml((session.tags || []).join(', '))}">
+
+      <div class="edit-field-label">목차</div>
+      ${outline.map((o, i) => `
+        <div class="edit-outline-row">
+          <span class="num">${i + 1}</span>
+          <input class="edit-input" data-outline-idx="${i}" value="${escapeHtml(o.text)}">
+        </div>
+      `).join('')}
+
+      <div class="edit-field-label">짧은 요약</div>
+      <textarea class="edit-textarea" id="edit-brief">${escapeHtml(session.brief_summary || '')}</textarea>
+
+      <div class="edit-field-label">나의 요약 · 느낀점</div>
+      <textarea class="edit-textarea" id="edit-summary-note">${escapeHtml(session.summary_note || '')}</textarea>
+
+      <div class="toast-btn-row" style="margin-top:20px;">
+        <button class="toast-btn-secondary" onclick="document.getElementById('edit-session-modal').remove()">취소</button>
+        <button class="cta" style="flex:1;" onclick="saveEditSession('${sessionId}')">저장하기</button>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+}
+
+async function saveEditSession(sessionId) {
+  const modal = document.getElementById('edit-session-modal');
+  if (!modal) return;
+
+  const title = modal.querySelector('#edit-title').value.trim();
+  const tagsRaw = modal.querySelector('#edit-tags').value.trim();
+  const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+  const briefSummary = modal.querySelector('#edit-brief').value.trim();
+  const summaryNote = modal.querySelector('#edit-summary-note').value.trim();
+  const outlineInputs = Array.from(modal.querySelectorAll('[data-outline-idx]'));
+  const outline = outlineInputs.map(inp => ({ text: inp.value.trim() })).filter(o => o.text);
+
+  if (!title) { alert('제목은 비워둘 수 없어요.'); return; }
+
+  try {
+    const { error } = await sb.from('sessions').update({
+      title,
+      tags,
+      brief_summary: briefSummary || null,
+      summary_note: summaryNote || null,
+      outline,
+      updated_at: new Date().toISOString()
+    }).eq('id', sessionId);
+    if (error) throw error;
+
+    delete _sessionCache[sessionId];
+    modal.remove();
+    // 현재 보고 있는 화면(paper 상세)을 최신 데이터로 다시 렌더링
+    const outer = document.getElementById('paper-outer');
+    if (outer) {
+      const fresh = await fetchSessionById(sessionId);
+      outer.innerHTML = renderPaperInner(fresh);
+    }
+  } catch (e) {
+    alert('저장에 실패했어요: ' + (e.message || e));
+  }
 }
 
 /* ==========================================================
