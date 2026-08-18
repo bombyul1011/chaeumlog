@@ -15,6 +15,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
 
 <style>
   :root {
@@ -47,6 +48,10 @@
   }
   button { font-family:inherit; }
   a { color:inherit; text-decoration:none; }
+  .ti { display:inline-block; vertical-align:-2px; line-height:1; }
+  .back { display:inline-flex; align-items:center; gap:2px; }
+  .start-link { display:inline-flex; align-items:center; gap:4px; }
+  .cta { display:flex; align-items:center; justify-content:center; gap:6px; }
 
   #app { min-height:100vh; }
 
@@ -59,7 +64,26 @@
   }
 
   /* ===== 홈 화면 ===== */
-  .phone { max-width:420px; margin:0 auto; min-height:100vh; padding-bottom:40px; }
+  .phone { max-width:420px; margin:0 auto; min-height:100vh; padding-bottom:88px; }
+
+  /* 하단 메뉴바 */
+  .tabbar {
+    position:fixed; left:0; right:0; bottom:0;
+    max-width:420px; margin:0 auto;
+    background:var(--card); border-top:1px solid var(--line);
+    display:flex; justify-content:space-around; align-items:center;
+    padding:10px 0 calc(10px + env(safe-area-inset-bottom));
+    z-index:50;
+  }
+  .tabbar-item {
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:none; border:none; cursor:pointer;
+    color:var(--muted); font-family:var(--font-mono); font-size:9px;
+    padding:4px 12px;
+  }
+  .tabbar-item .ti { font-size:20px; }
+  .tabbar-item.active { color:var(--sage); }
+  .tabbar-item.active .ti { color:var(--accent-brown); }
   .topbar { display:flex; justify-content:space-between; align-items:center; padding:20px 24px 0; }
   .logo { font-family:var(--font-mono); font-size:12px; letter-spacing:1px; color:var(--sage); }
   .icon-btn { color:var(--sage); font-size:16px; background:none; border:none; cursor:pointer; }
@@ -303,6 +327,26 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// ---- 하단 탭바 ----
+function renderTabbar(active) {
+  const items = [
+    { id: 'home', route: 'home', icon: 'ti-home', label: '홈' },
+    { id: 'archive', route: 'archive', icon: 'ti-books', label: '아카이브' },
+    { id: 'search', route: 'search', icon: 'ti-search', label: '검색' },
+    { id: 'my', route: 'my', icon: 'ti-user', label: '마이페이지' }
+  ];
+  return `
+    <div class="tabbar">
+      ${items.map(it => `
+        <button class="tabbar-item ${active === it.id ? 'active' : ''}" onclick="navigate('${it.route}')">
+          <i class="ti ${it.icon}"></i>
+          <span>${it.label}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
 // ---- 홈 화면 렌더 ----
 function renderHome(todaySessions, archive, categories) {
   const streak = calcStreak(archive);
@@ -324,7 +368,7 @@ function renderHome(todaySessions, archive, categories) {
         <div class="today-tags">${(inProgress.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
         <div class="today-foot">
           <span class="read-time">${doneCount} / ${total} 완료</span>
-          <button class="start-link" onclick="navigate('session', {id: '${inProgress.id}'})">이어서 읽기 →</button>
+          <button class="start-link" onclick="navigate('session', {id: '${inProgress.id}'})">이어서 읽기 <i class="ti ti-arrow-right"></i></button>
         </div>
       </div>`;
   } else {
@@ -339,7 +383,7 @@ function renderHome(todaySessions, archive, categories) {
   const clusterHtml = clusters.length ? clusters.map(c => `
     <div class="cluster-row" onclick="navigate('detail', {category: encodeURIComponent('${escapeHtml(c.name_ko)}')})">
       <div class="cluster-left"><span class="cluster-code">${escapeHtml(c.code)}</span><span class="cluster-name">${escapeHtml(c.name_ko)}</span></div>
-      <div class="cluster-right"><span class="cluster-n">${c.sessions.length}</span><span class="cluster-arrow">→</span></div>
+      <div class="cluster-right"><span class="cluster-n">${c.sessions.length}</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
     </div>
   `).join('') : `<div style="padding:20px 0; font-family:var(--font-mono); font-size:12px; color:var(--muted);">아직 쌓인 기록이 없어요</div>`;
 
@@ -352,7 +396,6 @@ function renderHome(todaySessions, archive, categories) {
     <div class="phone">
       <div class="topbar">
         <div class="logo">chaeumlog</div>
-        <button class="icon-btn">⋯</button>
       </div>
 
       <div class="stat-index">
@@ -375,6 +418,7 @@ function renderHome(todaySessions, archive, categories) {
         <div class="accum-note">지금까지 ${totalSessions}개의 기록이 쌓였어요</div>
       </div>` : ''}
     </div>
+    ${renderTabbar('home')}
   `;
 }
 
@@ -429,6 +473,14 @@ async function render() {
   } else if (route === 'detail') {
     await refreshData();
     app.innerHTML = renderDetail(decodeURIComponent(params.category || ''));
+  } else if (route === 'archive') {
+    await refreshData();
+    app.innerHTML = renderArchiveAll();
+  } else if (route === 'search') {
+    app.innerHTML = renderSearch();
+  } else if (route === 'my') {
+    await refreshData();
+    app.innerHTML = renderMy();
   } else {
     app.innerHTML = renderHome(appState.todaySessions, appState.archive, appState.categories);
   }
@@ -446,8 +498,8 @@ function renderPick() {
   return `
     <div class="phone">
       <div class="topbar">
-        <button class="back" onclick="navigate('home')">← 홈</button>
-        <button class="icon-btn">⋯</button>
+        <button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button>
+        <button class="icon-btn"><i class="ti ti-dots"></i></button>
       </div>
       <div class="pick-lead">
         <h2>오늘은 어떻게 시작해볼까요?</h2>
@@ -455,7 +507,7 @@ function renderPick() {
 
       ${hasArchive ? `
       <div class="option-card featured" onclick="startGenerate('tailchain')">
-        <div class="option-icon">🔗</div>
+        <div class="option-icon"><i class="ti ti-link"></i></div>
         <div class="option-body">
           <div class="o-label">이어가기</div>
           <div class="o-title">지난 배움에서 이어서</div>
@@ -464,7 +516,7 @@ function renderPick() {
       </div>` : ''}
 
       <div class="option-card" onclick="navigate('pick-category')">
-        <div class="option-icon">📁</div>
+        <div class="option-icon"><i class="ti ti-folder"></i></div>
         <div class="option-body">
           <div class="o-label">카테고리 선택</div>
           <div class="o-title">원하는 주제 직접 고르기</div>
@@ -473,7 +525,7 @@ function renderPick() {
       </div>
 
       <div class="option-card" onclick="startGenerate('random')">
-        <div class="option-icon">🎲</div>
+        <div class="option-icon"><i class="ti ti-dice-5"></i></div>
         <div class="option-body">
           <div class="o-label">완전 랜덤</div>
           <div class="o-title">오늘은 무엇이 나올지 몰라요</div>
@@ -495,8 +547,8 @@ function renderPickCategory() {
   return `
     <div class="phone">
       <div class="topbar">
-        <button class="back" onclick="navigate('pick')">← 뒤로</button>
-        <button class="icon-btn">⋯</button>
+        <button class="back" onclick="navigate('pick')"><i class="ti ti-chevron-left"></i> 뒤로</button>
+        <button class="icon-btn"><i class="ti ti-dots"></i></button>
       </div>
       <div class="pick-lead"><h2>어떤 갈래가 궁금하신가요?</h2></div>
       <div class="cat-grid">${chips}</div>
@@ -608,7 +660,7 @@ function renderSessionInner(session) {
   const outlineHtml = outline.map((o, i) => `
     <li class="${o.done ? 'done' : ''}" onclick="toggleOutlineItem('${session.id}', ${i})">
       <span class="otxt">${escapeHtml(o.text)}</span>
-      <span class="mark">${o.done ? '✓' : '○'}</span>
+      <span class="mark">${o.done ? '<i class=\"ti ti-check\"></i>' : '<i class=\"ti ti-circle\"></i>'}</span>
     </li>
   `).join('');
 
@@ -617,8 +669,8 @@ function renderSessionInner(session) {
   return `
     <div id="session-root" class="session-wrap">
       <div class="topbar" style="padding:20px 0 0;">
-        <button class="back" onclick="navigate('home')">← 홈</button>
-        <button class="icon-btn">⋯</button>
+        <button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button>
+        <button class="icon-btn"><i class="ti ti-dots"></i></button>
       </div>
       <div class="s-meta">${escapeHtml(session.category)}</div>
       <div class="s-date">${session.date_key} · ${session.source_type === 'tailchain' ? '이어가기' : session.source_type === 'category' ? '카테고리 선택' : '랜덤'}</div>
@@ -639,7 +691,7 @@ function renderSessionInner(session) {
       </div>
 
       <button class="cta" ${allDone ? '' : 'disabled style="opacity:0.5;cursor:not-allowed;"'} onclick="${allDone ? `completeSession('${session.id}')` : ''}">
-        ${allDone ? '완료하기 →' : '목차를 모두 확인하면 완료할 수 있어요'}
+        ${allDone ? '완료하기 <i class=\"ti ti-arrow-right\"></i>' : '목차를 모두 확인하면 완료할 수 있어요'}
       </button>
     </div>
   `;
@@ -681,8 +733,8 @@ function renderCompleteInner(session) {
   return `
     <div id="complete-root" class="complete-wrap">
       <div class="topbar" style="padding:20px 0 0;">
-        <button class="back" onclick="navigate('home')">← 홈</button>
-        <button class="icon-btn">⋯</button>
+        <button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button>
+        <button class="icon-btn"><i class="ti ti-dots"></i></button>
       </div>
       <div class="paper-card">
         <div class="paper-vol-row">
@@ -699,7 +751,7 @@ function renderCompleteInner(session) {
       </div>
 
       <div class="complete-below">
-        <div class="complete-stamp">✓</div>
+        <div class="complete-stamp"><i class="ti ti-check"></i></div>
         <div class="complete-msg">오늘 하나를 채웠어요</div>
         <div class="complete-sub">${escapeHtml(session.category)} 기록</div>
       </div>
@@ -709,11 +761,11 @@ function renderCompleteInner(session) {
         <h3>오늘 하나 더 채워볼까요?</h3>
       </div>
       <div class="option-card" style="margin-top:16px;" onclick="startGenerate('tailchain')">
-        <div class="option-icon">🔗</div>
+        <div class="option-icon"><i class="ti ti-link"></i></div>
         <div class="option-body"><div class="o-label">이어가기</div><div class="o-title">방금 배운 것에서 이어서</div></div>
       </div>
       <div class="option-card" onclick="navigate('pick-category')">
-        <div class="option-icon">📁</div>
+        <div class="option-icon"><i class="ti ti-folder"></i></div>
         <div class="option-body"><div class="o-label">카테고리 선택</div><div class="o-title">다른 주제 골라보기</div></div>
       </div>
 
@@ -736,7 +788,7 @@ function renderDetail(category) {
   if (!sessions.length) {
     return `
       <div class="phone">
-        <div class="topbar"><button class="back" onclick="navigate('home')">← 홈</button><button class="icon-btn">⋯</button></div>
+        <div class="topbar"><button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button><button class="icon-btn"><i class="ti ti-dots"></i></button></div>
         <div class="empty-archive">아직 "${escapeHtml(category)}" 기록이 없어요</div>
       </div>`;
   }
@@ -746,13 +798,13 @@ function renderDetail(category) {
       <div class="t-date">${s.date_key.slice(5).replace('-', '.')}</div>
       <div class="t-dot-col"><div class="t-dot"></div></div>
       <div class="t-text">${escapeHtml(s.title)}</div>
-      <div class="t-badge">✓</div>
+      <div class="t-badge"><i class="ti ti-check"></i></div>
     </div>
   `).join('');
 
   return `
     <div class="phone">
-      <div class="topbar"><button class="back" onclick="navigate('home')">← 홈</button><button class="icon-btn">⋯</button></div>
+      <div class="topbar"><button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button></div>
       <div class="detail-hero">
         <div class="detail-code">ARCHIVE / ${escapeHtml(cat ? cat.code : '?')}</div>
         <div class="detail-title">${escapeHtml(category)}</div>
@@ -763,6 +815,64 @@ function renderDetail(category) {
       <div class="divider-thin"></div>
       <div class="timeline">${timelineHtml}</div>
     </div>
+    ${renderTabbar('archive')}
+  `;
+}
+
+/* ==========================================================
+   아카이브 전체 (하단탭 · 카테고리 목록)
+   ========================================================== */
+function renderArchiveAll() {
+  const clusters = groupArchiveByCategory(appState.archive, appState.categories);
+  const html = clusters.length ? clusters.map(c => `
+    <div class="cluster-row" onclick="navigate('detail', {category: encodeURIComponent('${escapeHtml(c.name_ko)}')})">
+      <div class="cluster-left"><span class="cluster-code">${escapeHtml(c.code)}</span><span class="cluster-name">${escapeHtml(c.name_ko)}</span></div>
+      <div class="cluster-right"><span class="cluster-n">${c.sessions.length}</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+    </div>
+  `).join('') : `<div class="empty-archive">아직 쌓인 기록이 없어요</div>`;
+
+  return `
+    <div class="phone">
+      <div class="topbar"><div class="logo">chaeumlog</div></div>
+      <div class="section-label">전체 아카이브 · ${clusters.length}개 갈래</div>
+      <div class="archive-cluster">${html}</div>
+    </div>
+    ${renderTabbar('archive')}
+  `;
+}
+
+/* ==========================================================
+   검색 (자리만 — 추후 구현)
+   ========================================================== */
+function renderSearch() {
+  return `
+    <div class="phone">
+      <div class="topbar"><div class="logo">chaeumlog</div></div>
+      <div class="empty-archive">
+        <i class="ti ti-search" style="font-size:28px; color:var(--line); display:block; margin-bottom:12px;"></i>
+        검색 기능은 준비 중이에요
+      </div>
+    </div>
+    ${renderTabbar('search')}
+  `;
+}
+
+/* ==========================================================
+   마이페이지 (자리만 — 추후 구현)
+   ========================================================== */
+function renderMy() {
+  const streak = calcStreak(appState.archive);
+  return `
+    <div class="phone">
+      <div class="topbar"><div class="logo">chaeumlog</div></div>
+      <div class="stat-index">
+        <div class="item"><div class="n" style="color:var(--accent-brown);">${String(streak).padStart(2,'0')}</div><div class="l">Days</div></div>
+        <div class="item"><div class="n">${String(appState.archive.length).padStart(2,'0')}</div><div class="l">Sessions</div></div>
+      </div>
+      <div class="divider-thin"></div>
+      <div class="empty-archive">마이페이지는 준비 중이에요</div>
+    </div>
+    ${renderTabbar('my')}
   `;
 }
 
