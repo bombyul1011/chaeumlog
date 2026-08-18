@@ -331,28 +331,36 @@ window.addEventListener('resize', setRealVH);
 window.addEventListener('orientationchange', setRealVH);
 if (window.visualViewport) window.visualViewport.addEventListener('resize', setRealVH);
 
-// ---- 임시 진단 패널: 탭바 하단 여백 원인 확인용. 확인 끝나면 이 블록 통째로 제거 ----
+// ---- 임시 진단 패널 v2: 탭바 아래 여백 색상/세이프에어리어 원인 확인용 ----
 window.addEventListener('load', function(){
   setTimeout(function(){
     const tb = document.getElementById('app-tabbar');
+    const inner = document.querySelector('.tabbar');
     if (!tb) return;
-    const cs = getComputedStyle(tb);
-    const rect = tb.getBoundingClientRect();
+    const csOuter = getComputedStyle(tb);
+    const csInner = inner ? getComputedStyle(inner) : null;
+    const rectOuter = tb.getBoundingClientRect();
+    const rectInner = inner ? inner.getBoundingClientRect() : null;
+    const bodyBg = getComputedStyle(document.body).backgroundColor;
+    const testEl = document.createElement('div');
+    testEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
+    document.body.appendChild(testEl);
+    const sab = getComputedStyle(testEl).paddingBottom;
+    testEl.remove();
     const info = [
-      'innerHeight: ' + window.innerHeight,
-      'clientHeight(html): ' + document.documentElement.clientHeight,
-      'visualViewport.height: ' + (window.visualViewport ? window.visualViewport.height : 'N/A'),
-      'tabbar position: ' + cs.position,
-      'tabbar bottom(css): ' + cs.bottom,
-      'tabbar rect.bottom: ' + rect.bottom,
-      'tabbar rect.top: ' + rect.top,
-      'tabbar rect.height: ' + rect.height,
-      'body scrollHeight: ' + document.body.scrollHeight,
-      'html scrollHeight: ' + document.documentElement.scrollHeight,
-      'safe-area-bottom: ' + getComputedStyle(document.documentElement).getPropertyValue('--sab') 
+      'window.innerHeight: ' + window.innerHeight,
+      'env(safe-area-inset-bottom): ' + sab,
+      'body background-color: ' + bodyBg,
+      '--app-tabbar-- outer',
+      '  bg-color: ' + csOuter.backgroundColor,
+      '  rect.bottom: ' + rectOuter.bottom + ' / rect.top: ' + rectOuter.top + ' / height: ' + rectOuter.height,
+      '.tabbar-- inner',
+      '  bg-color: ' + (csInner ? csInner.backgroundColor : 'N/A'),
+      '  padding-bottom: ' + (csInner ? csInner.paddingBottom : 'N/A'),
+      '  rect.bottom: ' + (rectInner ? rectInner.bottom : 'N/A') + ' / rect.top: ' + (rectInner ? rectInner.top : 'N/A') + ' / height: ' + (rectInner ? rectInner.height : 'N/A')
     ];
     const panel = document.createElement('div');
-    panel.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.9);color:#0f0;font-family:monospace;font-size:11px;padding:10px;white-space:pre-wrap;line-height:1.6;';
+    panel.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#0f0;font-family:monospace;font-size:10.5px;padding:10px;white-space:pre-wrap;line-height:1.6;max-height:60vh;overflow-y:auto;';
     panel.textContent = info.join('\n');
     document.body.appendChild(panel);
   }, 500);
