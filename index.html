@@ -80,14 +80,14 @@
   /* ===== 홈 화면 ===== */
   .phone { max-width:420px; margin:0 auto; padding-bottom:88px; }
 
-  /* 하단 메뉴바 */
+  /* 하단 메뉴바 — #app-tabbar는 body 직속(스크롤 컨테이너 밖)이라 뷰포트 기준으로 확실히 고정됨 */
+  #app-tabbar { position:fixed; left:0; right:0; bottom:0; z-index:50; }
+  #app-tabbar:empty { display:none; }
   .tabbar {
-    position:fixed; left:0; right:0; bottom:0;
     max-width:420px; margin:0 auto;
     background:var(--card); border-top:1px solid var(--line);
     display:flex; justify-content:space-around; align-items:center;
     padding:10px 0 calc(10px + env(safe-area-inset-bottom));
-    z-index:50;
   }
   .tabbar-item {
     display:flex; flex-direction:column; align-items:center; gap:3px;
@@ -317,6 +317,7 @@
   <div id="app-topbar"></div>
   <div id="app-scroll"></div>
 </div>
+<div id="app-tabbar"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -869,11 +870,35 @@ function getRoute() {
 function mountRoute(html) {
   const topbarEl = document.getElementById('app-topbar');
   const scrollEl = document.getElementById('app-scroll');
-  const startIdx = html.indexOf('<div class="topbar"');
+  const tabbarEl = document.getElementById('app-tabbar');
+
+  // ---- tabbar 분리: <div class="tabbar" ...>...</div> 블록을 태그 깊이 카운팅으로 찾아 떼어낸다 ----
+  function extractTabbar(src) {
+    const tIdx = src.indexOf('<div class="tabbar"');
+    if (tIdx === -1) return { rest: src, tabbarHtml: '' };
+    let depth = 0, end = -1;
+    const re = /<div\b[^>]*>|<\/div>/g;
+    re.lastIndex = tIdx;
+    let mm;
+    while ((mm = re.exec(src))) {
+      if (mm[0].startsWith('</div>')) {
+        depth--;
+        if (depth === 0) { end = mm.index + mm[0].length; break; }
+      } else {
+        depth++;
+      }
+    }
+    if (end === -1) return { rest: src, tabbarHtml: '' };
+    return { rest: src.slice(0, tIdx) + src.slice(end), tabbarHtml: src.slice(tIdx, end) };
+  }
+  const { rest: htmlNoTabbar, tabbarHtml } = extractTabbar(html);
+  tabbarEl.innerHTML = tabbarHtml;
+
+  const startIdx = htmlNoTabbar.indexOf('<div class="topbar"');
   if (startIdx === -1) {
     // topbar가 없는 화면(로딩 스피너 등) — 스크롤 영역에 그대로, 고정 영역은 비움
     topbarEl.innerHTML = '';
-    scrollEl.innerHTML = html;
+    scrollEl.innerHTML = htmlNoTabbar;
     return;
   }
   // startIdx부터 시작해 여는/닫는 div 태그 개수를 맞춰 topbar 블록의 끝을 찾는다
@@ -882,7 +907,7 @@ function mountRoute(html) {
   const tagRe = /<div\b[^>]*>|<\/div>/g;
   tagRe.lastIndex = startIdx;
   let m;
-  while ((m = tagRe.exec(html))) {
+  while ((m = tagRe.exec(htmlNoTabbar))) {
     if (m[0].startsWith('</div>')) {
       depth--;
       if (depth === 0) { topbarEnd = m.index + m[0].length; break; }
@@ -893,11 +918,11 @@ function mountRoute(html) {
   if (topbarEnd === -1) {
     // 안전장치: 파싱 실패 시 분리 없이 기존 방식대로 전체를 스크롤 영역에 렌더링
     topbarEl.innerHTML = '';
-    scrollEl.innerHTML = html;
+    scrollEl.innerHTML = htmlNoTabbar;
     return;
   }
-  const topbarHtml = html.slice(startIdx, topbarEnd);
-  const restHtml = html.slice(0, startIdx) + html.slice(topbarEnd);
+  const topbarHtml = htmlNoTabbar.slice(startIdx, topbarEnd);
+  const restHtml = htmlNoTabbar.slice(0, startIdx) + htmlNoTabbar.slice(topbarEnd);
   topbarEl.innerHTML = topbarHtml;
   scrollEl.innerHTML = restHtml;
   scrollEl.scrollTop = 0;
@@ -1246,9 +1271,34 @@ async function fetchSessionById(id) {
 function mountInner(outerId, innerHtml) {
   const outerEl = document.getElementById(outerId);
   if (!outerEl) return;
-  const startIdx = innerHtml.indexOf('<div class="topbar"');
+  const tabbarEl = document.getElementById('app-tabbar');
+
+  // ---- tabbar 분리 (mountRoute와 동일한 로직) ----
+  function extractTabbar(src) {
+    const tIdx = src.indexOf('<div class="tabbar"');
+    if (tIdx === -1) return { rest: src, tabbarHtml: null };
+    let depth = 0, end = -1;
+    const re = /<div\b[^>]*>|<\/div>/g;
+    re.lastIndex = tIdx;
+    let mm;
+    while ((mm = re.exec(src))) {
+      if (mm[0].startsWith('</div>')) {
+        depth--;
+        if (depth === 0) { end = mm.index + mm[0].length; break; }
+      } else {
+        depth++;
+      }
+    }
+    if (end === -1) return { rest: src, tabbarHtml: null };
+    return { rest: src.slice(0, tIdx) + src.slice(end), tabbarHtml: src.slice(tIdx, end) };
+  }
+  const { rest: htmlNoTabbar, tabbarHtml } = extractTabbar(innerHtml);
+  // tabbar가 이 innerHtml에 없으면(로딩 스피너 갱신 등) 기존 tabbar를 건드리지 않는다
+  if (tabbarHtml !== null && tabbarEl) tabbarEl.innerHTML = tabbarHtml;
+
+  const startIdx = htmlNoTabbar.indexOf('<div class="topbar"');
   if (startIdx === -1) {
-    outerEl.innerHTML = innerHtml;
+    outerEl.innerHTML = htmlNoTabbar;
     return;
   }
   let depth = 0;
@@ -1256,7 +1306,7 @@ function mountInner(outerId, innerHtml) {
   const tagRe = /<div\b[^>]*>|<\/div>/g;
   tagRe.lastIndex = startIdx;
   let m;
-  while ((m = tagRe.exec(innerHtml))) {
+  while ((m = tagRe.exec(htmlNoTabbar))) {
     if (m[0].startsWith('</div>')) {
       depth--;
       if (depth === 0) { topbarEnd = m.index + m[0].length; break; }
@@ -1265,11 +1315,11 @@ function mountInner(outerId, innerHtml) {
     }
   }
   if (topbarEnd === -1) {
-    outerEl.innerHTML = innerHtml;
+    outerEl.innerHTML = htmlNoTabbar;
     return;
   }
-  const topbarHtml = innerHtml.slice(startIdx, topbarEnd);
-  const restHtml = innerHtml.slice(0, startIdx) + innerHtml.slice(topbarEnd);
+  const topbarHtml = htmlNoTabbar.slice(startIdx, topbarEnd);
+  const restHtml = htmlNoTabbar.slice(0, startIdx) + htmlNoTabbar.slice(topbarEnd);
   const topbarEl = document.getElementById('app-topbar');
   if (topbarEl) topbarEl.innerHTML = topbarHtml;
   outerEl.innerHTML = restHtml;
@@ -1753,7 +1803,8 @@ function renderDetail(category) {
       <div class="phone">
         <div class="topbar"><button class="back" onclick="navigate('archive')"><i class="ti ti-chevron-left"></i> 아카이브</button><button class="icon-btn"><i class="ti ti-dots"></i></button></div>
         <div class="empty-archive">아직 "${escapeHtml(category)}" 기록이 없어요</div>
-      </div>`;
+      </div>
+      ${renderTabbar('archive')}`;
   }
 
   const timelineHtml = sessions.map(s => `
@@ -1796,7 +1847,7 @@ function renderArchiveAll() {
 
   return `
     <div class="phone">
-      <div class="topbar">${renderLogoGroup()}</div>
+      <div class="topbar">${renderLogoGroup()}<div class="topbar-date">${todayDisplay()}</div></div>
       <div class="section-label">전체 아카이브 · ${clusters.length}개 갈래</div>
       <div class="archive-cluster">${html}</div>
     </div>
@@ -1810,7 +1861,7 @@ function renderArchiveAll() {
 function renderSearch() {
   return `
     <div class="phone">
-      <div class="topbar">${renderLogoGroup()}</div>
+      <div class="topbar">${renderLogoGroup()}<div class="topbar-date">${todayDisplay()}</div></div>
       <div class="empty-archive">
         <i class="ti ti-search" style="font-size:28px; color:var(--line); display:block; margin-bottom:12px;"></i>
         검색 기능은 준비 중이에요
@@ -1829,7 +1880,7 @@ function renderMy() {
   const maskedKey = hasKey ? getClaudeKey().slice(0, 8) + '••••••••' : '';
   return `
     <div class="phone">
-      <div class="topbar">${renderLogoGroup()}</div>
+      <div class="topbar">${renderLogoGroup()}<div class="topbar-date">${todayDisplay()}</div></div>
       <div class="stat-index" style="gap:28px;">
         <div class="item" style="text-align:left;"><div class="n" style="font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--accent-yellow); line-height:1;">${String(streak).padStart(2,'0')}</div><div class="l" style="font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:4px; text-transform:uppercase;">Days</div></div>
         <div class="item"><div class="n" style="font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--ink); line-height:1;">${String(appState.archive.length).padStart(2,'0')}</div><div class="l" style="font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:4px; text-transform:uppercase;">Sessions</div></div>
