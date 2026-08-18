@@ -215,6 +215,23 @@
   .t-text { font-size:14px; line-height:1.55; padding-right:8px; }
   .t-badge { width:24px; height:24px; border-radius:50%; border:1.5px solid var(--accent-yellow); background:var(--accent-yellow); color:var(--ink); display:flex; align-items:center; justify-content:center; font-size:11px; }
   .empty-archive { padding:60px 24px; text-align:center; font-family:var(--font-mono); font-size:12px; color:var(--muted); }
+
+  /* ===== 뉴스페이퍼 상세 (재열람용) ===== */
+  .paper-detail { padding:0 24px 32px; }
+  .pd-masthead { text-align:center; padding:18px 0 14px; border-bottom:2px solid var(--ink); margin-bottom:18px; }
+  .pd-masthead .name { font-family:var(--font-serif); font-size:15px; font-weight:700; letter-spacing:3px; }
+  .pd-masthead .vol { font-family:var(--font-mono); font-size:9px; color:var(--sage); margin-top:4px; letter-spacing:1px; }
+  .pd-meta-row { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--muted); margin-bottom:16px; }
+  .pd-title { font-family:var(--font-serif); font-size:23px; font-weight:700; line-height:1.5; margin-bottom:14px; }
+  .pd-tags { display:flex; gap:6px; margin-bottom:24px; }
+  .pd-section { margin-bottom:22px; }
+  .pd-num { font-family:var(--font-mono); font-size:10px; color:var(--accent-yellow); background:var(--ink); display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; margin-bottom:8px; }
+  .pd-sub { font-family:var(--font-serif); font-size:16px; font-weight:600; margin-bottom:8px; }
+  .pd-body { font-size:14px; line-height:1.75; color:#3d463f; }
+  .pd-divider { height:1px; background:var(--line); margin:26px 0; }
+  .pd-footer-note { background:var(--paper); border:1px dashed var(--lime); border-radius:12px; padding:16px; }
+  .pd-footer-label { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:1px; margin-bottom:8px; text-transform:uppercase; }
+  .pd-footer-text { font-family:var(--font-serif); font-size:13px; font-style:italic; color:var(--sub-ink); line-height:1.6; }
 </style>
 </head>
 <body>
@@ -412,10 +429,14 @@ function renderHome(todaySessions, archive, categories) {
         </div>
       </div>`;
   } else {
-    todayBlock = `
+    todayBlock = isMobileDevice() ? `
       <div class="empty-today">
         <div class="msg">오늘의 배움을 시작해볼까요?</div>
         <button class="make-btn" onclick="navigate('pick')">오늘의 주제 만들기</button>
+      </div>` : `
+      <div class="empty-today">
+        <i class="ti ti-device-mobile" style="font-size:22px; color:var(--muted); display:block; margin-bottom:10px;"></i>
+        <div class="msg" style="font-size:13px;">오늘의 주제는 모바일에서 만들 수 있어요</div>
       </div>`;
   }
 
@@ -510,6 +531,8 @@ async function render() {
     app.innerHTML = renderSession(params.id);
   } else if (route === 'complete') {
     app.innerHTML = renderComplete(params.id);
+  } else if (route === 'paper') {
+    app.innerHTML = renderPaper(params.id);
   } else if (route === 'detail') {
     await refreshData();
     app.innerHTML = renderDetail(decodeURIComponent(params.category || ''));
@@ -607,6 +630,10 @@ function renderGenerating() {
 
 // ---- 실제 생성 처리 — Claude API로 제목+목차+본문 한번에 생성 ----
 function startGenerate(sourceType, category) {
+  if (!isMobileDevice()) {
+    alert('오늘의 주제 생성은 모바일에서만 가능해요.\n모바일에서 먼저 만들어주시면, 여기서도 바로 확인할 수 있어요.');
+    return;
+  }
   navigate('generating', { source: sourceType, category: category || '' });
 }
 
@@ -918,6 +945,58 @@ function renderCompleteInner(session) {
 }
 
 /* ==========================================================
+   뉴스페이퍼 상세 (완료된 세션 재열람)
+   ========================================================== */
+function renderPaper(id) {
+  fetchSessionById(id).then(session => {
+    if (!session) return;
+    document.getElementById('paper-root').outerHTML = renderPaperInner(session);
+  });
+  return `<div id="paper-root">${renderGenerating()}</div>`;
+}
+
+function renderPaperInner(session) {
+  const bodySections = session.body_sections || [];
+  const sectionsHtml = bodySections.map(sec => `
+    <div class="pd-section">
+      <div class="pd-num">${String(sec.num).padStart(2, '0')}</div>
+      <div class="pd-sub">${escapeHtml(sec.sub)}</div>
+      <div class="pd-body">${escapeHtml(sec.body)}</div>
+    </div>
+  `).join('');
+
+  return `
+    <div id="paper-root">
+      <div class="topbar">
+        <button class="back" onclick="history.back()"><i class="ti ti-chevron-left"></i> 아카이브</button>
+        <button class="icon-btn"><i class="ti ti-dots"></i></button>
+      </div>
+      <div class="paper-detail">
+        <div class="pd-masthead">
+          <div class="name">C H A E U M L O G</div>
+          <div class="vol">${escapeHtml(session.category.toUpperCase())} EDITION</div>
+        </div>
+        <div class="pd-meta-row">
+          <span>${session.date_key}</span>
+          <span>${session.read_minutes || 4} MIN READ</span>
+        </div>
+        <div class="pd-title">${escapeHtml(session.title)}</div>
+        <div class="pd-tags">${(session.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+
+        ${sectionsHtml}
+
+        ${session.connection_note ? `
+        <div class="pd-divider"></div>
+        <div class="pd-footer-note">
+          <div class="pd-footer-label">Note</div>
+          <div class="pd-footer-text">${escapeHtml(session.connection_note)}</div>
+        </div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+/* ==========================================================
    아카이브 상세
    ========================================================== */
 function renderDetail(category) {
@@ -934,7 +1013,7 @@ function renderDetail(category) {
   }
 
   const timelineHtml = sessions.map(s => `
-    <div class="t-item">
+    <div class="t-item" onclick="navigate('paper', {id: '${s.id}'})">
       <div class="t-date">${s.date_key.slice(5).replace('-', '.')}</div>
       <div class="t-dot-col"><div class="t-dot"></div></div>
       <div class="t-text">${escapeHtml(s.title)}</div>
