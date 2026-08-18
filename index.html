@@ -257,6 +257,46 @@ function isMobileDevice() {
   return /iPhone|iPod|Android.*Mobile/i.test(navigator.userAgent);
 }
 
+// ---- Claude API 연동 (iikoto callClaude 패턴 이식) ----
+function getClaudeKey() { return S.get('claude_api_key') || ''; }
+function setClaudeKey(key) { S.set('claude_api_key', key); }
+
+async function callClaude(systemPrompt, messages, maxTokens) {
+  const key = getClaudeKey();
+  if (!key) return null;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 45000);
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-5',
+        max_tokens: maxTokens || 1500,
+        system: systemPrompt,
+        messages
+      })
+    });
+    clearTimeout(timer);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: { message: res.status } }));
+      console.error('Claude API err:', err);
+      return '__ERR__' + (err.error?.message || res.status);
+    }
+    const data = await res.json();
+    return (data.content && data.content[0] && data.content[0].text) || null;
+  } catch (e) {
+    console.error('Claude fetch err:', e);
+    return '__ERR__' + (e.message || 'network error');
+  }
+}
+
 // ---- Supabase 클라이언트 ----
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -565,9 +605,55 @@ function renderGenerating() {
   `;
 }
 
-// ---- 실제 생성 처리 (지금은 더미 콘텐츠 — 추후 AI API 연동) ----
+// ---- 실제 생성 처리 — Claude API로 제목+목차+본문 한번에 생성 ----
 function startGenerate(sourceType, category) {
   navigate('generating', { source: sourceType, category: category || '' });
+}
+
+function buildGeneratePrompt(sourceType, category, parentSession, avoidTitles) {
+  const avoidLine = avoidTitles && avoidTitles.length
+    ? `오늘 이미 다룬 주제: ${avoidTitles.join(', ')} — 이것과 겹치지 않는 새로운 소주제로.`
+    : '';
+
+  let connectionLine = '';
+  if (sourceType === 'tailchain' && parentSession) {
+    connectionLine = `아래는 사용자가 방금 완료한 학습 세션입니다.
+[방금 완료한 세션]
+제목: ${parentSession.title}
+목차: ${(parentSession.outline || []).map(o => o.text).join(' / ')}
+
+이 내용에서 자연스럽게 이어질 수 있는 "다음 편" 소주제를 만들어주세요.
+- 같은 대주제(${category}) 안에 있되, 방금 다룬 내용의 특정 개념에서 파생되어야 해요
+- "그래서 그다음은?" 같은 심화/확장이어야 하고, 완전히 새로운 이야기면 안 돼요
+- 제목이나 소재가 방금 세션과 겹치지 않아야 해요`;
+  }
+
+  const dataContext = [
+    `오늘의 대주제: ${category}`,
+    connectionLine,
+    avoidLine
+  ].filter(Boolean).join('\n\n');
+
+  const sys = `당신은 저녁 학습 큐레이터예요. 주어진 대주제 안에서 오늘 하루 짧게(15분 내외) 공부해볼 만한 구체적인 소주제 하나를 만들고, 그 흐름을 짚어주는 목차 4개와 각 목차 항목의 실제 학습 본문까지 작성해주세요.
+
+반드시 아래 JSON 형식으로만 응답해요. 다른 텍스트나 마크다운 코드블록 없이 순수 JSON만 출력해요.
+{
+  "title": "흥미를 끄는 구체적인 소주제 제목 (한 줄)",
+  "shortTitle": "핵심 키워드만 5-10자 내외로 짧게",
+  "tags": ["태그1", "태그2"],
+  "readMinutes": 4,
+  "outline": [
+    {"sub": "목차1 제목 (3-8단어)", "body": "해당 항목의 실제 학습 본문 3-5문장, 쉽고 흥미롭게"},
+    {"sub": "목차2 제목", "body": "..."},
+    {"sub": "목차3 제목", "body": "..."},
+    {"sub": "목차4 제목", "body": "..."}
+  ],
+  "connectionNote": "이어가기인 경우, 방금 배운 것과 어떻게 이어지는지 한 문장 (이어가기가 아니면 빈 문자열)"
+}
+
+제목은 궁금증을 자아내는 질문형이나 구체적인 문장으로. "왜 ~일까?" 패턴만 반복하지 말고, 반전형("사실은 ~였다"), 인물 뒷이야기형, 의외의 연결형 등 다양한 화법을 섞어주세요. 이미 잘 알려진 대표 사례는 피하고, 상대적으로 덜 알려졌지만 흥미로운 각도를 골라주세요. 본문은 친근하고 자연스러운 구어체로, 사실 관계가 정확해야 해요.`;
+
+  return { sys, dataContext };
 }
 
 async function handleGenerate(params) {
@@ -580,27 +666,49 @@ async function handleGenerate(params) {
   }
 
   let parentSession = null;
-  let connectionNote = null;
   if (sourceType === 'tailchain' && appState.archive[0]) {
     parentSession = appState.archive[0];
     category = parentSession.category;
-    connectionNote = `방금 배운 "${parentSession.title}"에서 자연스럽게 이어지는 이야기예요.`;
   }
 
-  // TODO: 실제로는 여기서 AI API(Claude) 호출해서 제목/목차/본문 생성
-  // 지금은 더미 콘텐츠로 흐름만 완성
-  const dummyTitle = `${category}, 오늘은 이런 이야기`;
-  const outline = [
-    { text: '첫 번째로 짚어볼 것', done: false },
-    { text: '두 번째로 짚어볼 것', done: false },
-    { text: '세 번째로 짚어볼 것', done: false },
-    { text: '오늘의 마무리', done: false }
-  ];
-  const bodySections = outline.map((o, i) => ({
-    num: i + 1,
-    sub: o.text,
-    body: '(AI가 생성할 본문 내용이 여기 들어갑니다. 지금은 임시 텍스트입니다.)'
-  }));
+  const todayTitles = appState.todaySessions.map(s => s.title).filter(Boolean);
+  const { sys, dataContext } = buildGeneratePrompt(sourceType, category, parentSession, todayTitles);
+
+  if (!getClaudeKey()) {
+    document.getElementById('app').innerHTML = renderApiKeyPrompt();
+    return;
+  }
+
+  const reply = await callClaude(sys, [{ role: 'user', content: dataContext }], 1600);
+
+  if (!reply || reply.startsWith('__ERR__')) {
+    const errMsg = reply ? reply.replace('__ERR__', '') : '응답을 받지 못했어요';
+    document.getElementById('app').innerHTML = `
+      <div class="phone">
+        <div class="empty-archive">
+          <i class="ti ti-alert-triangle" style="font-size:28px; color:var(--accent-brown); display:block; margin-bottom:12px;"></i>
+          생성 중 오류가 발생했어요<br><span style="font-size:11px;">${escapeHtml(errMsg)}</span>
+          <div style="margin-top:20px;"><button class="cta" style="width:auto; padding:12px 24px;" onclick="navigate('pick')">다시 시도</button></div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  let parsed;
+  try {
+    const clean = reply.replace(/```json|```/g, '').trim();
+    parsed = JSON.parse(clean);
+  } catch (e) {
+    document.getElementById('app').innerHTML = `
+      <div class="phone"><div class="empty-archive">생성 결과를 해석하지 못했어요. 다시 시도해주세요.
+      <div style="margin-top:20px;"><button class="cta" style="width:auto; padding:12px 24px;" onclick="navigate('pick')">다시 시도</button></div>
+      </div></div>`;
+    return;
+  }
+
+  const outline = (parsed.outline || []).map(o => ({ text: o.sub, done: false }));
+  const bodySections = (parsed.outline || []).map((o, i) => ({ num: i + 1, sub: o.sub, body: o.body }));
+  const connectionNote = (sourceType === 'tailchain' && parsed.connectionNote) ? parsed.connectionNote : null;
 
   const clientId = 'cid_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 
@@ -608,25 +716,51 @@ async function handleGenerate(params) {
     client_id: clientId,
     date_key: todayKey(),
     category: category,
-    title: dummyTitle,
-    short_title: category,
+    title: parsed.title,
+    short_title: parsed.shortTitle || parsed.title,
     outline: outline,
     body_sections: bodySections,
-    tags: [category],
+    tags: parsed.tags || [category],
     source_type: sourceType,
     parent_session_id: parentSession ? parentSession.id : null,
     connection_note: connectionNote,
-    read_minutes: 4,
+    read_minutes: parsed.readMinutes || 4,
     status: 'in_progress'
   }).select().single();
 
   if (error) {
     console.error(error);
-    document.getElementById('app').innerHTML = `<div style="padding:24px;color:#c0504d;font-family:var(--font-mono);font-size:12px;">생성 중 오류: ${escapeHtml(error.message)}</div>`;
+    document.getElementById('app').innerHTML = `<div style="padding:24px;color:#c0504d;font-family:var(--font-mono);font-size:12px;">저장 중 오류: ${escapeHtml(error.message)}</div>`;
     return;
   }
 
   navigate('session', { id: data.id });
+}
+
+function renderApiKeyPrompt() {
+  return `
+    <div class="phone">
+      <div class="topbar"><button class="back" onclick="navigate('pick')"><i class="ti ti-chevron-left"></i> 뒤로</button></div>
+      <div class="pick-lead">
+        <h2>Claude API 키가 필요해요</h2>
+      </div>
+      <div style="padding:0 24px;">
+        <div style="font-size:13px; color:var(--sub-ink); line-height:1.6; margin-bottom:16px;">
+          오늘의 학습 콘텐츠를 만들려면 Anthropic API 키가 필요해요. 이이코토에서 쓰시는 키와 같은 걸 입력하셔도 돼요.
+        </div>
+        <input type="password" id="api-key-input" placeholder="sk-ant-..." style="width:100%; padding:14px; border:1px solid var(--line); border-radius:12px; font-family:var(--font-mono); font-size:13px; margin-bottom:12px;">
+        <button class="cta" onclick="saveApiKeyAndRetry()">저장하고 계속하기</button>
+      </div>
+    </div>
+  `;
+}
+
+function saveApiKeyAndRetry() {
+  const input = document.getElementById('api-key-input');
+  const key = input.value.trim();
+  if (!key) return;
+  setClaudeKey(key);
+  navigate('pick');
 }
 
 /* ==========================================================
@@ -653,16 +787,22 @@ function renderSession(id) {
 
 function renderSessionInner(session) {
   const outline = session.outline || [];
+  const bodySections = session.body_sections || [];
   const doneCount = outline.filter(o => o.done).length;
   const total = outline.length || 1;
   const pct = Math.round((doneCount / total) * 100);
 
-  const outlineHtml = outline.map((o, i) => `
-    <li class="${o.done ? 'done' : ''}" onclick="toggleOutlineItem('${session.id}', ${i})">
-      <span class="otxt">${escapeHtml(o.text)}</span>
-      <span class="mark">${o.done ? '<i class=\"ti ti-check\"></i>' : '<i class=\"ti ti-circle\"></i>'}</span>
-    </li>
-  `).join('');
+  const outlineHtml = outline.map((o, i) => {
+    const body = bodySections[i] ? bodySections[i].body : '';
+    return `
+    <li class="${o.done ? 'done' : ''}" style="flex-direction:column; align-items:stretch; gap:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleOutlineItem('${session.id}', ${i})">
+        <span class="otxt">${escapeHtml(o.text)}</span>
+        <span class="mark">${o.done ? '<i class="ti ti-check"></i>' : '<i class="ti ti-circle"></i>'}</span>
+      </div>
+      ${body ? `<div class="pd-body-preview" style="margin-top:0; padding-top:0; border-top:none;">${escapeHtml(body)}</div>` : ''}
+    </li>`;
+  }).join('');
 
   const allDone = doneCount === total && total > 0;
 
@@ -862,6 +1002,8 @@ function renderSearch() {
    ========================================================== */
 function renderMy() {
   const streak = calcStreak(appState.archive);
+  const hasKey = !!getClaudeKey();
+  const maskedKey = hasKey ? getClaudeKey().slice(0, 8) + '••••••••' : '';
   return `
     <div class="phone">
       <div class="topbar"><div class="logo">chaeumlog</div></div>
@@ -870,10 +1012,30 @@ function renderMy() {
         <div class="item"><div class="n">${String(appState.archive.length).padStart(2,'0')}</div><div class="l">Sessions</div></div>
       </div>
       <div class="divider-thin"></div>
-      <div class="empty-archive">마이페이지는 준비 중이에요</div>
+
+      <div class="section-label">설정</div>
+      <div style="padding:0 24px;">
+        <div style="background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px;">
+          <div style="font-family:var(--font-mono); font-size:10px; color:var(--sage); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;">Claude API Key</div>
+          ${hasKey
+            ? `<div style="font-family:var(--font-mono); font-size:12px; color:var(--sub-ink); margin-bottom:12px;">${maskedKey}</div>`
+            : `<div style="font-size:12px; color:var(--muted); margin-bottom:12px;">등록된 키가 없어요</div>`
+          }
+          <input type="password" id="my-api-key-input" placeholder="sk-ant-..." style="width:100%; padding:12px; border:1px solid var(--line); border-radius:10px; font-family:var(--font-mono); font-size:12px; margin-bottom:10px;">
+          <button class="cta" style="margin-bottom:0;" onclick="saveMyApiKey()">${hasKey ? '키 변경하기' : '키 등록하기'}</button>
+        </div>
+      </div>
     </div>
     ${renderTabbar('my')}
   `;
+}
+
+function saveMyApiKey() {
+  const input = document.getElementById('my-api-key-input');
+  const key = input.value.trim();
+  if (!key) return;
+  setClaudeKey(key);
+  render();
 }
 
 // ---- 서비스워커 등록 ----
