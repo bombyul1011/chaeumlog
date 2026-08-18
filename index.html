@@ -332,6 +332,39 @@ setRealVH();
 window.addEventListener('resize', setRealVH);
 window.addEventListener('orientationchange', setRealVH);
 if (window.visualViewport) window.visualViewport.addEventListener('resize', setRealVH);
+
+// ---- 진단 v4: #app / #app-scroll 실제 높이, 탭바 다음 형제 요소 확인 ----
+function runDiagnostic(){
+  const appEl = document.getElementById('app');
+  const scrollEl = document.getElementById('app-scroll');
+  const tb = document.getElementById('app-tabbar');
+  if (!appEl || !tb) return;
+  const appRect = appEl.getBoundingClientRect();
+  const scrollRect = scrollEl.getBoundingClientRect();
+  const tbRect = tb.getBoundingClientRect();
+  const bodyRect = document.body.getBoundingClientRect();
+  const nextSibling = tb.nextElementSibling;
+  const info = [
+    'window.innerHeight: ' + window.innerHeight,
+    'body: top=' + bodyRect.top + ' bottom=' + bodyRect.bottom + ' h=' + bodyRect.height,
+    '#app: top=' + appRect.top + ' bottom=' + appRect.bottom + ' h=' + appRect.height,
+    '#app-scroll: top=' + scrollRect.top + ' bottom=' + scrollRect.bottom + ' h=' + scrollRect.height,
+    '#app-scroll.scrollHeight: ' + scrollEl.scrollHeight,
+    '#app-tabbar: top=' + tbRect.top + ' bottom=' + tbRect.bottom + ' h=' + tbRect.height,
+    'tabbar next sibling: ' + (nextSibling ? (nextSibling.tagName+'#'+nextSibling.id+'.'+nextSibling.className) : 'NONE (tabbar가 마지막 자식)'),
+    'body children count: ' + document.body.children.length,
+    'body last child: ' + document.body.lastElementChild.tagName + '#' + document.body.lastElementChild.id
+  ];
+  let panel = document.getElementById('__diag_panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = '__diag_panel';
+    panel.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#0f0;font-family:monospace;font-size:11px;padding:10px;white-space:pre-wrap;line-height:1.6;max-height:70vh;overflow-y:auto;';
+    document.body.appendChild(panel);
+  }
+  panel.textContent = info.join('\n');
+}
+window.addEventListener('load', function(){ setTimeout(runDiagnostic, 500); });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
