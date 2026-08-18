@@ -161,6 +161,15 @@
   .cluster-n { font-family:var(--font-mono); font-size:11px; color:var(--muted); }
   .cluster-arrow { color:var(--accent-yellow); font-size:13px; font-weight:700; }
 
+  .archive-grid { padding:0 24px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .grid-card { background:rgba(253,254,252,0.55); border:1px solid var(--line); border-radius:12px; padding:11px; cursor:pointer; }
+  .grid-card-icon { font-size:17px; line-height:1; }
+  .grid-card-foot { display:flex; justify-content:space-between; align-items:baseline; margin-top:7px; }
+  .grid-card-label { display:flex; align-items:baseline; gap:5px; }
+  .grid-card-code { font-family:var(--font-mono); font-size:9px; color:var(--muted); }
+  .grid-card-name { font-family:var(--font-serif); font-size:14px; font-weight:600; color:var(--ink); }
+  .grid-card-n { font-family:var(--font-mono); font-size:16px; font-weight:500; }
+
   .accum-wrap { padding:28px 24px 8px; text-align:center; }
   .accum-label { font-family:var(--font-mono); font-size:10px; color:var(--sage); letter-spacing:1px; margin-bottom:14px; }
   .dots { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; max-width:280px; margin:0 auto 10px; }
@@ -501,8 +510,13 @@ function groupArchiveByCategory(archive, categories) {
     if (!map[s.category]) map[s.category] = { code: '?', name_ko: s.category, sessions: [] };
     map[s.category].sessions.push(s);
   });
-  return Object.values(map).filter(c => c.sessions.length > 0)
-    .sort((a, b) => b.sessions.length - a.sessions.length);
+  return Object.values(map)
+    .sort((a, b) => b.sessions.length - a.sessions.length || (a.sort_order || 0) - (b.sort_order || 0));
+}
+
+// 상단 통계(Branches)는 실제 기록이 있는 갈래 수만 카운트
+function countActiveBranches(archive, categories) {
+  return groupArchiveByCategory(archive, categories).filter(c => c.sessions.length > 0).length;
 }
 
 // 카테고리별 아이콘 매핑 (Tabler Icons)
@@ -516,6 +530,19 @@ const CATEGORY_ICONS = {
 };
 function getCategoryIcon(nameKo) {
   return CATEGORY_ICONS[nameKo] || 'ti-bookmark';
+}
+
+// 카테고리별 고유색 매핑 — 이이코토 파스텔 팔레트 기반, 노랑·세이지그린(앱 기본색)은 제외
+const CATEGORY_COLORS = {
+  '역사': '#C2B9A9', // 웜그레이
+  '예술': '#CA8080', // 로즈
+  '영화': '#8FB5D1', // 스카이
+  '음악': '#B198C7', // 라벤더
+  '시사': '#DEB07E', // 피치
+  '건축': '#7E8DBE'  // 페리윙클블루
+};
+function getCategoryColor(nameKo) {
+  return CATEGORY_COLORS[nameKo] || 'var(--sage)';
 }
 
 function escapeHtml(str) {
@@ -693,7 +720,7 @@ document.addEventListener('touchend', (e) => {
 function renderHome(todaySessions, archive, categories) {
   const streak = calcStreak(archive);
   const totalSessions = archive.length;
-  const branches = groupArchiveByCategory(archive, categories).length;
+  const branches = countActiveBranches(archive, categories);
 
   const todaySessionsAll = todaySessions; // 진행중 + 완료 모두 포함 (오늘 생성된 전체 세션)
   const todaySlots = isMobileDevice() ? [...todaySessionsAll, null] : todaySessionsAll; // 모바일이면 맨 뒤에 "뽑기" 가상 슬롯 추가
@@ -728,12 +755,17 @@ function renderHome(todaySessions, archive, categories) {
   }
 
   const clusters = groupArchiveByCategory(archive, categories);
-  const clusterHtml = clusters.length ? clusters.map(c => `
-    <div class="cluster-row" onclick="navigate('detail', {category: encodeURIComponent('${escapeHtml(c.name_ko)}')})">
-      <div class="cluster-left"><i class="ti ${getCategoryIcon(c.name_ko)} cluster-cat-icon"></i><span class="cluster-code">${escapeHtml(c.code)}</span><span class="cluster-name">${escapeHtml(c.name_ko)}</span></div>
-      <div class="cluster-right"><span class="cluster-n">${c.sessions.length}</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
-    </div>
-  `).join('') : `<div style="padding:20px 0; font-family:var(--font-mono); font-size:12px; color:var(--muted);">아직 쌓인 기록이 없어요</div>`;
+  const clusterHtml = clusters.length ? clusters.map(c => {
+    const color = getCategoryColor(c.name_ko);
+    return `
+    <div class="grid-card" onclick="navigate('detail', {category: encodeURIComponent('${escapeHtml(c.name_ko)}')})">
+      <i class="ti ${getCategoryIcon(c.name_ko)} grid-card-icon" style="color:${color};"></i>
+      <div class="grid-card-foot">
+        <span class="grid-card-label"><span class="grid-card-code">${escapeHtml(c.code)}</span><span class="grid-card-name">${escapeHtml(c.name_ko)}</span></span>
+        <span class="grid-card-n" style="color:${color};">${c.sessions.length}</span>
+      </div>
+    </div>`;
+  }).join('') : `<div style="padding:20px 0; font-family:var(--font-mono); font-size:12px; color:var(--muted);">아직 쌓인 기록이 없어요</div>`;
 
   const dotsHtml = Array.from({ length: Math.max(totalSessions, 1) }).map((_, i) => {
     const cls = totalSessions === 0 ? '' : (i % 7 === 0 ? 'd2' : (i % 3 === 0 ? 'd1' : ''));
@@ -768,11 +800,11 @@ function renderHome(todaySessions, archive, categories) {
       ${todayBlock}
 
 
-      <div class="section-label">아카이브</div>
-      <div class="archive-cluster">${clusterHtml}</div>
+      <div class="section-label" style="padding-top:16px; padding-bottom:8px;">아카이브</div>
+      <div class="archive-grid">${clusterHtml}</div>
 
       ${totalSessions > 0 ? `
-      <div class="accum-wrap">
+      <div class="accum-wrap" style="padding-top:18px;">
         <div class="accum-label">YOUR KNOWLEDGE, GROWING</div>
         <div class="dots">${dotsHtml}</div>
         <div class="accum-note">지금까지 ${totalSessions}개의 기록이 쌓였어요</div>
@@ -1426,7 +1458,7 @@ function renderPaperInner(session) {
         ${session.summary_note ? `
         <div class="pd-divider"></div>
         <div class="pd-footer-note">
-          <div class="pd-footer-label">나의 요약 · 느낀점</div>
+          <div class="pd-footer-label">Comment</div>
           <div class="pd-footer-text">${escapeHtml(session.summary_note)}</div>
         </div>` : ''}
       </div>
@@ -1571,7 +1603,7 @@ async function openEditSession(sessionId) {
       <div class="edit-field-label">짧은 요약</div>
       <textarea class="edit-textarea" id="edit-brief">${escapeHtml(session.brief_summary || '')}</textarea>
 
-      <div class="edit-field-label">나의 요약 · 느낀점</div>
+      <div class="edit-field-label">Comment</div>
       <textarea class="edit-textarea" id="edit-summary-note">${escapeHtml(session.summary_note || '')}</textarea>
 
       <div class="toast-btn-row" style="margin-top:20px;">
@@ -1631,7 +1663,7 @@ function renderDetail(category) {
   if (!sessions.length) {
     return `
       <div class="phone">
-        <div class="topbar"><button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button><button class="icon-btn"><i class="ti ti-dots"></i></button></div>
+        <div class="topbar"><button class="back" onclick="navigate('archive')"><i class="ti ti-chevron-left"></i> 아카이브</button><button class="icon-btn"><i class="ti ti-dots"></i></button></div>
         <div class="empty-archive">아직 "${escapeHtml(category)}" 기록이 없어요</div>
       </div>`;
   }
@@ -1647,7 +1679,7 @@ function renderDetail(category) {
 
   return `
     <div class="phone">
-      <div class="topbar"><button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button></div>
+      <div class="topbar"><button class="back" onclick="navigate('archive')"><i class="ti ti-chevron-left"></i> 아카이브</button></div>
       <div class="detail-hero">
         <div class="detail-code">ARCHIVE / ${escapeHtml(cat ? cat.code : '?')}</div>
         <div class="detail-title">${escapeHtml(category)}</div>
@@ -1666,7 +1698,7 @@ function renderDetail(category) {
    아카이브 전체 (하단탭 · 카테고리 목록)
    ========================================================== */
 function renderArchiveAll() {
-  const clusters = groupArchiveByCategory(appState.archive, appState.categories);
+  const clusters = groupArchiveByCategory(appState.archive, appState.categories).filter(c => c.sessions.length > 0);
   const html = clusters.length ? clusters.map(c => `
     <div class="cluster-row" onclick="navigate('detail', {category: encodeURIComponent('${escapeHtml(c.name_ko)}')})">
       <div class="cluster-left"><i class="ti ${getCategoryIcon(c.name_ko)} cluster-cat-icon"></i><span class="cluster-code">${escapeHtml(c.code)}</span><span class="cluster-name">${escapeHtml(c.name_ko)}</span></div>
