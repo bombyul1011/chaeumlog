@@ -57,6 +57,58 @@
     font-family: var(--font-mono); font-size:12px; color:var(--sage);
     letter-spacing:1px; z-index:999;
   }
+
+  /* ===== 홈 화면 ===== */
+  .phone { max-width:420px; margin:0 auto; min-height:100vh; padding-bottom:40px; }
+  .topbar { display:flex; justify-content:space-between; align-items:center; padding:20px 24px 0; }
+  .logo { font-family:var(--font-mono); font-size:12px; letter-spacing:1px; color:var(--sage); }
+  .icon-btn { color:var(--sage); font-size:16px; background:none; border:none; cursor:pointer; }
+
+  .stat-index { display:flex; gap:28px; padding:22px 24px 4px; }
+  .stat-index .n { font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--ink); line-height:1; }
+  .stat-index .l { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:4px; text-transform:uppercase; }
+  .divider-thin { height:1px; background:var(--line); margin:20px 24px 0; }
+
+  .section-label { padding:22px 24px 12px; font-family:var(--font-mono); font-size:10px; color:var(--sub-ink); letter-spacing:1.5px; text-transform:uppercase; }
+
+  .today-card {
+    margin:0 24px; background:var(--paper);
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 26px, #E4ECE0 26px, #E4ECE0 27px);
+    border:1px solid var(--line); border-radius:16px; padding:18px; position:relative;
+  }
+  .today-badge {
+    position:absolute; top:-9px; left:18px; background:var(--accent-yellow); color:var(--ink);
+    font-family:var(--font-mono); font-size:9px; font-weight:500; letter-spacing:0.5px;
+    padding:4px 10px; border-radius:20px;
+  }
+  .today-meta { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--sage); margin-bottom:10px; padding-top:4px; }
+  .today-title { font-family:var(--font-serif); font-size:19px; font-weight:700; line-height:1.5; margin-bottom:12px; }
+  .today-tags { display:flex; gap:6px; margin-bottom:16px; }
+  .tag { font-family:var(--font-mono); font-size:10px; color:#5b7a63; background:var(--lime); padding:4px 10px; border-radius:20px; }
+  .today-foot { display:flex; justify-content:space-between; align-items:center; }
+  .read-time { font-family:var(--font-mono); font-size:10px; color:var(--muted); }
+  .start-link { font-family:var(--font-sans); font-size:13px; font-weight:600; color:var(--accent-brown); display:flex; align-items:center; gap:4px; cursor:pointer; background:none; border:none; }
+
+  .empty-today { margin:0 24px; background:var(--card); border:1.5px dashed var(--line); border-radius:16px; padding:28px 20px; text-align:center; }
+  .empty-today .msg { font-family:var(--font-serif); font-size:15px; color:var(--sub-ink); margin-bottom:16px; }
+  .empty-today .make-btn { background:var(--sage); color:#fff; border:none; padding:12px 24px; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; }
+
+  .archive-cluster { padding:0 24px; margin-bottom:2px; }
+  .cluster-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+  .cluster-left { display:flex; align-items:baseline; gap:10px; }
+  .cluster-code { font-family:var(--font-mono); font-size:11px; color:var(--sage); width:16px; }
+  .cluster-name { font-family:var(--font-serif); font-size:15px; font-weight:600; }
+  .cluster-right { display:flex; align-items:center; gap:10px; }
+  .cluster-n { font-family:var(--font-mono); font-size:11px; color:var(--muted); }
+  .cluster-arrow { color:var(--accent-yellow); font-size:13px; font-weight:700; }
+
+  .accum-wrap { padding:28px 24px 8px; text-align:center; }
+  .accum-label { font-family:var(--font-mono); font-size:10px; color:var(--sage); letter-spacing:1px; margin-bottom:14px; }
+  .dots { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; max-width:280px; margin:0 auto 10px; }
+  .dots span { width:5px; height:5px; border-radius:50%; background:var(--lime); display:inline-block; }
+  .dots span.d1 { background:var(--sage); }
+  .dots span.d2 { background:var(--accent-yellow); }
+  .accum-note { font-family:var(--font-serif); font-size:12px; color:var(--sub-ink); font-style:italic; }
 </style>
 </head>
 <body>
@@ -132,6 +184,118 @@ async function fetchArchive() {
   return data;
 }
 
+// ---- 통계 계산 ----
+function calcStreak(archive) {
+  // 완료 세션의 DISTINCT date_key 기준 연속 일수 계산
+  const dateSet = new Set(archive.map(s => s.date_key));
+  const dates = Array.from(dateSet).sort().reverse(); // 최신순
+  if (dates.length === 0) return 0;
+
+  let streak = 0;
+  let cursor = new Date();
+  // 오늘 기록이 없으면 어제부터 체크 (오늘 아직 안 했어도 스트릭 유지)
+  if (!dateSet.has(todayKey())) {
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  while (dateSet.has(dateKey(cursor))) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+function groupArchiveByCategory(archive, categories) {
+  const map = {};
+  categories.forEach(c => { map[c.name_ko] = { ...c, sessions: [] }; });
+  archive.forEach(s => {
+    if (!map[s.category]) map[s.category] = { code: '?', name_ko: s.category, sessions: [] };
+    map[s.category].sessions.push(s);
+  });
+  return Object.values(map).filter(c => c.sessions.length > 0)
+    .sort((a, b) => b.sessions.length - a.sessions.length);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+// ---- 홈 화면 렌더 ----
+function renderHome(todaySessions, archive, categories) {
+  const streak = calcStreak(archive);
+  const totalSessions = archive.length;
+  const branches = groupArchiveByCategory(archive, categories).length;
+
+  const inProgress = todaySessions.find(s => s.status === 'in_progress');
+  const completedToday = todaySessions.filter(s => s.status === 'completed');
+
+  let todayBlock;
+  if (inProgress) {
+    const doneCount = (inProgress.outline || []).filter(o => o.done).length;
+    const total = (inProgress.outline || []).length || 4;
+    todayBlock = `
+      <div class="today-card">
+        <span class="today-badge">TODAY</span>
+        <div class="today-meta"><span>${todayKey()}</span><span>${escapeHtml(inProgress.category)}</span></div>
+        <div class="today-title">${escapeHtml(inProgress.title)}</div>
+        <div class="today-tags">${(inProgress.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+        <div class="today-foot">
+          <span class="read-time">${doneCount} / ${total} 완료</span>
+          <button class="start-link" onclick="alert('세션 화면으로 이동 (다음 단계에서 구현)')">이어서 읽기 →</button>
+        </div>
+      </div>`;
+  } else {
+    todayBlock = `
+      <div class="empty-today">
+        <div class="msg">오늘의 배움을 시작해볼까요?</div>
+        <button class="make-btn" onclick="alert('주제 선택 화면으로 이동 (다음 단계에서 구현)')">오늘의 주제 만들기</button>
+      </div>`;
+  }
+
+  const clusters = groupArchiveByCategory(archive, categories);
+  const clusterHtml = clusters.length ? clusters.map(c => `
+    <div class="cluster-row">
+      <div class="cluster-left"><span class="cluster-code">${escapeHtml(c.code)}</span><span class="cluster-name">${escapeHtml(c.name_ko)}</span></div>
+      <div class="cluster-right"><span class="cluster-n">${c.sessions.length}</span><span class="cluster-arrow">→</span></div>
+    </div>
+  `).join('') : `<div style="padding:20px 0; font-family:var(--font-mono); font-size:12px; color:var(--muted);">아직 쌓인 기록이 없어요</div>`;
+
+  const dotsHtml = Array.from({ length: Math.max(totalSessions, 1) }).map((_, i) => {
+    const cls = totalSessions === 0 ? '' : (i % 7 === 0 ? 'd2' : (i % 3 === 0 ? 'd1' : ''));
+    return `<span class="${cls}"></span>`;
+  }).join('');
+
+  return `
+    <div class="phone">
+      <div class="topbar">
+        <div class="logo">chaeumlog</div>
+        <button class="icon-btn">⋯</button>
+      </div>
+
+      <div class="stat-index">
+        <div class="item"><div class="n" style="color:var(--accent-brown);">${String(streak).padStart(2,'0')}</div><div class="l">Days</div></div>
+        <div class="item"><div class="n">${String(totalSessions).padStart(2,'0')}</div><div class="l">Sessions</div></div>
+        <div class="item"><div class="n">${String(branches).padStart(2,'0')}</div><div class="l">Branches</div></div>
+      </div>
+      <div class="divider-thin"></div>
+
+      <div class="section-label">오늘의 기록</div>
+      ${todayBlock}
+
+      <div class="section-label">아카이브</div>
+      <div class="archive-cluster">${clusterHtml}</div>
+
+      ${totalSessions > 0 ? `
+      <div class="accum-wrap">
+        <div class="accum-label">YOUR KNOWLEDGE, GROWING</div>
+        <div class="dots">${dotsHtml}</div>
+        <div class="accum-note">지금까지 ${totalSessions}개의 기록이 쌓였어요</div>
+      </div>` : ''}
+    </div>
+  `;
+}
+
 // ---- 서비스워커 등록 ----
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -143,28 +307,29 @@ if ('serviceWorker' in navigator) {
 async function boot() {
   let categories = [];
   let archive = [];
+  let todaySessions = [];
   let bootError = null;
 
   try {
     categories = await fetchCategories();
     archive = await fetchArchive();
+    todaySessions = await fetchTodaySession();
   } catch (err) {
     console.error('[chaeumlog] boot fetch error:', err);
     bootError = err;
   }
 
   document.getElementById('loading').style.display = 'none';
-  document.getElementById('app').innerHTML = `
-    <div style="padding:24px; font-family:var(--font-mono); font-size:12px; color:var(--sub-ink);">
-      <div style="font-family:var(--font-serif); font-size:20px; color:var(--ink); margin-bottom:12px;">채움로그 · 연결 확인</div>
-      <div>오늘 날짜: ${todayKey()}</div>
-      <div>디바이스: ${isMobileDevice() ? 'mobile (AI 생성 가능)' : 'desktop/tablet (조회 전용)'}</div>
-      <div>카테고리 로드: ${categories.length}개</div>
-      <div>아카이브 세션: ${archive.length}개</div>
-      ${bootError ? `<div style="color:#c0504d; margin-top:12px; white-space:pre-wrap;">에러: ${(bootError.message || bootError).toString()}</div>` : ''}
-    </div>
-  `;
-  // TODO: 실제 홈/세션/아카이브 화면 렌더링으로 교체
+
+  if (bootError) {
+    document.getElementById('app').innerHTML = `
+      <div style="padding:24px; font-family:var(--font-mono); font-size:12px; color:#c0504d; white-space:pre-wrap;">
+        에러: ${(bootError.message || bootError).toString()}
+      </div>`;
+    return;
+  }
+
+  document.getElementById('app').innerHTML = renderHome(todaySessions, archive, categories);
 }
 
 boot().catch((err) => {
