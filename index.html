@@ -180,6 +180,18 @@
   .cta { width:100%; background:var(--sage); color:#fff; border:none; padding:16px; border-radius:14px; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:12px; }
   .pd-body-preview { font-size:14px; line-height:1.8; color:#3d463f; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); }
 
+  /* ===== 프롬프트 복사 → Claude 연결 토스트 ===== */
+  .toast-backdrop { position:fixed; inset:0; background:rgba(43,51,46,0.35); z-index:200; display:flex; align-items:flex-end; justify-content:center; animation:toastFadeIn 0.2s ease; }
+  @keyframes toastFadeIn { from{opacity:0;} to{opacity:1;} }
+  .toast-sheet { width:100%; max-width:480px; background:var(--card); border-radius:20px 20px 0 0; padding:22px 22px calc(22px + env(safe-area-inset-bottom)); animation:toastSlideUp 0.25s cubic-bezier(.25,.9,.4,1); }
+  @keyframes toastSlideUp { from{ transform:translateY(100%); } to{ transform:translateY(0); } }
+  .toast-icon { width:44px; height:44px; border-radius:12px; background:var(--accent-yellow-bg); color:var(--accent-brown); display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:14px; }
+  .toast-title { font-family:var(--font-serif); font-size:17px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .toast-sub { font-size:13px; color:var(--sub-ink); line-height:1.6; margin-bottom:20px; }
+  .toast-btn-row { display:flex; gap:8px; }
+  .toast-btn-row .cta { margin-bottom:0; }
+  .toast-btn-secondary { flex:0 0 auto; padding:16px 18px; background:var(--paper); color:var(--sub-ink); border:1px solid var(--line); border-radius:14px; font-size:14px; font-weight:600; cursor:pointer; }
+
   /* ===== 완료 화면 ===== */
   .complete-wrap { min-height:100vh; padding:0 24px 88px; }
   .paper-card { margin-top:40px; background:var(--card); border:1px solid var(--ink); border-radius:2px; padding:28px 24px 24px; box-shadow:4px 4px 0 var(--line); }
@@ -708,7 +720,15 @@ function buildLearningPrompt(session) {
 
 ${outlineLines}
 
-각 항목마다 소제목을 달고, 이해하기 쉽고 흥미롭게 설명해줘. 시작할 때 왜 이 주제가 흥미로운지 짧은 도입부를 넣어주고, 마지막엔 전체 내용을 한 문장으로 정리해줘. 관련해서 최신 정보가 필요하면 검색해서 확인해주고, 더 찾아볼 만한 유튜브 영상이나 자료도 추천해줘.`;
+**분량 기준**: 총 30분 학습 분량으로, 4개 항목 각각을 꽤 깊이 있게 다뤄줘. 항목당 최소 3~4문단 정도로, 짧게 요약하고 넘어가지 말고 충분히 풀어서 설명해줘.
+
+각 항목마다 이렇게 채워줘:
+- 소제목 아래 핵심 흐름을 먼저 설명하고, 그 안에서 구체적인 사례·인물·연도·수치를 최소 2개 이상 짚어줘 (두루뭉술한 설명 대신 "누가, 언제, 무엇을, 어떻게"가 드러나게)
+- 필요하면 소주제 안에서 다시 작은 소제목(중제목)으로 한 번 더 쪼개도 좋아
+- 통념과 다르거나 의외인 지점이 있다면 짚어줘
+- 각 항목 끝에 다음 항목으로 자연스럽게 넘어가는 연결 문장을 넣어줘
+
+시작할 때 왜 이 주제가 흥미로운지 짧은 도입부를 넣어주고, 마지막엔 전체 흐름을 정리하면서 오늘 배운 걸 실제로 어떻게 연결해서 생각해볼 수 있을지 질문이나 관점 하나를 던져줘. 관련해서 최신 정보가 필요하면 검색해서 확인해주고, 더 찾아볼 만한 유튜브 영상(가능하면 한국어 콘텐츠)이나 책, 자료도 추천해줘.`;
 }
 
 async function handleGenerate(params) {
@@ -890,15 +910,54 @@ async function copyLearningPrompt(sessionId) {
   const prompt = buildLearningPrompt(session);
   try {
     await navigator.clipboard.writeText(prompt);
-    const btn = event && event.target ? event.target.closest('button') : null;
-    if (btn) {
-      const original = btn.innerHTML;
-      btn.innerHTML = '<i class="ti ti-check"></i> 복사됐어요! Claude 앱에 붙여넣으세요';
-      setTimeout(() => { btn.innerHTML = original; }, 2000);
-    }
+    showClaudeHandoffToast();
   } catch (e) {
     alert('복사에 실패했어요. 아래 내용을 직접 복사해주세요:\n\n' + prompt);
   }
+}
+
+function showClaudeHandoffToast() {
+  const existing = document.getElementById('claude-handoff-toast');
+  if (existing) existing.remove();
+
+  const el = document.createElement('div');
+  el.id = 'claude-handoff-toast';
+  el.className = 'toast-backdrop';
+  el.onclick = (e) => { if (e.target === el) el.remove(); };
+  el.innerHTML = `
+    <div class="toast-sheet">
+      <div class="toast-icon"><i class="ti ti-check"></i></div>
+      <div class="toast-title">프롬프트를 복사했어요</div>
+      <div class="toast-sub">Claude 앱을 열어서 붙여넣으면 바로 학습을 시작할 수 있어요.</div>
+      <div class="toast-btn-row">
+        <button class="toast-btn-secondary" onclick="document.getElementById('claude-handoff-toast').remove()">나중에</button>
+        <button class="cta" style="flex:1;" onclick="openClaudeApp()">
+          <i class="ti ti-external-link"></i> Claude 앱 열기
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+}
+
+function openClaudeApp() {
+  const toast = document.getElementById('claude-handoff-toast');
+  if (toast) toast.remove();
+
+  // 모바일 딥링크 시도 → 일정 시간 내 앱 전환이 안 되면 웹으로 폴백
+  const fallbackUrl = 'https://claude.ai/new';
+  const deepLink = 'claude://new';
+  let didHide = false;
+  const onVisibilityChange = () => { if (document.hidden) didHide = true; };
+  document.addEventListener('visibilitychange', onVisibilityChange);
+
+  window.location.href = deepLink;
+
+  setTimeout(() => {
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    if (!didHide) {
+      window.open(fallbackUrl, '_blank');
+    }
+  }, 900);
 }
 
 /* ==========================================================
