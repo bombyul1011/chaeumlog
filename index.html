@@ -82,13 +82,14 @@
   .phone { max-width:420px; margin:0 auto; padding-bottom:88px; }
 
   /* 하단 메뉴바 — #app-tabbar는 body 직속(스크롤 컨테이너 밖)이라 뷰포트 기준으로 확실히 고정됨 */
-  #app-tabbar { position:fixed; left:0; right:0; bottom:0; z-index:50; }
+  #app-tabbar { position:fixed; left:0; right:0; bottom:0; z-index:50; outline:4px solid blue; /* 임시 진단용 */ }
   #app-tabbar:empty { display:none; }
   .tabbar {
     max-width:420px; margin:0 auto;
     background:var(--card); border-top:1px solid var(--line);
     display:flex; justify-content:space-around; align-items:center;
     padding:10px 0 calc(10px + env(safe-area-inset-bottom));
+    outline:4px solid red; /* 임시 진단용 — .tabbar 실제 경계 육안 확인 */
   }
   .tabbar-item {
     display:flex; flex-direction:column; align-items:center; gap:3px;
