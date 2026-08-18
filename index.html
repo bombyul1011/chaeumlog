@@ -39,12 +39,13 @@
   }
 
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html, body { height:100%; }
+  html, body { height:100%; height:100dvh; overflow:hidden; }
   body {
     font-family: var(--font-sans);
     background: var(--bg);
     color: var(--ink);
     overscroll-behavior-y: none;
+    position:fixed; inset:0;
   }
   button { font-family:inherit; }
   a { color:inherit; text-decoration:none; }
@@ -53,7 +54,7 @@
   .start-link { display:inline-flex; align-items:center; gap:4px; }
   .cta { display:flex; align-items:center; justify-content:center; gap:6px; }
 
-  #app { height:100%; display:flex; flex-direction:column; }
+  #app { height:100%; height:100dvh; display:flex; flex-direction:column; }
   #app-topbar { flex-shrink:0; background:var(--bg); padding-top:env(safe-area-inset-top); position:relative; z-index:10; }
   #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 
@@ -97,7 +98,7 @@
   .tabbar-item .ti { font-size:20px; }
   .tabbar-item.active { color:var(--sage); }
   .tabbar-item.active .ti { color:var(--accent-yellow); }
-  .topbar { display:flex; justify-content:space-between; align-items:center; padding:8px 24px 0; }
+  .topbar { display:flex; justify-content:space-between; align-items:center; padding:2px 24px 0; }
   .logo-group { display:flex; align-items:center; gap:6px; cursor:pointer; }
   .logo-mark { width:26px; height:26px; object-fit:contain; display:block; }
   .logo { font-family:var(--font-mono); font-size:12px; letter-spacing:1px; color:var(--sage); }
@@ -151,7 +152,6 @@
 
   .empty-today { margin:0 24px; background:var(--card); border:1.5px dashed var(--line); border-radius:16px; padding:28px 20px; text-align:center; }
   .empty-today .msg { font-family:var(--font-serif); font-size:15px; color:var(--sub-ink); margin-bottom:16px; }
-  .empty-today .make-btn { background:var(--sage); color:#fff; border:none; padding:12px 24px; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; }
 
   .archive-cluster { padding:0 24px; margin-bottom:2px; }
   .cluster-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); cursor:pointer; }
@@ -588,13 +588,14 @@ function renderTabbar(active) {
 
 // ---- 홈 화면 "오늘의 기록" 카드: 화살표로 하나씩 전환 ----
 // s가 null이면 "새 주제 뽑기" 카드 (오늘 뽑은 카드들 맨 뒷장에 자연스럽게 위치)
-function renderTodayCard(s) {
+function renderTodayCard(s, isFirstEmpty) {
   if (s === null) {
+    const title = isFirstEmpty ? '오늘의 배움을<br>시작해볼까요?' : '오늘 다룰 다른 이야기를<br>골라볼까요?';
     return `
     <div class="today-card">
       <span class="today-badge"><i class="ti ti-plus"></i> 선택</span>
       <div class="today-meta"><span>${todayKey()}</span><span>&nbsp;</span></div>
-      <div class="today-title">오늘 다룰 다른 이야기를<br>골라볼까요?</div>
+      <div class="today-title">${title}</div>
       <div class="today-tags"></div>
       <div class="today-foot">
         <span class="read-time">&nbsp;</span>
@@ -752,12 +753,11 @@ function renderHome(todaySessions, archive, categories) {
     todayBlock = `
       <div id="today-card-wrap">${renderTodayCard(todaySlots[idx])}</div>
       ${navHtml}`;
+  } else if (isMobileDevice()) {
+    // 세션이 아직 하나도 없는 자정 직후 상태 — "다른 주제 더 뽑기"와 동일한 today-card 스타일 재사용, 문구만 분기
+    todayBlock = `<div id="today-card-wrap">${renderTodayCard(null, true)}</div>`;
   } else {
-    todayBlock = isMobileDevice() ? `
-      <div class="empty-today">
-        <div class="msg">오늘의 배움을 시작해볼까요?</div>
-        <button class="make-btn" onclick="navigate('pick')">오늘의 주제 만들기</button>
-      </div>` : `
+    todayBlock = `
       <div class="empty-today">
         <i class="ti ti-device-mobile" style="font-size:22px; color:var(--muted); display:block; margin-bottom:10px;"></i>
         <div class="msg" style="font-size:13px;">오늘의 주제는 모바일에서 만들 수 있어요</div>
