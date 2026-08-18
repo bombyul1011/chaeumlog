@@ -86,11 +86,22 @@
   .tabbar-item.active .ti { color:var(--accent-brown); }
   .topbar { display:flex; justify-content:space-between; align-items:center; padding:20px 24px 0; }
   .logo { font-family:var(--font-mono); font-size:12px; letter-spacing:1px; color:var(--sage); }
+  .topbar-date { font-family:var(--font-mono); font-size:11px; letter-spacing:0.5px; color:var(--muted); }
   .icon-btn { color:var(--sage); font-size:16px; background:none; border:none; cursor:pointer; }
 
-  .stat-index { display:flex; gap:28px; padding:22px 24px 4px; }
-  .stat-index .n { font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--ink); line-height:1; }
-  .stat-index .l { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:4px; text-transform:uppercase; }
+  .stat-index { display:flex; padding:22px 24px 4px; }
+  .stat-nums { flex:0 0 66.6667%; display:flex; }
+  .stat-nums .item { flex:1; text-align:center; }
+  .stat-nums .item:first-child { text-align:left; }
+  .stat-nums .n { font-family:var(--font-mono); font-size:34px; font-weight:500; color:var(--ink); line-height:1; }
+  .stat-nums .l { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:6px; text-transform:uppercase; height:11px; display:flex; align-items:center; }
+  .stat-nums .item:first-child .l { justify-content:flex-start; }
+  .stat-nums .item:not(:first-child) .l { justify-content:center; }
+  .stat-recent { flex:1; display:flex; flex-direction:column; justify-content:flex-end; }
+  .stat-recent .spacer { height:34px; }
+  .mini-dots { display:flex; justify-content:flex-end; gap:5px; margin-top:6px; height:11px; align-items:center; }
+  .mini-dot { width:7px; height:7px; border-radius:50%; background:var(--line); }
+  .mini-dot.on { background:var(--accent-yellow); }
   .divider-thin { height:1px; background:var(--line); margin:20px 24px 0; }
 
   .section-label { padding:22px 24px 12px; font-family:var(--font-mono); font-size:10px; color:var(--sub-ink); letter-spacing:1.5px; text-transform:uppercase; }
@@ -280,6 +291,13 @@ function dateKey(d) {
   return `${y}-${m}-${day}`;
 }
 function todayKey() { return dateKey(new Date()); }
+function todayDisplay() {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const dow = ['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()];
+  return `${m}.${day} ${dow}`;
+}
 
 // ---- 디바이스 판별 — AI 생성(뽑기)은 모바일 전용 ----
 function isMobileDevice() {
@@ -396,6 +414,18 @@ function calcStreak(archive) {
   return streak;
 }
 
+// 최근 7일(6일 전 ~ 오늘) 완료 여부 배열, 과거 → 오늘 순
+function calcRecent7Days(archive) {
+  const dateSet = new Set(archive.map(s => s.date_key));
+  const result = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    result.push(dateSet.has(dateKey(d)));
+  }
+  return result;
+}
+
 function groupArchiveByCategory(archive, categories) {
   const map = {};
   categories.forEach(c => { map[c.name_ko] = { ...c, sessions: [] }; });
@@ -480,21 +510,33 @@ function renderHome(todaySessions, archive, categories) {
     return `<span class="${cls}"></span>`;
   }).join('');
 
+  const recent7Html = calcRecent7Days(archive).map(done =>
+    `<span class="mini-dot${done ? ' on' : ''}"></span>`
+  ).join('');
+
   return `
     <div class="phone">
       <div class="topbar">
         <div class="logo">chaeumlog</div>
+        <div class="topbar-date">${todayDisplay()}</div>
       </div>
 
       <div class="stat-index">
-        <div class="item"><div class="n" style="color:var(--accent-brown);">${String(streak).padStart(2,'0')}</div><div class="l">Days</div></div>
-        <div class="item"><div class="n">${String(totalSessions).padStart(2,'0')}</div><div class="l">Sessions</div></div>
-        <div class="item"><div class="n">${String(branches).padStart(2,'0')}</div><div class="l">Branches</div></div>
+        <div class="stat-nums">
+          <div class="item"><div class="n" style="color:var(--accent-yellow);">${String(streak).padStart(2,'0')}</div><div class="l">Days</div></div>
+          <div class="item"><div class="n">${String(totalSessions).padStart(2,'0')}</div><div class="l">Sessions</div></div>
+          <div class="item"><div class="n">${String(branches).padStart(2,'0')}</div><div class="l">Branches</div></div>
+        </div>
+        <div class="stat-recent">
+          <div class="spacer"></div>
+          <div class="mini-dots">${recent7Html}</div>
+        </div>
       </div>
       <div class="divider-thin"></div>
 
       <div class="section-label">오늘의 기록</div>
       ${todayBlock}
+
 
       <div class="section-label">아카이브</div>
       <div class="archive-cluster">${clusterHtml}</div>
@@ -728,7 +770,7 @@ ${outlineLines}
 - 통념과 다르거나 의외인 지점이 있다면 짚어줘
 - 각 항목 끝에 다음 항목으로 자연스럽게 넘어가는 연결 문장을 넣어줘
 
-시작할 때 왜 이 주제가 흥미로운지 짧은 도입부를 넣어주고, 마지막엔 전체 흐름을 정리하면서 오늘 배운 걸 실제로 어떻게 연결해서 생각해볼 수 있을지 질문이나 관점 하나를 던져줘. 관련해서 최신 정보가 필요하면 검색해서 확인해주고, 더 찾아볼 만한 유튜브 영상(가능하면 한국어 콘텐츠)이나 책, 자료도 추천해줘.`;
+시작할 때 왜 이 주제가 흥미로운지 짧은 도입부를 넣어주고, 마지막엔 전체 흐름을 한 문단으로 정리해줘. 그 다음 오늘 다룬 내용에서 자연스럽게 뻗어나갈 수 있는 후속 탐구 주제를 2개 제시해줘. 각각 오늘 이야기의 어느 지점에서 파생되는 건지 알 수 있게, 한 줄로 구체적으로 적어줘. 관련해서 최신 정보가 필요하면 검색해서 확인해주고, 더 찾아볼 만한 유튜브 영상(가능하면 한국어 콘텐츠)이나 책, 자료도 추천해줘.`;
 }
 
 async function handleGenerate(params) {
@@ -1217,9 +1259,9 @@ function renderMy() {
   return `
     <div class="phone">
       <div class="topbar"><div class="logo">chaeumlog</div></div>
-      <div class="stat-index">
-        <div class="item"><div class="n" style="color:var(--accent-brown);">${String(streak).padStart(2,'0')}</div><div class="l">Days</div></div>
-        <div class="item"><div class="n">${String(appState.archive.length).padStart(2,'0')}</div><div class="l">Sessions</div></div>
+      <div class="stat-index" style="gap:28px;">
+        <div class="item" style="text-align:left;"><div class="n" style="font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--accent-yellow); line-height:1;">${String(streak).padStart(2,'0')}</div><div class="l" style="font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:4px; text-transform:uppercase;">Days</div></div>
+        <div class="item"><div class="n" style="font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--ink); line-height:1;">${String(appState.archive.length).padStart(2,'0')}</div><div class="l" style="font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:4px; text-transform:uppercase;">Sessions</div></div>
       </div>
       <div class="divider-thin"></div>
 
@@ -1269,7 +1311,8 @@ async function boot() {
     return;
   }
   document.getElementById('loading').style.display = 'none';
-  if (!window.location.hash) window.location.hash = '#home';
+  // 새로고침(진입) 시에는 이전 화면의 해시가 남아있어도 항상 홈에서 시작
+  window.location.hash = '#home';
   await render();
 }
 
