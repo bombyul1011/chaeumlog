@@ -122,14 +122,6 @@
     border:1px solid var(--line); border-radius:16px; padding:18px; position:relative;
   }
   .today-nav { display:flex; align-items:center; justify-content:center; gap:14px; padding:12px 24px 0; }
-  .today-card-addnew {
-    display:flex; align-items:center; justify-content:center;
-    min-height:220px; cursor:pointer;
-    border-style:dashed;
-  }
-  .today-addnew-inner { text-align:center; }
-  .today-addnew-inner i { font-size:22px; color:var(--sage); display:block; margin-bottom:8px; }
-  .today-addnew-text { font-family:var(--font-mono); font-size:12px; color:var(--sub-ink); letter-spacing:0.3px; }
   .today-nav-btn {
     width:26px; height:26px; border-radius:50%; border:none; background:none;
     display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted);
@@ -561,10 +553,14 @@ function renderTabbar(active) {
 function renderTodayCard(s) {
   if (s === null) {
     return `
-    <div class="today-card today-card-addnew" onclick="navigate('pick')">
-      <div class="today-addnew-inner">
-        <i class="ti ti-plus"></i>
-        <div class="today-addnew-text">다른 주제 더 뽑기</div>
+    <div class="today-card">
+      <span class="today-badge"><i class="ti ti-plus"></i> 선택</span>
+      <div class="today-meta"><span>${todayKey()}</span><span>&nbsp;</span></div>
+      <div class="today-title">오늘 다룰 다른 이야기를<br>골라볼까요?</div>
+      <div class="today-tags"></div>
+      <div class="today-foot">
+        <span class="read-time">&nbsp;</span>
+        <button class="start-link" onclick="navigate('pick')">주제 고르기 <i class="ti ti-arrow-right"></i></button>
       </div>
     </div>`;
   }
