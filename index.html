@@ -342,6 +342,21 @@ function dateKey(d) {
   return `${y}-${m}-${day}`;
 }
 function todayKey() { return dateKey(new Date()); }
+
+// ---- completed_at(ISO 타임스탬프) 포맷 헬퍼 ----
+// 날짜만: YYYY-MM-DD (뉴스페이퍼 상세, 아카이브 타임라인 등에서 사용)
+function formatCompletedDate(completedAt) {
+  if (!completedAt) return '';
+  return dateKey(new Date(completedAt));
+}
+// 날짜 + 24시간 기준 시간: YYYY-MM-DD HH:MM (뉴스페이퍼 상세 전용)
+function formatCompletedDateTime(completedAt) {
+  if (!completedAt) return '';
+  const d = new Date(completedAt);
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${dateKey(d)} ${hh}:${mm}`;
+}
 function todayDisplay() {
   const d = new Date();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -1313,7 +1328,7 @@ function renderCompleteInner(session) {
       <div class="paper-card">
         <div class="paper-vol-row">
           <span>CHAEUMLOG</span>
-          <span style="color:var(--accent-brown);">${session.date_key}</span>
+          <span style="color:var(--accent-brown);">${formatCompletedDate(session.completed_at)}</span>
         </div>
         <div class="paper-eyebrow">${escapeHtml(session.category)}</div>
         <div class="paper-title">${escapeHtml(session.title)}</div>
@@ -1384,7 +1399,7 @@ function renderPaperInner(session) {
           <div class="vol">${escapeHtml(session.category.toUpperCase())} EDITION</div>
         </div>
         <div class="pd-meta-row">
-          <span>${session.date_key}</span>
+          <span>${formatCompletedDateTime(session.completed_at)}</span>
         </div>
         <div class="pd-title">${escapeHtml(session.title)}</div>
         <div class="pd-tags">${(session.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
@@ -1616,7 +1631,7 @@ function renderDetail(category) {
 
   const timelineHtml = sessions.map(s => `
     <div class="t-item" onclick="navigate('paper', {id: '${s.id}'})">
-      <div class="t-date">${s.date_key.slice(5).replace('-', '.')}</div>
+      <div class="t-date">${formatCompletedDate(s.completed_at).slice(5).replace('-', '.')}</div>
       <div class="t-dot-col"><div class="t-dot"></div></div>
       <div class="t-text">${escapeHtml(s.title)}</div>
       <div class="t-badge"><i class="ti ti-check"></i></div>
