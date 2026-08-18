@@ -141,8 +141,17 @@ if ('serviceWorker' in navigator) {
 
 // ---- 앱 부팅 ----
 async function boot() {
-  const categories = await fetchCategories();
-  const archive = await fetchArchive();
+  let categories = [];
+  let archive = [];
+  let bootError = null;
+
+  try {
+    categories = await fetchCategories();
+    archive = await fetchArchive();
+  } catch (err) {
+    console.error('[chaeumlog] boot fetch error:', err);
+    bootError = err;
+  }
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('app').innerHTML = `
@@ -152,12 +161,16 @@ async function boot() {
       <div>디바이스: ${isMobileDevice() ? 'mobile (AI 생성 가능)' : 'desktop/tablet (조회 전용)'}</div>
       <div>카테고리 로드: ${categories.length}개</div>
       <div>아카이브 세션: ${archive.length}개</div>
+      ${bootError ? `<div style="color:#c0504d; margin-top:12px; white-space:pre-wrap;">에러: ${(bootError.message || bootError).toString()}</div>` : ''}
     </div>
   `;
   // TODO: 실제 홈/세션/아카이브 화면 렌더링으로 교체
 }
 
-boot();
+boot().catch((err) => {
+  console.error('[chaeumlog] boot fatal error:', err);
+  document.getElementById('loading').textContent = 'chaeumlog · 초기화 오류: ' + (err.message || err);
+});
 </script>
 </body>
 </html>
