@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>채움로그</title>
+
+<!-- PWA -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#2B332E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="채움로그">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    /* ===== 채움로그 디자인 토큰 ===== */
+    --bg: #EFF5EC;
+    --paper: #F7FAF6;
+    --card: #FDFEFC;
+    --ink: #2B332E;
+    --sage: #8FB89E;
+    --lime: #C4D6A4;
+    --line: #DDE6DC;
+    --muted: #a3b5a8;
+    --sub-ink: #6b8074;
+    --accent-yellow: #F5C947;
+    --accent-brown: #9C6B3E;
+    --accent-yellow-bg: #FFF6DC;
+
+    --font-serif: 'Noto Serif KR', serif;
+    --font-sans: 'Pretendard', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--ink);
+    overscroll-behavior-y: none;
+  }
+  button { font-family:inherit; }
+  a { color:inherit; text-decoration:none; }
+
+  #app { min-height:100vh; }
+
+  /* 로딩 상태 */
+  #loading {
+    position:fixed; inset:0; background:var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-mono); font-size:12px; color:var(--sage);
+    letter-spacing:1px; z-index:999;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">chaeumlog · loading...</div>
+<div id="app"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ==========================================================
+   채움로그 — 초기 설정
+   ========================================================== */
+
+// ---- Supabase 연결 ----
+const SUPABASE_URL = 'https://sqeyoqpchiljvinuqxjf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZXlvcXBjaGlsanZpbnVxeGpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5ODY5NTksImV4cCI6MjEwMjU2Mjk1OX0.H_JNNYz7_eguAqds-Wm6cwK926U74aVPaS_XwGRKeB0';
+
+// ---- 로컬 저장 헬퍼 (iikoto의 S.get/set 패턴 계승) ----
+const S = {
+  get(key) {
+    try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+  },
+  set(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+  },
+  key(...parts) { return parts.join(':'); }
+};
+
+// ---- 날짜 유틸 (iikoto와 동일 원칙 — 필요 시 새벽 보정 등 추가 예정) ----
+function dateKey(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function todayKey() { return dateKey(new Date()); }
+
+// ---- 디바이스 판별 — AI 생성(뽑기)은 모바일 전용 ----
+function isMobileDevice() {
+  return /iPhone|iPod|Android.*Mobile/i.test(navigator.userAgent);
+}
+
+// ---- Supabase 클라이언트 ----
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ---- 세션 데이터 헬퍼 (추후 sync.js 등으로 분리 예정) ----
+async function fetchTodaySession() {
+  const { data, error } = await sb
+    .from('sessions')
+    .select('*')
+    .eq('date_key', todayKey())
+    .order('created_at', { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data;
+}
+
+async function fetchCategories() {
+  const { data, error } = await sb
+    .from('categories')
+    .select('*')
+    .order('sort_order', { ascending: true });
+  if (error) { console.error(error); return []; }
+  return data;
+}
+
+async function fetchArchive() {
+  const { data, error } = await sb
+    .from('sessions')
+    .select('*')
+    .eq('status', 'completed')
+    .order('completed_at', { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data;
+}
+
+// ---- 서비스워커 등록 ----
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+// ---- 앱 부팅 ----
+async function boot() {
+  const categories = await fetchCategories();
+  const archive = await fetchArchive();
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').innerHTML = `
+    <div style="padding:24px; font-family:var(--font-mono); font-size:12px; color:var(--sub-ink);">
+      <div style="font-family:var(--font-serif); font-size:20px; color:var(--ink); margin-bottom:12px;">채움로그 · 연결 확인</div>
+      <div>오늘 날짜: ${todayKey()}</div>
+      <div>디바이스: ${isMobileDevice() ? 'mobile (AI 생성 가능)' : 'desktop/tablet (조회 전용)'}</div>
+      <div>카테고리 로드: ${categories.length}개</div>
+      <div>아카이브 세션: ${archive.length}개</div>
+    </div>
+  `;
+  // TODO: 실제 홈/세션/아카이브 화면 렌더링으로 교체
+}
+
+boot();
+</script>
+</body>
+</html>
