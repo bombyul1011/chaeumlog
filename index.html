@@ -82,14 +82,14 @@
   .phone { max-width:420px; margin:0 auto; padding-bottom:88px; }
 
   /* 하단 메뉴바 — #app-tabbar는 body 직속(스크롤 컨테이너 밖)이라 뷰포트 기준으로 확실히 고정됨 */
-  #app-tabbar { position:fixed; left:0; right:0; bottom:0; z-index:50; outline:4px solid blue; /* 임시 진단용 */ }
+  #app-tabbar { position:fixed; left:0; right:0; bottom:0; z-index:50; outline:4px solid blue; }
   #app-tabbar:empty { display:none; }
   .tabbar {
     max-width:420px; margin:0 auto;
     background:var(--card); border-top:1px solid var(--line);
     display:flex; justify-content:space-around; align-items:center;
     padding:10px 0 calc(10px + env(safe-area-inset-bottom));
-    outline:4px solid red; /* 임시 진단용 — .tabbar 실제 경계 육안 확인 */
+    outline:4px solid red;
   }
   .tabbar-item {
     display:flex; flex-direction:column; align-items:center; gap:3px;
@@ -1031,6 +1031,20 @@ async function render() {
 }
 
 window.addEventListener('hashchange', render);
+
+// ---- iOS WebKit 초기 페인트 시 position:fixed 요소가 스크롤 위치를 잘못 캡처하는
+//      알려진 현상에 대한 보정: 최초 렌더링 완료 직후 미세 스크롤을 강제로 트리거해
+//      레이아웃을 재계산시킨다 (사용자에게는 감지되지 않는 수준) ----
+function forceFixedRelayout() {
+  const scrollEl = document.getElementById('app-scroll');
+  if (!scrollEl) return;
+  const prev = scrollEl.scrollTop;
+  scrollEl.scrollTop = prev + 1;
+  requestAnimationFrame(() => { scrollEl.scrollTop = prev; });
+}
+window.addEventListener('load', () => {
+  setTimeout(forceFixedRelayout, 300);
+});
 
 // Claude 앱(또는 다른 앱)에 다녀온 뒤 PWA로 복귀했을 때 빈 화면이 남는 경우를 대비한 안전장치.
 // 앱 콘텐츠(#app)가 비어있는 상태로 화면이 다시 보이면 현재 라우트를 다시 렌더링.
