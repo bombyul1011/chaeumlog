@@ -79,7 +79,7 @@
     display:flex; flex-direction:column; align-items:center; gap:3px;
     background:none; border:none; cursor:pointer;
     color:var(--muted); font-family:var(--font-mono); font-size:9px;
-    padding:4px 12px;
+    padding:4px 8px;
   }
   .tabbar-item .ti { font-size:20px; }
   .tabbar-item.active { color:var(--sage); }
@@ -93,11 +93,9 @@
 
   .stat-index { display:flex; padding:22px 24px 4px; }
   .stat-nums { flex:0 0 66.6667%; display:flex; }
-  .stat-nums .item { flex:1; text-align:center; }
-  .stat-nums .item:first-child { text-align:left; }
+  .stat-nums .item { flex:1; text-align:left; }
   .stat-nums .n { font-family:var(--font-mono); font-size:34px; font-weight:500; color:var(--ink); line-height:1; }
-  .stat-nums .l { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:6px; text-transform:uppercase; height:11px; display:flex; align-items:center; justify-content:center; }
-  .stat-nums .item:first-child .l { justify-content:flex-start; }
+  .stat-nums .l { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:6px; text-transform:uppercase; height:11px; display:flex; align-items:center; justify-content:flex-start; }
   .stat-recent { flex:1; display:flex; flex-direction:column; justify-content:flex-end; }
   .stat-recent .spacer { height:34px; }
   .mini-dots { display:flex; justify-content:flex-end; gap:5px; margin-top:6px; height:11px; align-items:center; }
@@ -109,7 +107,6 @@
 
   .today-card {
     margin:0 24px; background:var(--paper);
-    background-image: repeating-linear-gradient(to bottom, transparent, transparent 26px, #E4ECE0 26px, #E4ECE0 27px);
     border:1px solid var(--line); border-radius:16px; padding:18px; position:relative;
   }
   .today-badge {
@@ -117,9 +114,9 @@
     font-family:var(--font-mono); font-size:9px; font-weight:500; letter-spacing:0.5px;
     padding:4px 10px; border-radius:20px;
   }
-  .today-meta { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--sage); margin-bottom:10px; padding-top:4px; }
-  .today-title { font-family:var(--font-serif); font-size:19px; font-weight:700; line-height:1.5; margin-bottom:12px; }
-  .today-tags { display:flex; gap:6px; margin-bottom:16px; }
+  .today-meta { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--sage); padding:4px 0 12px; border-bottom:1px dashed #E4ECE0; margin-bottom:12px; }
+  .today-title { font-family:var(--font-serif); font-size:19px; font-weight:700; line-height:1.5; padding-bottom:14px; border-bottom:1px dashed #E4ECE0; margin-bottom:14px; }
+  .today-tags { display:flex; gap:6px; padding-bottom:14px; border-bottom:1px dashed #E4ECE0; margin-bottom:14px; }
   .tag { font-family:var(--font-mono); font-size:10px; color:#5b7a63; background:var(--lime); padding:4px 10px; border-radius:20px; }
   .today-foot { display:flex; justify-content:space-between; align-items:center; }
   .read-time { font-family:var(--font-mono); font-size:10px; color:var(--muted); }
@@ -460,6 +457,10 @@ function renderTabbar(active) {
           <span>${it.label}</span>
         </button>
       `).join('')}
+      <button class="tabbar-item" onclick="window.open('https://bombyul1011.github.io/iikoto/', '_blank')">
+        <i class="ti ti-arrows-exchange"></i>
+        <span>이이코토</span>
+      </button>
     </div>
   `;
 }
