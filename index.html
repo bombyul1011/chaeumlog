@@ -107,6 +107,7 @@
 
   .today-card {
     margin:0 24px; background:var(--paper);
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 31px, #E4ECE0 31px, #E4ECE0 32px);
     border:1px solid var(--line); border-radius:16px; padding:18px; position:relative;
   }
   .today-badge {
@@ -114,9 +115,9 @@
     font-family:var(--font-mono); font-size:9px; font-weight:500; letter-spacing:0.5px;
     padding:4px 10px; border-radius:20px;
   }
-  .today-meta { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--sage); padding:4px 0 12px; border-bottom:1px dashed #E4ECE0; margin-bottom:12px; }
-  .today-title { font-family:var(--font-serif); font-size:19px; font-weight:700; line-height:1.5; padding-bottom:14px; border-bottom:1px dashed #E4ECE0; margin-bottom:14px; }
-  .today-tags { display:flex; gap:6px; padding-bottom:14px; border-bottom:1px dashed #E4ECE0; margin-bottom:14px; }
+  .today-meta { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--sage); margin-bottom:10px; padding-top:4px; }
+  .today-title { font-family:var(--font-serif); font-size:19px; font-weight:700; line-height:1.68; margin-bottom:12px; }
+  .today-tags { display:flex; gap:6px; margin-bottom:16px; }
   .tag { font-family:var(--font-mono); font-size:10px; color:#5b7a63; background:var(--lime); padding:4px 10px; border-radius:20px; }
   .today-foot { display:flex; justify-content:space-between; align-items:center; }
   .read-time { font-family:var(--font-mono); font-size:10px; color:var(--muted); }
