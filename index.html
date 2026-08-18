@@ -330,6 +330,33 @@ setRealVH();
 window.addEventListener('resize', setRealVH);
 window.addEventListener('orientationchange', setRealVH);
 if (window.visualViewport) window.visualViewport.addEventListener('resize', setRealVH);
+
+// ---- 임시 진단 패널: 탭바 하단 여백 원인 확인용. 확인 끝나면 이 블록 통째로 제거 ----
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    const tb = document.getElementById('app-tabbar');
+    if (!tb) return;
+    const cs = getComputedStyle(tb);
+    const rect = tb.getBoundingClientRect();
+    const info = [
+      'innerHeight: ' + window.innerHeight,
+      'clientHeight(html): ' + document.documentElement.clientHeight,
+      'visualViewport.height: ' + (window.visualViewport ? window.visualViewport.height : 'N/A'),
+      'tabbar position: ' + cs.position,
+      'tabbar bottom(css): ' + cs.bottom,
+      'tabbar rect.bottom: ' + rect.bottom,
+      'tabbar rect.top: ' + rect.top,
+      'tabbar rect.height: ' + rect.height,
+      'body scrollHeight: ' + document.body.scrollHeight,
+      'html scrollHeight: ' + document.documentElement.scrollHeight,
+      'safe-area-bottom: ' + getComputedStyle(document.documentElement).getPropertyValue('--sab') 
+    ];
+    const panel = document.createElement('div');
+    panel.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.9);color:#0f0;font-family:monospace;font-size:11px;padding:10px;white-space:pre-wrap;line-height:1.6;';
+    panel.textContent = info.join('\n');
+    document.body.appendChild(panel);
+  }, 500);
+});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -908,8 +935,9 @@ function mountRoute(html) {
 
   const startIdx = htmlNoTabbar.indexOf('<div class="topbar"');
   if (startIdx === -1) {
-    // topbar가 없는 화면(로딩 스피너 등) — 스크롤 영역에 그대로, 고정 영역은 비움
-    topbarEl.innerHTML = '';
+    // topbar가 없는 화면(로딩 스피너 등) — 스크롤 영역에 그대로, 고정 영역은 "유지"
+    // (예: paper/session/finish처럼 비동기로 나중에 topbar가 채워지는 라우트는
+    //  로딩 스피너 단계에서 topbar가 깜빡 사라졌다 다시 생기는 걸 방지)
     scrollEl.innerHTML = htmlNoTabbar;
     return;
   }
