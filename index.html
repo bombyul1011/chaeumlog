@@ -331,39 +331,54 @@ window.addEventListener('resize', setRealVH);
 window.addEventListener('orientationchange', setRealVH);
 if (window.visualViewport) window.visualViewport.addEventListener('resize', setRealVH);
 
-// ---- 임시 진단 패널 v2: 탭바 아래 여백 색상/세이프에어리어 원인 확인용 ----
+// ---- 임시 진단 패널 v3: MutationObserver로 tabbar가 실제 채워진 뒤 찍기 ----
+function runDiagnostic(){
+  const tb = document.getElementById('app-tabbar');
+  const inner = document.querySelector('.tabbar');
+  if (!tb) return;
+  const csOuter = getComputedStyle(tb);
+  const csInner = inner ? getComputedStyle(inner) : null;
+  const rectOuter = tb.getBoundingClientRect();
+  const rectInner = inner ? inner.getBoundingClientRect() : null;
+  const bodyBg = getComputedStyle(document.body).backgroundColor;
+  const testEl = document.createElement('div');
+  testEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
+  document.body.appendChild(testEl);
+  const sab = getComputedStyle(testEl).paddingBottom;
+  testEl.remove();
+  const info = [
+    'RUN AT: ' + new Date().toISOString().slice(11,19),
+    'window.innerHeight: ' + window.innerHeight,
+    'env(safe-area-inset-bottom): ' + sab,
+    'body bg: ' + bodyBg,
+    '#app-tabbar (outer)',
+    '  innerHTML length: ' + tb.innerHTML.length,
+    '  bg-color: ' + csOuter.backgroundColor,
+    '  rect: bottom=' + rectOuter.bottom + ' top=' + rectOuter.top + ' h=' + rectOuter.height,
+    '.tabbar (inner)',
+    '  found: ' + !!inner,
+    '  bg-color: ' + (csInner ? csInner.backgroundColor : 'N/A'),
+    '  padding-bottom: ' + (csInner ? csInner.paddingBottom : 'N/A'),
+    '  rect: bottom=' + (rectInner ? rectInner.bottom : 'N/A') + ' top=' + (rectInner ? rectInner.top : 'N/A') + ' h=' + (rectInner ? rectInner.height : 'N/A'),
+    '  parent of .tabbar: ' + (inner ? inner.parentElement.id || inner.parentElement.className : 'N/A')
+  ];
+  let panel = document.getElementById('__diag_panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = '__diag_panel';
+    panel.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#0f0;font-family:monospace;font-size:10px;padding:10px;white-space:pre-wrap;line-height:1.5;max-height:70vh;overflow-y:auto;';
+    document.body.appendChild(panel);
+  }
+  panel.textContent = info.join('\n');
+}
+window.addEventListener('load', function(){ setTimeout(runDiagnostic, 500); });
+// tabbar/topbar가 갱신될 때마다 재실행 (라우트 전환 후에도 최신 상태 확인 가능)
+const __diagObserver = new MutationObserver(function(){ runDiagnostic(); });
 window.addEventListener('load', function(){
   setTimeout(function(){
     const tb = document.getElementById('app-tabbar');
-    const inner = document.querySelector('.tabbar');
-    if (!tb) return;
-    const csOuter = getComputedStyle(tb);
-    const csInner = inner ? getComputedStyle(inner) : null;
-    const rectOuter = tb.getBoundingClientRect();
-    const rectInner = inner ? inner.getBoundingClientRect() : null;
-    const bodyBg = getComputedStyle(document.body).backgroundColor;
-    const testEl = document.createElement('div');
-    testEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
-    document.body.appendChild(testEl);
-    const sab = getComputedStyle(testEl).paddingBottom;
-    testEl.remove();
-    const info = [
-      'window.innerHeight: ' + window.innerHeight,
-      'env(safe-area-inset-bottom): ' + sab,
-      'body background-color: ' + bodyBg,
-      '--app-tabbar-- outer',
-      '  bg-color: ' + csOuter.backgroundColor,
-      '  rect.bottom: ' + rectOuter.bottom + ' / rect.top: ' + rectOuter.top + ' / height: ' + rectOuter.height,
-      '.tabbar-- inner',
-      '  bg-color: ' + (csInner ? csInner.backgroundColor : 'N/A'),
-      '  padding-bottom: ' + (csInner ? csInner.paddingBottom : 'N/A'),
-      '  rect.bottom: ' + (rectInner ? rectInner.bottom : 'N/A') + ' / rect.top: ' + (rectInner ? rectInner.top : 'N/A') + ' / height: ' + (rectInner ? rectInner.height : 'N/A')
-    ];
-    const panel = document.createElement('div');
-    panel.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#0f0;font-family:monospace;font-size:10.5px;padding:10px;white-space:pre-wrap;line-height:1.6;max-height:60vh;overflow-y:auto;';
-    panel.textContent = info.join('\n');
-    document.body.appendChild(panel);
-  }, 500);
+    if (tb) __diagObserver.observe(tb, { childList:true, subtree:true });
+  }, 600);
 });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
