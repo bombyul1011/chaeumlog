@@ -109,6 +109,88 @@
   .dots span.d1 { background:var(--sage); }
   .dots span.d2 { background:var(--accent-yellow); }
   .accum-note { font-family:var(--font-serif); font-size:12px; color:var(--sub-ink); font-style:italic; }
+
+  /* ===== 주제 선택 화면 ===== */
+  .back { font-family:var(--font-mono); font-size:12px; color:var(--sage); cursor:pointer; background:none; border:none; }
+  .pick-lead { padding:8px 24px 24px; }
+  .pick-lead h2 { font-family:var(--font-serif); font-size:20px; line-height:1.5; }
+  .option-card {
+    background:#fff; border:1.5px solid var(--line); border-radius:16px;
+    padding:18px; margin:0 24px 14px;
+    display:flex; gap:14px; align-items:center; cursor:pointer;
+  }
+  .option-card.featured { border-color:var(--sage); background:var(--paper); }
+  .option-card.disabled { opacity:0.45; cursor:not-allowed; }
+  .option-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; background:var(--accent-yellow-bg); }
+  .option-body .o-label { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+  .option-body .o-title { font-family:var(--font-sans); font-size:15px; font-weight:600; margin-bottom:3px; }
+  .option-body .o-sub { font-size:12px; color:#8a9a8f; line-height:1.4; }
+
+  .cat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; padding:4px 24px 24px; }
+  .cat-chip { background:#fff; border:1.5px solid var(--line); border-radius:14px; padding:14px; cursor:pointer; text-align:left; }
+  .cat-chip .code { font-family:var(--font-mono); font-size:10px; color:var(--sage); }
+  .cat-chip .name { font-family:var(--font-serif); font-size:15px; font-weight:600; margin-top:4px; }
+
+  .gen-loading { padding:60px 24px; text-align:center; }
+  .gen-loading .spin { width:32px; height:32px; border:2px solid var(--line); border-top-color:var(--sage); border-radius:50%; margin:0 auto 18px; animation:spin 0.9s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .gen-loading .msg { font-family:var(--font-mono); font-size:12px; color:var(--sub-ink); }
+
+  /* ===== 세션 화면 ===== */
+  .session-wrap { padding:0 24px 24px; min-height:100vh; }
+  .s-meta { font-family:var(--font-mono); font-size:11px; color:var(--sage); margin:18px 0 6px; }
+  .s-date { font-family:var(--font-mono); font-size:11px; color:var(--muted); margin-bottom:18px; }
+  .title-card { background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:26px 22px; margin-bottom:28px; }
+  h1.s-title { font-family:var(--font-serif); font-size:24px; font-weight:700; line-height:1.5; margin-bottom:16px; }
+  .s-tags { display:flex; gap:6px; }
+  .outline-label { font-family:var(--font-mono); font-size:10px; color:var(--sage); letter-spacing:1px; margin-bottom:14px; text-transform:uppercase; }
+  .outline { list-style:none; margin-bottom:8px; }
+  .outline li { padding:14px 2px; border-bottom:1.5px dashed var(--lime); display:flex; justify-content:space-between; align-items:center; font-size:15px; line-height:1.6; cursor:pointer; }
+  .outline li:first-child { padding-top:0; }
+  .outline li .mark { font-size:13px; color:var(--line); flex-shrink:0; margin-left:12px; }
+  .outline li.done .mark { color:var(--accent-yellow); }
+  .outline li.done .otxt { color:var(--sub-ink); }
+  .progress-row { display:flex; justify-content:space-between; align-items:center; margin:22px 0 18px; font-family:var(--font-mono); font-size:11px; color:var(--muted); }
+  .pbar { height:2px; background:var(--line); border-radius:2px; flex:1; margin:0 12px; position:relative; overflow:hidden; }
+  .pbar .fill { position:absolute; left:0; top:0; bottom:0; background:var(--accent-yellow); transition:width 0.3s; }
+  .cta { width:100%; background:var(--sage); color:#fff; border:none; padding:16px; border-radius:14px; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:12px; }
+  .pd-body-preview { font-size:14px; line-height:1.8; color:#3d463f; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); }
+
+  /* ===== 완료 화면 ===== */
+  .complete-wrap { min-height:100vh; padding:0 24px; }
+  .paper-card { margin-top:40px; background:var(--card); border:1px solid var(--ink); border-radius:2px; padding:28px 24px 24px; box-shadow:4px 4px 0 var(--line); }
+  .paper-vol-row { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; color:#5b7a63; padding-bottom:14px; border-bottom:1px solid var(--ink); margin-bottom:20px; letter-spacing:0.5px; }
+  .paper-eyebrow { font-family:var(--font-mono); font-size:10px; color:var(--sage); letter-spacing:1.5px; margin-bottom:10px; }
+  .paper-title { font-family:var(--font-serif); font-size:24px; font-weight:700; line-height:1.5; margin-bottom:20px; }
+  .paper-rule { height:1px; background:var(--line); margin-bottom:16px; }
+  .paper-meta-row { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--muted); }
+  .paper-tags { display:flex; gap:6px; }
+  .complete-below { text-align:center; margin-top:32px; }
+  .complete-stamp { display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:50%; border:1.5px solid var(--accent-yellow); background:var(--accent-yellow-bg); color:var(--accent-brown); font-size:20px; margin-bottom:16px; }
+  .complete-msg { font-family:var(--font-serif); font-size:15px; color:var(--ink); margin-bottom:6px; }
+  .complete-sub { font-family:var(--font-mono); font-size:11px; color:var(--sage); }
+  .complete-actions { display:flex; gap:10px; margin-top:32px; padding-bottom:16px; }
+  .c-btn { flex:1; padding:14px; border-radius:12px; font-family:var(--font-sans); font-size:13px; font-weight:600; cursor:pointer; text-align:center; border:none; }
+  .c-btn.fill { background:var(--ink); color:#EAF2E4; }
+  .c-btn.ghost { background:transparent; color:var(--ink); border:1px solid var(--ink); }
+  .next-lead { text-align:center; margin:20px 0 8px; }
+  .next-lead .done-badge { font-family:var(--font-mono); font-size:10px; color:var(--accent-brown); background:var(--accent-yellow-bg); padding:5px 12px; border-radius:20px; display:inline-block; margin-bottom:12px; }
+  .next-lead h3 { font-family:var(--font-serif); font-size:16px; }
+
+  /* ===== 아카이브 상세 ===== */
+  .detail-hero { padding:20px 24px 0; }
+  .detail-code { font-family:var(--font-mono); font-size:11px; color:var(--sage); letter-spacing:1px; }
+  .detail-title { font-family:var(--font-serif); font-size:26px; font-weight:700; margin:8px 0 20px; }
+  .detail-stats { display:flex; gap:28px; margin-bottom:8px; }
+  .timeline { padding:4px 24px 20px; position:relative; }
+  .timeline::before { content:''; position:absolute; left:78px; top:8px; bottom:24px; width:1px; background:var(--line); }
+  .t-item { display:grid; grid-template-columns:44px 20px 1fr 32px; align-items:flex-start; padding:16px 0; position:relative; cursor:pointer; }
+  .t-date { font-family:var(--font-mono); font-size:10px; color:var(--muted); padding-top:3px; }
+  .t-dot-col { display:flex; justify-content:center; padding-top:5px; }
+  .t-dot { width:7px; height:7px; border-radius:50%; background:var(--sage); z-index:1; }
+  .t-text { font-size:14px; line-height:1.55; padding-right:8px; }
+  .t-badge { width:24px; height:24px; border-radius:50%; border:1.5px solid var(--accent-yellow); background:var(--accent-yellow); color:var(--ink); display:flex; align-items:center; justify-content:center; font-size:11px; }
+  .empty-archive { padding:60px 24px; text-align:center; font-family:var(--font-mono); font-size:12px; color:var(--muted); }
 </style>
 </head>
 <body>
@@ -242,20 +324,20 @@ function renderHome(todaySessions, archive, categories) {
         <div class="today-tags">${(inProgress.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
         <div class="today-foot">
           <span class="read-time">${doneCount} / ${total} 완료</span>
-          <button class="start-link" onclick="alert('세션 화면으로 이동 (다음 단계에서 구현)')">이어서 읽기 →</button>
+          <button class="start-link" onclick="navigate('session', {id: '${inProgress.id}'})">이어서 읽기 →</button>
         </div>
       </div>`;
   } else {
     todayBlock = `
       <div class="empty-today">
         <div class="msg">오늘의 배움을 시작해볼까요?</div>
-        <button class="make-btn" onclick="alert('주제 선택 화면으로 이동 (다음 단계에서 구현)')">오늘의 주제 만들기</button>
+        <button class="make-btn" onclick="navigate('pick')">오늘의 주제 만들기</button>
       </div>`;
   }
 
   const clusters = groupArchiveByCategory(archive, categories);
   const clusterHtml = clusters.length ? clusters.map(c => `
-    <div class="cluster-row">
+    <div class="cluster-row" onclick="navigate('detail', {category: encodeURIComponent('${escapeHtml(c.name_ko)}')})">
       <div class="cluster-left"><span class="cluster-code">${escapeHtml(c.code)}</span><span class="cluster-name">${escapeHtml(c.name_ko)}</span></div>
       <div class="cluster-right"><span class="cluster-n">${c.sessions.length}</span><span class="cluster-arrow">→</span></div>
     </div>
@@ -296,6 +378,394 @@ function renderHome(todaySessions, archive, categories) {
   `;
 }
 
+/* ==========================================================
+   라우터 & 앱 상태
+   ========================================================== */
+const appState = {
+  categories: [],
+  archive: [],
+  todaySessions: [],
+  currentSessionId: null,   // 세션/완료 화면에서 보고 있는 세션
+  pendingSourceType: null,  // 주제 선택 화면에서 고른 방식
+  currentArchiveCategory: null // 아카이브 상세에서 보고 있는 카테고리
+};
+
+async function refreshData() {
+  appState.categories = await fetchCategories();
+  appState.archive = await fetchArchive();
+  appState.todaySessions = await fetchTodaySession();
+}
+
+function navigate(route, params) {
+  const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+  window.location.hash = route + qs;
+}
+
+function getRoute() {
+  const hash = window.location.hash.replace(/^#/, '');
+  const [route, qs] = hash.split('?');
+  const params = Object.fromEntries(new URLSearchParams(qs || ''));
+  return { route: route || 'home', params };
+}
+
+async function render() {
+  const { route, params } = getRoute();
+  const app = document.getElementById('app');
+
+  if (route === 'home') {
+    await refreshData();
+    app.innerHTML = renderHome(appState.todaySessions, appState.archive, appState.categories);
+  } else if (route === 'pick') {
+    app.innerHTML = renderPick();
+  } else if (route === 'pick-category') {
+    app.innerHTML = renderPickCategory();
+  } else if (route === 'generating') {
+    app.innerHTML = renderGenerating();
+    await handleGenerate(params);
+  } else if (route === 'session') {
+    app.innerHTML = renderSession(params.id);
+  } else if (route === 'complete') {
+    app.innerHTML = renderComplete(params.id);
+  } else if (route === 'detail') {
+    await refreshData();
+    app.innerHTML = renderDetail(decodeURIComponent(params.category || ''));
+  } else {
+    app.innerHTML = renderHome(appState.todaySessions, appState.archive, appState.categories);
+  }
+}
+
+window.addEventListener('hashchange', render);
+
+/* ==========================================================
+   주제 선택 화면 (3분기: 랜덤 / 카테고리 / 꼬리물기)
+   ========================================================== */
+function renderPick() {
+  const hasArchive = appState.archive.length > 0;
+  const lastSession = appState.archive[0]; // 가장 최근 완료 세션 (꼬리물기용)
+
+  return `
+    <div class="phone">
+      <div class="topbar">
+        <button class="back" onclick="navigate('home')">← 홈</button>
+        <button class="icon-btn">⋯</button>
+      </div>
+      <div class="pick-lead">
+        <h2>오늘은 어떻게 시작해볼까요?</h2>
+      </div>
+
+      ${hasArchive ? `
+      <div class="option-card featured" onclick="startGenerate('tailchain')">
+        <div class="option-icon">🔗</div>
+        <div class="option-body">
+          <div class="o-label">이어가기</div>
+          <div class="o-title">지난 배움에서 이어서</div>
+          <div class="o-sub">"${escapeHtml(lastSession.title)}"에서 자연스럽게 이어지는 다음 이야기</div>
+        </div>
+      </div>` : ''}
+
+      <div class="option-card" onclick="navigate('pick-category')">
+        <div class="option-icon">📁</div>
+        <div class="option-body">
+          <div class="o-label">카테고리 선택</div>
+          <div class="o-title">원하는 주제 직접 고르기</div>
+          <div class="o-sub">역사, 예술, 과학 등 카테고리 안에서 소주제를 골라요</div>
+        </div>
+      </div>
+
+      <div class="option-card" onclick="startGenerate('random')">
+        <div class="option-icon">🎲</div>
+        <div class="option-body">
+          <div class="o-label">완전 랜덤</div>
+          <div class="o-title">오늘은 무엇이 나올지 몰라요</div>
+          <div class="o-sub">카테고리까지 무작위로 뽑아드려요</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPickCategory() {
+  const chips = appState.categories.map(c => `
+    <button class="cat-chip" onclick="startGenerate('category','${escapeHtml(c.name_ko)}')">
+      <div class="code">${escapeHtml(c.code)}</div>
+      <div class="name">${escapeHtml(c.name_ko)}</div>
+    </button>
+  `).join('');
+
+  return `
+    <div class="phone">
+      <div class="topbar">
+        <button class="back" onclick="navigate('pick')">← 뒤로</button>
+        <button class="icon-btn">⋯</button>
+      </div>
+      <div class="pick-lead"><h2>어떤 갈래가 궁금하신가요?</h2></div>
+      <div class="cat-grid">${chips}</div>
+    </div>
+  `;
+}
+
+function renderGenerating() {
+  return `
+    <div class="gen-loading">
+      <div class="spin"></div>
+      <div class="msg">오늘의 주제를 만드는 중...</div>
+    </div>
+  `;
+}
+
+// ---- 실제 생성 처리 (지금은 더미 콘텐츠 — 추후 AI API 연동) ----
+function startGenerate(sourceType, category) {
+  navigate('generating', { source: sourceType, category: category || '' });
+}
+
+async function handleGenerate(params) {
+  const sourceType = params.source || 'random';
+  let category = params.category;
+  const categories = appState.categories.length ? appState.categories : await fetchCategories();
+
+  if (!category) {
+    category = categories[Math.floor(Math.random() * categories.length)].name_ko;
+  }
+
+  let parentSession = null;
+  let connectionNote = null;
+  if (sourceType === 'tailchain' && appState.archive[0]) {
+    parentSession = appState.archive[0];
+    category = parentSession.category;
+    connectionNote = `방금 배운 "${parentSession.title}"에서 자연스럽게 이어지는 이야기예요.`;
+  }
+
+  // TODO: 실제로는 여기서 AI API(Claude) 호출해서 제목/목차/본문 생성
+  // 지금은 더미 콘텐츠로 흐름만 완성
+  const dummyTitle = `${category}, 오늘은 이런 이야기`;
+  const outline = [
+    { text: '첫 번째로 짚어볼 것', done: false },
+    { text: '두 번째로 짚어볼 것', done: false },
+    { text: '세 번째로 짚어볼 것', done: false },
+    { text: '오늘의 마무리', done: false }
+  ];
+  const bodySections = outline.map((o, i) => ({
+    num: i + 1,
+    sub: o.text,
+    body: '(AI가 생성할 본문 내용이 여기 들어갑니다. 지금은 임시 텍스트입니다.)'
+  }));
+
+  const clientId = 'cid_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+
+  const { data, error } = await sb.from('sessions').insert({
+    client_id: clientId,
+    date_key: todayKey(),
+    category: category,
+    title: dummyTitle,
+    short_title: category,
+    outline: outline,
+    body_sections: bodySections,
+    tags: [category],
+    source_type: sourceType,
+    parent_session_id: parentSession ? parentSession.id : null,
+    connection_note: connectionNote,
+    read_minutes: 4,
+    status: 'in_progress'
+  }).select().single();
+
+  if (error) {
+    console.error(error);
+    document.getElementById('app').innerHTML = `<div style="padding:24px;color:#c0504d;font-family:var(--font-mono);font-size:12px;">생성 중 오류: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  navigate('session', { id: data.id });
+}
+
+/* ==========================================================
+   세션 화면
+   ========================================================== */
+let _sessionCache = {};
+
+async function fetchSessionById(id) {
+  if (_sessionCache[id]) return _sessionCache[id];
+  const { data, error } = await sb.from('sessions').select('*').eq('id', id).single();
+  if (error) { console.error(error); return null; }
+  _sessionCache[id] = data;
+  return data;
+}
+
+function renderSession(id) {
+  fetchSessionById(id).then(session => {
+    if (!session) return;
+    _sessionCache[id] = session;
+    document.getElementById('session-root').outerHTML = renderSessionInner(session);
+  });
+  return `<div id="session-root">${renderGenerating()}</div>`;
+}
+
+function renderSessionInner(session) {
+  const outline = session.outline || [];
+  const doneCount = outline.filter(o => o.done).length;
+  const total = outline.length || 1;
+  const pct = Math.round((doneCount / total) * 100);
+
+  const outlineHtml = outline.map((o, i) => `
+    <li class="${o.done ? 'done' : ''}" onclick="toggleOutlineItem('${session.id}', ${i})">
+      <span class="otxt">${escapeHtml(o.text)}</span>
+      <span class="mark">${o.done ? '✓' : '○'}</span>
+    </li>
+  `).join('');
+
+  const allDone = doneCount === total && total > 0;
+
+  return `
+    <div id="session-root" class="session-wrap">
+      <div class="topbar" style="padding:20px 0 0;">
+        <button class="back" onclick="navigate('home')">← 홈</button>
+        <button class="icon-btn">⋯</button>
+      </div>
+      <div class="s-meta">${escapeHtml(session.category)}</div>
+      <div class="s-date">${session.date_key} · ${session.source_type === 'tailchain' ? '이어가기' : session.source_type === 'category' ? '카테고리 선택' : '랜덤'}</div>
+
+      <div class="title-card">
+        <h1 class="s-title">${escapeHtml(session.title)}</h1>
+        <div class="s-tags">${(session.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+        ${session.connection_note ? `<div class="pd-body-preview">${escapeHtml(session.connection_note)}</div>` : ''}
+      </div>
+
+      <div class="outline-label">Contents</div>
+      <ul class="outline">${outlineHtml}</ul>
+
+      <div class="progress-row">
+        <span>${doneCount}</span>
+        <div class="pbar"><div class="fill" style="width:${pct}%;"></div></div>
+        <span>${total}</span>
+      </div>
+
+      <button class="cta" ${allDone ? '' : 'disabled style="opacity:0.5;cursor:not-allowed;"'} onclick="${allDone ? `completeSession('${session.id}')` : ''}">
+        ${allDone ? '완료하기 →' : '목차를 모두 확인하면 완료할 수 있어요'}
+      </button>
+    </div>
+  `;
+}
+
+async function toggleOutlineItem(sessionId, idx) {
+  const session = await fetchSessionById(sessionId);
+  if (!session) return;
+  session.outline[idx].done = !session.outline[idx].done;
+  _sessionCache[sessionId] = session;
+
+  document.getElementById('session-root').outerHTML = renderSessionInner(session);
+
+  await sb.from('sessions').update({ outline: session.outline }).eq('id', sessionId);
+}
+
+async function completeSession(sessionId) {
+  const session = await fetchSessionById(sessionId);
+  await sb.from('sessions').update({
+    status: 'completed',
+    completed_at: new Date().toISOString()
+  }).eq('id', sessionId);
+  delete _sessionCache[sessionId];
+  navigate('complete', { id: sessionId });
+}
+
+/* ==========================================================
+   완료 화면 (뉴스페이퍼)
+   ========================================================== */
+function renderComplete(id) {
+  fetchSessionById(id).then(session => {
+    if (!session) return;
+    document.getElementById('complete-root').outerHTML = renderCompleteInner(session);
+  });
+  return `<div id="complete-root">${renderGenerating()}</div>`;
+}
+
+function renderCompleteInner(session) {
+  return `
+    <div id="complete-root" class="complete-wrap">
+      <div class="topbar" style="padding:20px 0 0;">
+        <button class="back" onclick="navigate('home')">← 홈</button>
+        <button class="icon-btn">⋯</button>
+      </div>
+      <div class="paper-card">
+        <div class="paper-vol-row">
+          <span>CHAEUMLOG</span>
+          <span style="color:var(--accent-brown);">${session.date_key}</span>
+        </div>
+        <div class="paper-eyebrow">${escapeHtml(session.category)}</div>
+        <div class="paper-title">${escapeHtml(session.title)}</div>
+        <div class="paper-rule"></div>
+        <div class="paper-meta-row">
+          <div class="paper-tags">${(session.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+          <span>${session.read_minutes || 4} MIN READ</span>
+        </div>
+      </div>
+
+      <div class="complete-below">
+        <div class="complete-stamp">✓</div>
+        <div class="complete-msg">오늘 하나를 채웠어요</div>
+        <div class="complete-sub">${escapeHtml(session.category)} 기록</div>
+      </div>
+
+      <div class="next-lead">
+        <span class="done-badge">다음은요?</span>
+        <h3>오늘 하나 더 채워볼까요?</h3>
+      </div>
+      <div class="option-card" style="margin-top:16px;" onclick="startGenerate('tailchain')">
+        <div class="option-icon">🔗</div>
+        <div class="option-body"><div class="o-label">이어가기</div><div class="o-title">방금 배운 것에서 이어서</div></div>
+      </div>
+      <div class="option-card" onclick="navigate('pick-category')">
+        <div class="option-icon">📁</div>
+        <div class="option-body"><div class="o-label">카테고리 선택</div><div class="o-title">다른 주제 골라보기</div></div>
+      </div>
+
+      <div class="complete-actions">
+        <button class="c-btn ghost" onclick="navigate('detail', {category: encodeURIComponent('${escapeHtml(session.category)}')})">아카이브 보기</button>
+        <button class="c-btn fill" onclick="navigate('home')">홈으로</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ==========================================================
+   아카이브 상세
+   ========================================================== */
+function renderDetail(category) {
+  const sessions = appState.archive.filter(s => s.category === category)
+    .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
+  const cat = appState.categories.find(c => c.name_ko === category);
+
+  if (!sessions.length) {
+    return `
+      <div class="phone">
+        <div class="topbar"><button class="back" onclick="navigate('home')">← 홈</button><button class="icon-btn">⋯</button></div>
+        <div class="empty-archive">아직 "${escapeHtml(category)}" 기록이 없어요</div>
+      </div>`;
+  }
+
+  const timelineHtml = sessions.map(s => `
+    <div class="t-item">
+      <div class="t-date">${s.date_key.slice(5).replace('-', '.')}</div>
+      <div class="t-dot-col"><div class="t-dot"></div></div>
+      <div class="t-text">${escapeHtml(s.title)}</div>
+      <div class="t-badge">✓</div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="phone">
+      <div class="topbar"><button class="back" onclick="navigate('home')">← 홈</button><button class="icon-btn">⋯</button></div>
+      <div class="detail-hero">
+        <div class="detail-code">ARCHIVE / ${escapeHtml(cat ? cat.code : '?')}</div>
+        <div class="detail-title">${escapeHtml(category)}</div>
+        <div class="detail-stats">
+          <div><div class="n" style="font-family:var(--font-mono);font-size:20px;">${sessions.length}</div><div class="l" style="font-family:var(--font-mono);font-size:9px;color:var(--sage);">Sessions</div></div>
+        </div>
+      </div>
+      <div class="divider-thin"></div>
+      <div class="timeline">${timelineHtml}</div>
+    </div>
+  `;
+}
+
 // ---- 서비스워커 등록 ----
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -305,31 +775,20 @@ if ('serviceWorker' in navigator) {
 
 // ---- 앱 부팅 ----
 async function boot() {
-  let categories = [];
-  let archive = [];
-  let todaySessions = [];
-  let bootError = null;
-
   try {
-    categories = await fetchCategories();
-    archive = await fetchArchive();
-    todaySessions = await fetchTodaySession();
+    await refreshData();
   } catch (err) {
     console.error('[chaeumlog] boot fetch error:', err);
-    bootError = err;
-  }
-
-  document.getElementById('loading').style.display = 'none';
-
-  if (bootError) {
+    document.getElementById('loading').style.display = 'none';
     document.getElementById('app').innerHTML = `
       <div style="padding:24px; font-family:var(--font-mono); font-size:12px; color:#c0504d; white-space:pre-wrap;">
-        에러: ${(bootError.message || bootError).toString()}
+        에러: ${(err.message || err).toString()}
       </div>`;
     return;
   }
-
-  document.getElementById('app').innerHTML = renderHome(todaySessions, archive, categories);
+  document.getElementById('loading').style.display = 'none';
+  if (!window.location.hash) window.location.hash = '#home';
+  await render();
 }
 
 boot().catch((err) => {
