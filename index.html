@@ -57,7 +57,7 @@
 
   #app { height:100%; display:flex; flex-direction:column; }
   #app-topbar { flex-shrink:0; background:var(--bg); padding-top:env(safe-area-inset-top); position:relative; z-index:10; }
-  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; }
 
   /* 로딩 상태 (스플래시) — iikoto와 동일한 구조: fadeUp 애니메이션, 일정 시간 후 hide */
   #loading {
@@ -81,15 +81,16 @@
   /* ===== 홈 화면 ===== */
   .phone { max-width:420px; margin:0 auto; padding-bottom:88px; }
 
-  /* 하단 메뉴바 — #app-tabbar는 body 직속(스크롤 컨테이너 밖)이라 뷰포트 기준으로 확실히 고정됨 */
-  #app-tabbar { position:fixed; left:0; right:0; bottom:0; z-index:50; outline:4px solid blue; }
+  /* 하단 메뉴바 — #app-tabbar는 #app의 flex 자식(flex-shrink:0)으로 배치.
+     position:fixed 대신 flex 흐름으로 배치하면 일부 iOS 기종/PWA에서 발생하는
+     fixed 요소의 좌표-렌더링 불일치 버그를 원천적으로 피할 수 있음 */
+  #app-tabbar { flex-shrink:0; z-index:50; }
   #app-tabbar:empty { display:none; }
   .tabbar {
     max-width:420px; margin:0 auto;
     background:var(--card); border-top:1px solid var(--line);
     display:flex; justify-content:space-around; align-items:center;
     padding:10px 0 calc(10px + env(safe-area-inset-bottom));
-    outline:4px solid red;
   }
   .tabbar-item {
     display:flex; flex-direction:column; align-items:center; gap:3px;
@@ -318,8 +319,8 @@
 <div id="app">
   <div id="app-topbar"></div>
   <div id="app-scroll"></div>
+  <div id="app-tabbar"></div>
 </div>
-<div id="app-tabbar"></div>
 
 <script>
 // iOS dvh 계산 오차 보정용 (body가 fixed;inset:0로 기본 고정되어 있어 필수는 아니지만,
@@ -331,56 +332,6 @@ setRealVH();
 window.addEventListener('resize', setRealVH);
 window.addEventListener('orientationchange', setRealVH);
 if (window.visualViewport) window.visualViewport.addEventListener('resize', setRealVH);
-
-// ---- 임시 진단 패널 v3: MutationObserver로 tabbar가 실제 채워진 뒤 찍기 ----
-function runDiagnostic(){
-  const tb = document.getElementById('app-tabbar');
-  const inner = document.querySelector('.tabbar');
-  if (!tb) return;
-  const csOuter = getComputedStyle(tb);
-  const csInner = inner ? getComputedStyle(inner) : null;
-  const rectOuter = tb.getBoundingClientRect();
-  const rectInner = inner ? inner.getBoundingClientRect() : null;
-  const bodyBg = getComputedStyle(document.body).backgroundColor;
-  const testEl = document.createElement('div');
-  testEl.style.paddingBottom = 'env(safe-area-inset-bottom)';
-  document.body.appendChild(testEl);
-  const sab = getComputedStyle(testEl).paddingBottom;
-  testEl.remove();
-  const info = [
-    'RUN AT: ' + new Date().toISOString().slice(11,19),
-    'window.innerHeight: ' + window.innerHeight,
-    'env(safe-area-inset-bottom): ' + sab,
-    'body bg: ' + bodyBg,
-    '#app-tabbar (outer)',
-    '  innerHTML length: ' + tb.innerHTML.length,
-    '  bg-color: ' + csOuter.backgroundColor,
-    '  rect: bottom=' + rectOuter.bottom + ' top=' + rectOuter.top + ' h=' + rectOuter.height,
-    '.tabbar (inner)',
-    '  found: ' + !!inner,
-    '  bg-color: ' + (csInner ? csInner.backgroundColor : 'N/A'),
-    '  padding-bottom: ' + (csInner ? csInner.paddingBottom : 'N/A'),
-    '  rect: bottom=' + (rectInner ? rectInner.bottom : 'N/A') + ' top=' + (rectInner ? rectInner.top : 'N/A') + ' h=' + (rectInner ? rectInner.height : 'N/A'),
-    '  parent of .tabbar: ' + (inner ? inner.parentElement.id || inner.parentElement.className : 'N/A')
-  ];
-  let panel = document.getElementById('__diag_panel');
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = '__diag_panel';
-    panel.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.92);color:#0f0;font-family:monospace;font-size:10px;padding:10px;white-space:pre-wrap;line-height:1.5;max-height:70vh;overflow-y:auto;';
-    document.body.appendChild(panel);
-  }
-  panel.textContent = info.join('\n');
-}
-window.addEventListener('load', function(){ setTimeout(runDiagnostic, 500); });
-// tabbar/topbar가 갱신될 때마다 재실행 (라우트 전환 후에도 최신 상태 확인 가능)
-const __diagObserver = new MutationObserver(function(){ runDiagnostic(); });
-window.addEventListener('load', function(){
-  setTimeout(function(){
-    const tb = document.getElementById('app-tabbar');
-    if (tb) __diagObserver.observe(tb, { childList:true, subtree:true });
-  }, 600);
-});
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -1031,20 +982,6 @@ async function render() {
 }
 
 window.addEventListener('hashchange', render);
-
-// ---- iOS WebKit 초기 페인트 시 position:fixed 요소가 스크롤 위치를 잘못 캡처하는
-//      알려진 현상에 대한 보정: 최초 렌더링 완료 직후 미세 스크롤을 강제로 트리거해
-//      레이아웃을 재계산시킨다 (사용자에게는 감지되지 않는 수준) ----
-function forceFixedRelayout() {
-  const scrollEl = document.getElementById('app-scroll');
-  if (!scrollEl) return;
-  const prev = scrollEl.scrollTop;
-  scrollEl.scrollTop = prev + 1;
-  requestAnimationFrame(() => { scrollEl.scrollTop = prev; });
-}
-window.addEventListener('load', () => {
-  setTimeout(forceFixedRelayout, 300);
-});
 
 // Claude 앱(또는 다른 앱)에 다녀온 뒤 PWA로 복귀했을 때 빈 화면이 남는 경우를 대비한 안전장치.
 // 앱 콘텐츠(#app)가 비어있는 상태로 화면이 다시 보이면 현재 라우트를 다시 렌더링.
