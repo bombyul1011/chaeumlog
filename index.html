@@ -83,7 +83,7 @@
   }
   .tabbar-item .ti { font-size:20px; }
   .tabbar-item.active { color:var(--sage); }
-  .tabbar-item.active .ti { color:var(--accent-brown); }
+  .tabbar-item.active .ti { color:var(--accent-yellow); }
   .topbar { display:flex; justify-content:space-between; align-items:center; padding:8px 24px 0; }
   .logo-group { display:flex; align-items:center; gap:6px; }
   .logo-mark { width:26px; height:26px; object-fit:contain; display:block; }
@@ -94,8 +94,10 @@
   .stat-index { display:flex; padding:22px 24px 4px; }
   .stat-nums { flex:0 0 66.6667%; display:flex; }
   .stat-nums .item { flex:1; text-align:center; }
+  .stat-nums .item:first-child { text-align:left; }
   .stat-nums .n { font-family:var(--font-mono); font-size:34px; font-weight:500; color:var(--ink); line-height:1; }
   .stat-nums .l { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:6px; text-transform:uppercase; height:11px; display:flex; align-items:center; justify-content:center; }
+  .stat-nums .item:first-child .l { justify-content:flex-start; }
   .stat-recent { flex:1; display:flex; flex-direction:column; justify-content:flex-end; }
   .stat-recent .spacer { height:34px; }
   .mini-dots { display:flex; justify-content:flex-end; gap:5px; margin-top:6px; height:11px; align-items:center; }
@@ -195,7 +197,7 @@
   @keyframes toastFadeIn { from{opacity:0;} to{opacity:1;} }
   .toast-sheet { width:100%; max-width:480px; background:var(--card); border-radius:20px 20px 0 0; padding:22px 22px calc(22px + env(safe-area-inset-bottom)); animation:toastSlideUp 0.25s cubic-bezier(.25,.9,.4,1); }
   @keyframes toastSlideUp { from{ transform:translateY(100%); } to{ transform:translateY(0); } }
-  .toast-icon { width:44px; height:44px; border-radius:12px; background:var(--accent-yellow-bg); color:var(--accent-brown); display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:14px; }
+  .toast-icon { width:44px; height:44px; border-radius:12px; background:var(--accent-yellow-bg); color:var(--accent-yellow); display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:14px; }
   .toast-title { font-family:var(--font-serif); font-size:17px; font-weight:600; color:var(--ink); margin-bottom:6px; }
   .toast-sub { font-size:13px; color:var(--sub-ink); line-height:1.6; margin-bottom:20px; }
   .toast-btn-row { display:flex; gap:8px; }
@@ -621,6 +623,17 @@ async function render() {
 
 window.addEventListener('hashchange', render);
 
+// Claude 앱(또는 다른 앱)에 다녀온 뒤 PWA로 복귀했을 때 빈 화면이 남는 경우를 대비한 안전장치.
+// 앱 콘텐츠(#app)가 비어있는 상태로 화면이 다시 보이면 현재 라우트를 다시 렌더링.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    const app = document.getElementById('app');
+    if (app && app.innerHTML.trim() === '') {
+      render();
+    }
+  }
+});
+
 /* ==========================================================
    주제 선택 화면 (3분기: 랜덤 / 카테고리 / 꼬리물기)
    ========================================================== */
@@ -912,7 +925,7 @@ function renderSessionInner(session) {
 
   return `
     <div class="session-wrap">
-      <div class="topbar" style="padding:20px 0 0;">
+      <div class="topbar" style="padding:8px 0 0;">
         <button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button>
         <button class="icon-btn"><i class="ti ti-dots"></i></button>
       </div>
@@ -984,21 +997,9 @@ function openClaudeApp() {
   const toast = document.getElementById('claude-handoff-toast');
   if (toast) toast.remove();
 
-  // 모바일 딥링크 시도 → 일정 시간 내 앱 전환이 안 되면 웹으로 폴백
-  const fallbackUrl = 'https://claude.ai/new';
-  const deepLink = 'claude://new';
-  let didHide = false;
-  const onVisibilityChange = () => { if (document.hidden) didHide = true; };
-  document.addEventListener('visibilitychange', onVisibilityChange);
-
-  window.location.href = deepLink;
-
-  setTimeout(() => {
-    document.removeEventListener('visibilitychange', onVisibilityChange);
-    if (!didHide) {
-      window.open(fallbackUrl, '_blank');
-    }
-  }, 900);
+  // 커스텀 스킴(claude://)으로 현재 페이지를 이동시키면 실패 시 채움로그 화면이
+  // 언로드된 채로 남는 문제가 있어 사용하지 않음. 새 탭으로 여는 방식이 안전함.
+  window.open('https://claude.ai/new', '_blank');
 }
 
 /* ==========================================================
@@ -1015,7 +1016,7 @@ function renderFinish(id) {
 function renderFinishInner(session) {
   return `
     <div class="session-wrap">
-      <div class="topbar" style="padding:20px 0 0;">
+      <div class="topbar" style="padding:8px 0 0;">
         <button class="back" onclick="navigate('session', {id: '${session.id}'})"><i class="ti ti-chevron-left"></i> 뒤로</button>
         <button class="icon-btn"><i class="ti ti-dots"></i></button>
       </div>
@@ -1061,7 +1062,7 @@ function renderComplete(id) {
 function renderCompleteInner(session) {
   return `
     <div class="complete-wrap">
-      <div class="topbar" style="padding:20px 0 0;">
+      <div class="topbar" style="padding:8px 0 0;">
         <button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button>
         <button class="icon-btn"><i class="ti ti-dots"></i></button>
       </div>
