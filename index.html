@@ -7,7 +7,7 @@
 
 <!-- PWA -->
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#2B332E">
+<meta name="theme-color" content="#EFF5EC">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="채움로그">
@@ -55,13 +55,24 @@
 
   #app { min-height:100vh; }
 
-  /* 로딩 상태 */
+  /* 로딩 상태 (스플래시) — iikoto와 동일한 구조: fadeUp 애니메이션, 일정 시간 후 hide */
   #loading {
-    position:fixed; inset:0; background:var(--bg);
-    display:flex; align-items:center; justify-content:center;
-    font-family: var(--font-mono); font-size:12px; color:var(--sage);
-    letter-spacing:1px; z-index:999;
+    position:fixed; inset:0; z-index:999; background:var(--bg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    transition:opacity .6s, transform .6s;
   }
+  #loading.hide { opacity:0; transform:scale(1.04); pointer-events:none; }
+  #loading .splash-logo {
+    width:72px; height:72px; object-fit:contain;
+    opacity:0; transform:translateY(14px);
+    animation:splashFadeUp .7s .2s cubic-bezier(.22,.8,.44,1) forwards;
+  }
+  #loading .splash-sub {
+    font-family:var(--font-mono); font-size:11px; color:var(--sage);
+    letter-spacing:3px; text-transform:uppercase;
+    opacity:0; animation:splashFadeUp .5s .6s ease forwards;
+  }
+  @keyframes splashFadeUp { to{ opacity:1; transform:translateY(0); } }
 
   /* ===== 홈 화면 ===== */
   .phone { max-width:420px; margin:0 auto; min-height:100vh; padding-bottom:88px; padding-top:env(safe-area-inset-top); }
@@ -96,7 +107,7 @@
   .stat-nums .item { text-align:left; }
   .stat-nums .n { font-family:var(--font-mono); font-size:34px; font-weight:500; color:var(--ink); line-height:1; }
   .stat-nums .l { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:6px; text-transform:uppercase; height:11px; display:flex; align-items:center; justify-content:flex-start; }
-  .stat-recent { flex:1; display:flex; flex-direction:column; justify-content:flex-end; }
+  .stat-recent { flex:1; display:flex; flex-direction:column; justify-content:flex-end; padding-left:16px; border-left:1px dashed var(--line); }
   .stat-recent .spacer { height:34px; }
   .mini-dots { display:flex; justify-content:flex-end; gap:5px; margin-top:6px; height:11px; align-items:center; }
   .mini-dot { width:7px; height:7px; border-radius:50%; background:var(--line); }
@@ -106,10 +117,22 @@
   .section-label { padding:22px 24px 12px; font-family:var(--font-mono); font-size:10px; color:var(--sub-ink); letter-spacing:1.5px; text-transform:uppercase; }
 
   .today-card {
-    margin:0 24px; background:var(--paper);
+    background:var(--paper);
     background-image: repeating-linear-gradient(to bottom, transparent, transparent 35px, #E4ECE0 35px, #E4ECE0 36px);
     border:1px solid var(--line); border-radius:16px; padding:18px; position:relative;
   }
+  .today-scroll {
+    display:flex; gap:12px; overflow-x:auto; padding:0 24px; margin:0 -0px;
+    scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .today-scroll::-webkit-scrollbar { display:none; }
+  .today-scroll .today-card { flex:0 0 calc(100% - 36px); scroll-snap-align:start; }
+  .today-scroll.single-card .today-card { flex:0 0 100%; }
+  .today-scroll-dots { display:flex; justify-content:center; gap:5px; padding:12px 24px 0; }
+  .today-scroll-dots span { width:5px; height:5px; border-radius:50%; background:var(--line); }
+  .today-scroll-dots span.active { background:var(--accent-yellow); width:14px; border-radius:3px; transition:width 0.2s; }
+  .today-badge.done { background:var(--sage); color:#fff; }
   .today-badge {
     position:absolute; top:-9px; left:18px; background:var(--accent-yellow); color:var(--ink);
     font-family:var(--font-mono); font-size:9px; font-weight:500; letter-spacing:0.5px;
@@ -273,7 +296,10 @@
 </head>
 <body>
 
-<div id="loading">chaeumlog · loading...</div>
+<div id="loading">
+  <img src="./icons/logo-transparent.png" alt="chaeumlog" class="splash-logo">
+  <div class="splash-sub">daily chaeum</div>
+</div>
 <div id="app"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -482,27 +508,52 @@ function renderTabbar(active) {
 }
 
 // ---- 홈 화면 렌더 ----
+// ---- 홈 화면 "오늘의 기록" 스와이프 카드: 스크롤 위치에 맞춰 점 인디케이터 갱신 ----
+function updateTodayScrollDots() {
+  const scroller = document.getElementById('today-scroll');
+  const dotsWrap = document.getElementById('today-scroll-dots');
+  if (!scroller || !dotsWrap) return;
+  const cardWidth = scroller.firstElementChild ? scroller.firstElementChild.offsetWidth + 12 : 1; // gap 포함
+  const activeIdx = Math.round(scroller.scrollLeft / cardWidth);
+  Array.from(dotsWrap.children).forEach((dot, i) => {
+    dot.classList.toggle('active', i === activeIdx);
+  });
+}
+
 function renderHome(todaySessions, archive, categories) {
   const streak = calcStreak(archive);
   const totalSessions = archive.length;
   const branches = groupArchiveByCategory(archive, categories).length;
 
-  const inProgress = todaySessions.find(s => s.status === 'in_progress');
-  const completedToday = todaySessions.filter(s => s.status === 'completed');
+  const todaySessionsAll = todaySessions; // 진행중 + 완료 모두 포함 (오늘 생성된 전체 세션)
 
   let todayBlock;
-  if (inProgress) {
+  if (todaySessionsAll.length > 0) {
+    const cardsHtml = todaySessionsAll.map(s => {
+      const isDone = s.status === 'completed';
+      return `
+        <div class="today-card">
+          <span class="today-badge${isDone ? ' done' : ''}">${isDone ? '완료' : 'TODAY'}</span>
+          <div class="today-meta"><span>${todayKey()}</span><span>${escapeHtml(s.category)}</span></div>
+          <div class="today-title">${escapeHtml(s.title)}</div>
+          <div class="today-tags">${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+          <div class="today-foot">
+            <span class="read-time">${isDone ? '학습 완료' : '학습 진행 중'}</span>
+            <button class="start-link" onclick="navigate('${isDone ? 'paper' : 'session'}', {id: '${s.id}'})">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
+          </div>
+        </div>`;
+    }).join('');
+
+    const dotsIndicator = todaySessionsAll.length > 1 ? `
+      <div class="today-scroll-dots" id="today-scroll-dots">
+        ${todaySessionsAll.map((_, i) => `<span class="${i === 0 ? 'active' : ''}"></span>`).join('')}
+      </div>` : '';
+
     todayBlock = `
-      <div class="today-card">
-        <span class="today-badge">TODAY</span>
-        <div class="today-meta"><span>${todayKey()}</span><span>${escapeHtml(inProgress.category)}</span></div>
-        <div class="today-title">${escapeHtml(inProgress.title)}</div>
-        <div class="today-tags">${(inProgress.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
-        <div class="today-foot">
-          <span class="read-time">학습 진행 중</span>
-          <button class="start-link" onclick="navigate('session', {id: '${inProgress.id}'})">이어서 보기 <i class="ti ti-arrow-right"></i></button>
-        </div>
-      </div>`;
+      <div class="today-scroll${todaySessionsAll.length === 1 ? ' single-card' : ''}" id="today-scroll" onscroll="updateTodayScrollDots()">
+        ${cardsHtml}
+      </div>
+      ${dotsIndicator}`;
   } else {
     todayBlock = isMobileDevice() ? `
       <div class="empty-today">
@@ -1501,26 +1552,38 @@ if ('serviceWorker' in navigator) {
 
 // ---- 앱 부팅 ----
 async function boot() {
+  const splashStart = Date.now();
+  const minSplashMs = 1300; // 로고+문구 페이드업 애니메이션이 끝까지 보일 최소 시간
+
   try {
     await refreshData();
   } catch (err) {
     console.error('[chaeumlog] boot fetch error:', err);
-    document.getElementById('loading').style.display = 'none';
+    document.getElementById('loading').classList.add('hide');
     document.getElementById('app').innerHTML = `
       <div style="padding:24px; font-family:var(--font-mono); font-size:12px; color:#c0504d; white-space:pre-wrap;">
         에러: ${(err.message || err).toString()}
       </div>`;
     return;
   }
-  document.getElementById('loading').style.display = 'none';
+
   // 새로고침(진입) 시에는 이전 화면의 해시가 남아있어도 항상 홈에서 시작
   window.location.hash = '#home';
   await render();
+
+  const elapsed = Date.now() - splashStart;
+  const remaining = Math.max(0, minSplashMs - elapsed);
+  setTimeout(() => {
+    const el = document.getElementById('loading');
+    if (el) el.classList.add('hide');
+    // iikoto와 동일하게 DOM에서 완전히 제거하지 않음 — reflow로 배경이 잠깐 씹히는 현상 방지
+  }, remaining);
 }
 
 boot().catch((err) => {
   console.error('[chaeumlog] boot fatal error:', err);
-  document.getElementById('loading').textContent = 'chaeumlog · 초기화 오류: ' + (err.message || err);
+  const el = document.getElementById('loading');
+  if (el) el.innerHTML = '<div class="splash-sub">초기화 오류: ' + (err.message || err) + '</div>';
 });
 </script>
 </body>
