@@ -445,6 +445,17 @@ async function fetchArchive() {
   return data;
 }
 
+// ---- 미완료(in_progress) 세션 개수 — 오늘 것 포함 전체, 새 주제 뽑기 제한(최대 3개)에 사용 ----
+const MAX_IN_PROGRESS = 3;
+async function countInProgressSessions() {
+  const { count, error } = await sb
+    .from('sessions')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'in_progress');
+  if (error) { console.error(error); return 0; }
+  return count || 0;
+}
+
 // ---- 통계 계산 ----
 function calcStreak(archive) {
   // 완료 세션의 DISTINCT date_key 기준 연속 일수 계산
@@ -923,9 +934,14 @@ function renderGenerating() {
 }
 
 // ---- 실제 생성 처리 — Claude API로 제목+목차+본문 한번에 생성 ----
-function startGenerate(sourceType, category) {
+async function startGenerate(sourceType, category) {
   if (!isMobileDevice()) {
     alert('오늘의 주제 생성은 모바일에서만 가능해요.\n모바일에서 먼저 만들어주시면, 여기서도 바로 확인할 수 있어요.');
+    return;
+  }
+  const inProgressCount = await countInProgressSessions();
+  if (inProgressCount >= MAX_IN_PROGRESS) {
+    alert(`아직 학습을 완료하지 않은 주제가 ${inProgressCount}개 있어요.\n최대 ${MAX_IN_PROGRESS}개까지만 미완료 상태로 쌓아둘 수 있어요.\n기존 것을 완료하거나, 필요 없는 건 삭제한 뒤 다시 뽑아주세요.`);
     return;
   }
   navigate('generating', { source: sourceType, category: category || '' });
@@ -1124,6 +1140,25 @@ function renderSession(id) {
   return `<div id="session-outer">${renderGenerating()}</div>`;
 }
 
+// ---- 진행 중 세션(아직 학습 완료 전) 액션: 삭제만 제공 ----
+function showInProgressActionMenu(sessionId) {
+  const el = document.createElement('div');
+  el.id = 'session-action-menu';
+  el.className = 'toast-backdrop';
+  el.onclick = (e) => { if (e.target === el) el.remove(); };
+  el.innerHTML = `
+    <div class="toast-sheet">
+      <div class="toast-title" style="margin-bottom:14px;">이 주제에 대해</div>
+      <div class="action-menu-list">
+        <button class="action-menu-item danger" onclick="document.getElementById('session-action-menu').remove(); confirmDeleteSession('${sessionId}', 'home');">
+          <i class="ti ti-trash"></i> 삭제하기
+        </button>
+      </div>
+      <button class="toast-btn-secondary" style="width:100%; margin-top:8px;" onclick="document.getElementById('session-action-menu').remove()">닫기</button>
+    </div>`;
+  document.body.appendChild(el);
+}
+
 function renderSessionInner(session) {
   const outline = session.outline || [];
   const outlineHtml = outline.map((o, i) => `
@@ -1136,7 +1171,7 @@ function renderSessionInner(session) {
     <div class="session-wrap">
       <div class="topbar" style="padding:8px 0 0;">
         <button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button>
-        <button class="icon-btn"><i class="ti ti-dots"></i></button>
+        <button class="icon-btn" onclick="showInProgressActionMenu('${session.id}')"><i class="ti ti-dots"></i></button>
       </div>
       <div class="s-meta">${escapeHtml(session.category)}</div>
       <div class="s-date">${session.date_key} · ${session.source_type === 'tailchain' ? '이어가기' : session.source_type === 'relearn' ? '다시 학습' : session.source_type === 'category' ? '카테고리 선택' : '랜덤'}</div>
@@ -1444,7 +1479,7 @@ async function relearnSession(sessionId) {
 }
 
 // ---- 삭제: 확인 후 Supabase에서 제거, 캐시/목록 갱신, 아카이브로 이동 ----
-function confirmDeleteSession(sessionId) {
+function confirmDeleteSession(sessionId, redirectTo) {
   const el = document.createElement('div');
   el.id = 'delete-confirm-toast';
   el.className = 'toast-backdrop';
@@ -1456,13 +1491,13 @@ function confirmDeleteSession(sessionId) {
       <div class="toast-sub">삭제하면 되돌릴 수 없어요. 제목, 목차, 요약이 모두 사라져요.</div>
       <div class="toast-btn-row">
         <button class="toast-btn-secondary" onclick="document.getElementById('delete-confirm-toast').remove()">취소</button>
-        <button class="cta" style="flex:1; background:#c0504d;" onclick="executeDeleteSession('${sessionId}')">삭제하기</button>
+        <button class="cta" style="flex:1; background:#c0504d;" onclick="executeDeleteSession('${sessionId}', '${redirectTo || 'archive'}')">삭제하기</button>
       </div>
     </div>`;
   document.body.appendChild(el);
 }
 
-async function executeDeleteSession(sessionId) {
+async function executeDeleteSession(sessionId, redirectTo) {
   const toast = document.getElementById('delete-confirm-toast');
   if (toast) toast.remove();
   try {
@@ -1476,7 +1511,7 @@ async function executeDeleteSession(sessionId) {
     const { error } = await sb.from('sessions').delete().eq('id', sessionId);
     if (error) throw error;
     delete _sessionCache[sessionId];
-    navigate('archive');
+    navigate(redirectTo || 'archive');
   } catch (e) {
     alert('삭제에 실패했어요: ' + (e.message || e));
   }
