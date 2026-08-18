@@ -122,6 +122,15 @@
     border:1px solid var(--line); border-radius:16px; padding:18px; position:relative;
   }
   .today-nav { display:flex; align-items:center; justify-content:center; gap:14px; padding:12px 24px 0; }
+  .today-card-addnew {
+    display:flex; align-items:center; justify-content:center;
+    min-height:150px; cursor:pointer;
+    border-style:dashed; background:var(--card);
+    background-image:none;
+  }
+  .today-addnew-inner { text-align:center; }
+  .today-addnew-inner i { font-size:22px; color:var(--sage); display:block; margin-bottom:8px; }
+  .today-addnew-text { font-family:var(--font-mono); font-size:12px; color:var(--sub-ink); letter-spacing:0.3px; }
   .today-nav-btn {
     width:26px; height:26px; border-radius:50%; border:none; background:none;
     display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted);
@@ -523,7 +532,17 @@ function renderTabbar(active) {
 }
 
 // ---- 홈 화면 "오늘의 기록" 카드: 화살표로 하나씩 전환 ----
+// s가 null이면 "새 주제 뽑기" 카드 (오늘 뽑은 카드들 맨 뒷장에 자연스럽게 위치)
 function renderTodayCard(s) {
+  if (s === null) {
+    return `
+    <div class="today-card today-card-addnew" onclick="navigate('pick')">
+      <div class="today-addnew-inner">
+        <i class="ti ti-plus"></i>
+        <div class="today-addnew-text">다른 주제 더 뽑기</div>
+      </div>
+    </div>`;
+  }
   const isDone = s.status === 'completed';
   return `
     <div class="today-card">
@@ -538,20 +557,26 @@ function renderTodayCard(s) {
     </div>`;
 }
 
-function goTodayCard(delta) {
+// 오늘의 기록 카드 목록에 "뽑기" 슬롯을 포함할지 여부: 모바일에서만 맨 뒤에 가상 슬롯 추가
+function getTodayCardSlots() {
   const list = appState.todaySessions;
-  if (!list.length) return;
-  appState.todayCardIndex = Math.max(0, Math.min(list.length - 1, appState.todayCardIndex + delta));
+  return isMobileDevice() ? [...list, null] : list;
+}
+
+function goTodayCard(delta) {
+  const slots = getTodayCardSlots();
+  if (!slots.length) return;
+  appState.todayCardIndex = Math.max(0, Math.min(slots.length - 1, appState.todayCardIndex + delta));
   const wrap = document.getElementById('today-card-wrap');
   const dotsWrap = document.getElementById('today-nav-dots');
   const prevBtn = document.getElementById('today-nav-prev');
   const nextBtn = document.getElementById('today-nav-next');
-  if (wrap) wrap.innerHTML = renderTodayCard(list[appState.todayCardIndex]);
+  if (wrap) wrap.innerHTML = renderTodayCard(slots[appState.todayCardIndex]);
   if (dotsWrap) {
     Array.from(dotsWrap.children).forEach((dot, i) => dot.classList.toggle('active', i === appState.todayCardIndex));
   }
   if (prevBtn) prevBtn.disabled = appState.todayCardIndex === 0;
-  if (nextBtn) nextBtn.disabled = appState.todayCardIndex === list.length - 1;
+  if (nextBtn) nextBtn.disabled = appState.todayCardIndex === slots.length - 1;
 }
 
 // 오늘의 기록 카드 스와이프 — 손가락 따라 실시간으로 카드가 밀리는 드래그 추적형
@@ -589,9 +614,9 @@ document.addEventListener('touchmove', (e) => {
   e.preventDefault();
 
   // 맨 앞/맨 뒤 카드에서 반대 방향으로 당기면 저항감(절반만 이동)을 줌
-  const list = appState.todaySessions;
+  const slots = getTodayCardSlots();
   const atStart = appState.todayCardIndex === 0 && dx > 0;
-  const atEnd = appState.todayCardIndex === list.length - 1 && dx < 0;
+  const atEnd = appState.todayCardIndex === slots.length - 1 && dx < 0;
   const resisted = (atStart || atEnd) ? dx * 0.35 : dx;
   wrap.style.transform = `translateX(${resisted}px)`;
 }, { passive: false });
@@ -615,10 +640,10 @@ document.addEventListener('touchend', (e) => {
     return;
   }
 
-  const list = appState.todaySessions;
+  const slots = getTodayCardSlots();
   const delta = dx < 0 ? 1 : -1;
   const nextIdx = appState.todayCardIndex + delta;
-  if (nextIdx < 0 || nextIdx > list.length - 1) {
+  if (nextIdx < 0 || nextIdx > slots.length - 1) {
     // 경계에서는 카드 전환 없이 원위치로
     wrap.style.transform = 'translateX(0)';
     return;
@@ -650,22 +675,23 @@ function renderHome(todaySessions, archive, categories) {
   const branches = groupArchiveByCategory(archive, categories).length;
 
   const todaySessionsAll = todaySessions; // 진행중 + 완료 모두 포함 (오늘 생성된 전체 세션)
-  if (appState.todayCardIndex >= todaySessionsAll.length) appState.todayCardIndex = 0;
+  const todaySlots = isMobileDevice() ? [...todaySessionsAll, null] : todaySessionsAll; // 모바일이면 맨 뒤에 "뽑기" 가상 슬롯 추가
+  if (appState.todayCardIndex >= todaySlots.length) appState.todayCardIndex = 0;
 
   let todayBlock;
   if (todaySessionsAll.length > 0) {
     const idx = appState.todayCardIndex;
-    const navHtml = todaySessionsAll.length > 1 ? `
+    const navHtml = todaySlots.length > 1 ? `
       <div class="today-nav">
         <button class="today-nav-btn" id="today-nav-prev" onclick="goTodayCard(-1)" ${idx === 0 ? 'disabled' : ''}><i class="ti ti-chevron-left"></i></button>
         <div class="today-nav-dots" id="today-nav-dots">
-          ${todaySessionsAll.map((_, i) => `<span class="${i === idx ? 'active' : ''}"></span>`).join('')}
+          ${todaySlots.map((_, i) => `<span class="${i === idx ? 'active' : ''}"></span>`).join('')}
         </div>
-        <button class="today-nav-btn" id="today-nav-next" onclick="goTodayCard(1)" ${idx === todaySessionsAll.length - 1 ? 'disabled' : ''}><i class="ti ti-chevron-right"></i></button>
+        <button class="today-nav-btn" id="today-nav-next" onclick="goTodayCard(1)" ${idx === todaySlots.length - 1 ? 'disabled' : ''}><i class="ti ti-chevron-right"></i></button>
       </div>` : '';
 
     todayBlock = `
-      <div id="today-card-wrap">${renderTodayCard(todaySessionsAll[idx])}</div>
+      <div id="today-card-wrap">${renderTodayCard(todaySlots[idx])}</div>
       ${navHtml}`;
   } else {
     todayBlock = isMobileDevice() ? `
