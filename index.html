@@ -161,7 +161,7 @@
   .gen-loading .msg { font-family:var(--font-mono); font-size:12px; color:var(--sub-ink); }
 
   /* ===== 세션 화면 ===== */
-  .session-wrap { padding:0 24px 24px; min-height:100vh; }
+  .session-wrap { padding:0 24px 88px; min-height:100vh; }
   .s-meta { font-family:var(--font-mono); font-size:11px; color:var(--sage); margin:18px 0 6px; }
   .s-date { font-family:var(--font-mono); font-size:11px; color:var(--muted); margin-bottom:18px; }
   .title-card { background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:26px 22px; margin-bottom:28px; }
@@ -181,7 +181,7 @@
   .pd-body-preview { font-size:14px; line-height:1.8; color:#3d463f; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); }
 
   /* ===== 완료 화면 ===== */
-  .complete-wrap { min-height:100vh; padding:0 24px; }
+  .complete-wrap { min-height:100vh; padding:0 24px 88px; }
   .paper-card { margin-top:40px; background:var(--card); border:1px solid var(--ink); border-radius:2px; padding:28px 24px 24px; box-shadow:4px 4px 0 var(--line); }
   .paper-vol-row { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; color:#5b7a63; padding-bottom:14px; border-bottom:1px solid var(--ink); margin-bottom:20px; letter-spacing:0.5px; }
   .paper-eyebrow { font-family:var(--font-mono); font-size:10px; color:var(--sage); letter-spacing:1.5px; margin-bottom:10px; }
@@ -217,7 +217,7 @@
   .empty-archive { padding:60px 24px; text-align:center; font-family:var(--font-mono); font-size:12px; color:var(--muted); }
 
   /* ===== 뉴스페이퍼 상세 (재열람용) ===== */
-  .paper-detail { padding:0 24px 32px; }
+  .paper-detail { padding:0 24px 88px; }
   .pd-masthead { text-align:center; padding:18px 0 14px; border-bottom:2px solid var(--ink); margin-bottom:18px; }
   .pd-masthead .name { font-family:var(--font-serif); font-size:15px; font-weight:700; letter-spacing:3px; }
   .pd-masthead .vol { font-family:var(--font-mono); font-size:9px; color:var(--sage); margin-top:4px; letter-spacing:1px; }
@@ -432,8 +432,6 @@ function renderHome(todaySessions, archive, categories) {
 
   let todayBlock;
   if (inProgress) {
-    const doneCount = (inProgress.outline || []).filter(o => o.done).length;
-    const total = (inProgress.outline || []).length || 4;
     todayBlock = `
       <div class="today-card">
         <span class="today-badge">TODAY</span>
@@ -441,8 +439,8 @@ function renderHome(todaySessions, archive, categories) {
         <div class="today-title">${escapeHtml(inProgress.title)}</div>
         <div class="today-tags">${(inProgress.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
         <div class="today-foot">
-          <span class="read-time">${doneCount} / ${total} 완료</span>
-          <button class="start-link" onclick="navigate('session', {id: '${inProgress.id}'})">이어서 읽기 <i class="ti ti-arrow-right"></i></button>
+          <span class="read-time">학습 진행 중</span>
+          <button class="start-link" onclick="navigate('session', {id: '${inProgress.id}'})">이어서 보기 <i class="ti ti-arrow-right"></i></button>
         </div>
       </div>`;
   } else {
@@ -546,6 +544,8 @@ async function render() {
     await handleGenerate(params);
   } else if (route === 'session') {
     app.innerHTML = renderSession(params.id);
+  } else if (route === 'finish') {
+    app.innerHTML = renderFinish(params.id);
   } else if (route === 'complete') {
     app.innerHTML = renderComplete(params.id);
   } else if (route === 'paper') {
@@ -613,6 +613,7 @@ function renderPick() {
         </div>
       </div>
     </div>
+    ${renderTabbar('home')}
   `;
 }
 
@@ -633,6 +634,7 @@ function renderPickCategory() {
       <div class="pick-lead"><h2>어떤 갈래가 궁금하신가요?</h2></div>
       <div class="cat-grid">${chips}</div>
     </div>
+    ${renderTabbar('home')}
   `;
 }
 
@@ -661,8 +663,8 @@ function buildGeneratePrompt(sourceType, category, parentSession, avoidTitles) {
 
   let connectionLine = '';
   if (sourceType === 'tailchain' && parentSession) {
-    connectionLine = `아래는 사용자가 방금 완료한 학습 세션입니다.
-[방금 완료한 세션]
+    connectionLine = `아래는 사용자가 최근 완료한 학습 세션입니다.
+[최근 완료한 세션]
 제목: ${parentSession.title}
 목차: ${(parentSession.outline || []).map(o => o.text).join(' / ')}
 
@@ -678,26 +680,35 @@ function buildGeneratePrompt(sourceType, category, parentSession, avoidTitles) {
     avoidLine
   ].filter(Boolean).join('\n\n');
 
-  const sys = `당신은 저녁 학습 큐레이터예요. 주어진 대주제 안에서 오늘 하루 짧게(15분 내외) 공부해볼 만한 구체적인 소주제 하나를 만들고, 그 흐름을 짚어주는 목차 4개와 각 목차 항목의 실제 학습 본문까지 작성해주세요.
+  // 짧은 프롬프트 — 제목/목차/간략요약만 생성 (본문은 여기서 만들지 않음)
+  const sys = `당신은 학습 큐레이터예요. 주어진 대주제 안에서 하루 30분 정도 깊이 파볼 만한 구체적인 소주제 하나를 만들어주세요.
+소주제는 "기승전결이 있는 하나의 완결된 이야기"여야 해요 — 서로 다른 네 개의 소재를 나열하는 게 아니라, 하나의 질문에서 시작해 네 단계를 거쳐 결론에 도달하는 흐름이어야 합니다.
 
 반드시 아래 JSON 형식으로만 응답해요. 다른 텍스트나 마크다운 코드블록 없이 순수 JSON만 출력해요.
 {
   "title": "흥미를 끄는 구체적인 소주제 제목 (한 줄)",
   "shortTitle": "핵심 키워드만 5-10자 내외로 짧게",
   "tags": ["태그1", "태그2"],
-  "readMinutes": 4,
-  "outline": [
-    {"sub": "목차1 제목 (3-8단어)", "body": "해당 항목의 실제 학습 본문 2-3문장(80자 내외), 쉽고 흥미롭게"},
-    {"sub": "목차2 제목", "body": "..."},
-    {"sub": "목차3 제목", "body": "..."},
-    {"sub": "목차4 제목", "body": "..."}
-  ],
+  "briefSummary": "오늘 배울 내용을 3-4줄로 미리 보여주는 간략 요약. 궁금증을 자극하되 전체 답은 주지 않기",
+  "outline": ["1번 소제목 (3-8단어)", "2번 소제목", "3번 소제목", "4번 소제목"],
   "connectionNote": "이어가기인 경우, 방금 배운 것과 어떻게 이어지는지 한 문장 (이어가기가 아니면 빈 문자열)"
 }
 
-제목은 궁금증을 자아내는 질문형이나 구체적인 문장으로. "왜 ~일까?" 패턴만 반복하지 말고, 반전형("사실은 ~였다"), 인물 뒷이야기형, 의외의 연결형 등 다양한 화법을 섞어주세요. 이미 잘 알려진 대표 사례는 피하고, 상대적으로 덜 알려졌지만 흥미로운 각도를 골라주세요. 본문은 친근하고 자연스러운 구어체로, 사실 관계가 정확해야 해요.`;
+제목은 궁금증을 자아내는 질문형이나 구체적인 문장으로. "왜 ~일까?" 패턴만 반복하지 말고, 반전형("사실은 ~였다"), 인물 뒷이야기형, 의외의 연결형 등 다양한 화법을 섞어주세요. 이미 잘 알려진 대표 사례는 피하고, 상대적으로 덜 알려졌지만 흥미로운 각도를 골라주세요. outline 4개는 반드시 하나의 이야기가 순서대로 전개되는 흐름이어야 해요 (예: 배경 → 전환점 → 핵심 원리 → 오늘날의 의미).`;
 
   return { sys, dataContext };
+}
+
+// ---- Claude 앱으로 넘길 학습용 프롬프트 생성 (클립보드 복사용, API 호출 없음) ----
+function buildLearningPrompt(session) {
+  const todayStr = session.date_key;
+  const outlineLines = (session.outline || []).map((o, i) => `${i + 1}. ${o.text}`).join('\n');
+
+  return `오늘 [${session.category}] 주제로 "${session.title}"를 30분 정도 배워보려고 해. 아래 흐름으로 설명해줘:
+
+${outlineLines}
+
+각 항목마다 소제목을 달고, 이해하기 쉽고 흥미롭게 설명해줘. 시작할 때 왜 이 주제가 흥미로운지 짧은 도입부를 넣어주고, 마지막엔 전체 내용을 한 문장으로 정리해줘. 관련해서 최신 정보가 필요하면 검색해서 확인해주고, 더 찾아볼 만한 유튜브 영상이나 자료도 추천해줘.`;
 }
 
 async function handleGenerate(params) {
@@ -723,7 +734,7 @@ async function handleGenerate(params) {
     return;
   }
 
-  const reply = await callClaude(sys, [{ role: 'user', content: dataContext }], 3000);
+  const reply = await callClaude(sys, [{ role: 'user', content: dataContext }], 600);
 
   if (!reply || reply.startsWith('__ERR__')) {
     const errMsg = reply ? reply.replace('__ERR__', '') : '응답을 받지 못했어요';
@@ -734,7 +745,8 @@ async function handleGenerate(params) {
           생성 중 오류가 발생했어요<br><span style="font-size:11px;">${escapeHtml(errMsg)}</span>
           <div style="margin-top:20px;"><button class="cta" style="width:auto; padding:12px 24px;" onclick="navigate('pick')">다시 시도</button></div>
         </div>
-      </div>`;
+      </div>
+      ${renderTabbar('home')}`;
     return;
   }
 
@@ -747,12 +759,12 @@ async function handleGenerate(params) {
     document.getElementById('app').innerHTML = `
       <div class="phone"><div class="empty-archive">생성 결과를 해석하지 못했어요 (응답이 잘렸을 수 있어요).
       <div style="margin-top:20px;"><button class="cta" style="width:auto; padding:12px 24px;" onclick="navigate('pick')">다시 시도</button></div>
-      </div></div>`;
+      </div></div>
+      ${renderTabbar('home')}`;
     return;
   }
 
-  const outline = (parsed.outline || []).map(o => ({ text: o.sub, done: false }));
-  const bodySections = (parsed.outline || []).map((o, i) => ({ num: i + 1, sub: o.sub, body: o.body }));
+  const outline = (parsed.outline || []).map(text => ({ text }));
   const connectionNote = (sourceType === 'tailchain' && parsed.connectionNote) ? parsed.connectionNote : null;
 
   const clientId = 'cid_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
@@ -764,12 +776,11 @@ async function handleGenerate(params) {
     title: parsed.title,
     short_title: parsed.shortTitle || parsed.title,
     outline: outline,
-    body_sections: bodySections,
+    brief_summary: parsed.briefSummary || '',
     tags: parsed.tags || [category],
     source_type: sourceType,
     parent_session_id: parentSession ? parentSession.id : null,
     connection_note: connectionNote,
-    read_minutes: parsed.readMinutes || 4,
     status: 'in_progress'
   }).select().single();
 
@@ -825,34 +836,21 @@ function renderSession(id) {
   fetchSessionById(id).then(session => {
     if (!session) return;
     _sessionCache[id] = session;
-    document.getElementById('session-root').outerHTML = renderSessionInner(session);
+    document.getElementById('session-outer').innerHTML = renderSessionInner(session);
   });
-  return `<div id="session-root">${renderGenerating()}</div>`;
+  return `<div id="session-outer">${renderGenerating()}</div>`;
 }
 
 function renderSessionInner(session) {
   const outline = session.outline || [];
-  const bodySections = session.body_sections || [];
-  const doneCount = outline.filter(o => o.done).length;
-  const total = outline.length || 1;
-  const pct = Math.round((doneCount / total) * 100);
-
-  const outlineHtml = outline.map((o, i) => {
-    const body = bodySections[i] ? bodySections[i].body : '';
-    return `
-    <li class="${o.done ? 'done' : ''}" style="flex-direction:column; align-items:stretch; gap:8px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleOutlineItem('${session.id}', ${i})">
-        <span class="otxt">${escapeHtml(o.text)}</span>
-        <span class="mark">${o.done ? '<i class="ti ti-check"></i>' : '<i class="ti ti-circle"></i>'}</span>
-      </div>
-      ${body ? `<div class="pd-body-preview" style="margin-top:0; padding-top:0; border-top:none;">${escapeHtml(body)}</div>` : ''}
-    </li>`;
-  }).join('');
-
-  const allDone = doneCount === total && total > 0;
+  const outlineHtml = outline.map((o, i) => `
+    <li>
+      <span class="otxt">${escapeHtml(o.text)}</span>
+      <span class="mark" style="color:var(--muted);">${i + 1}</span>
+    </li>`).join('');
 
   return `
-    <div id="session-root" class="session-wrap">
+    <div class="session-wrap">
       <div class="topbar" style="padding:20px 0 0;">
         <button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button>
         <button class="icon-btn"><i class="ti ti-dots"></i></button>
@@ -866,39 +864,85 @@ function renderSessionInner(session) {
         ${session.connection_note ? `<div class="pd-body-preview">${escapeHtml(session.connection_note)}</div>` : ''}
       </div>
 
-      <div class="outline-label">Contents</div>
+      ${session.brief_summary ? `<div class="pd-body-preview" style="margin:0 0 20px; padding:0;">${escapeHtml(session.brief_summary)}</div>` : ''}
+
+      <div class="outline-label">오늘 다룰 흐름</div>
       <ul class="outline">${outlineHtml}</ul>
 
-      <div class="progress-row">
-        <span>${doneCount}</span>
-        <div class="pbar"><div class="fill" style="width:${pct}%;"></div></div>
-        <span>${total}</span>
+      <button class="cta" onclick="copyLearningPrompt('${session.id}')">
+        <i class="ti ti-copy"></i> 학습 프롬프트 복사하기
+      </button>
+      <div style="font-size:11px; color:var(--muted); text-align:center; margin-bottom:18px; font-family:var(--font-mono);">
+        Claude 앱에 붙여넣고 30분 학습해보세요
       </div>
 
-      <button class="cta" ${allDone ? '' : 'disabled style="opacity:0.5;cursor:not-allowed;"'} onclick="${allDone ? `completeSession('${session.id}')` : ''}">
-        ${allDone ? '완료하기 <i class=\"ti ti-arrow-right\"></i>' : '목차를 모두 확인하면 완료할 수 있어요'}
+      <button class="cta" style="background:var(--ink);" onclick="navigate('finish', {id: '${session.id}'})">
+        학습 다 했어요, 완료하기 <i class="ti ti-arrow-right"></i>
       </button>
     </div>
+    ${renderTabbar('home')}
   `;
 }
 
-async function toggleOutlineItem(sessionId, idx) {
+async function copyLearningPrompt(sessionId) {
   const session = await fetchSessionById(sessionId);
   if (!session) return;
-  session.outline[idx].done = !session.outline[idx].done;
-  _sessionCache[sessionId] = session;
-
-  document.getElementById('session-root').outerHTML = renderSessionInner(session);
-
-  await sb.from('sessions').update({ outline: session.outline }).eq('id', sessionId);
+  const prompt = buildLearningPrompt(session);
+  try {
+    await navigator.clipboard.writeText(prompt);
+    const btn = event && event.target ? event.target.closest('button') : null;
+    if (btn) {
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="ti ti-check"></i> 복사됐어요! Claude 앱에 붙여넣으세요';
+      setTimeout(() => { btn.innerHTML = original; }, 2000);
+    }
+  } catch (e) {
+    alert('복사에 실패했어요. 아래 내용을 직접 복사해주세요:\n\n' + prompt);
+  }
 }
 
-async function completeSession(sessionId) {
-  const session = await fetchSessionById(sessionId);
+/* ==========================================================
+   완료 입력 (요약/느낀점 — 선택사항)
+   ========================================================== */
+function renderFinish(id) {
+  fetchSessionById(id).then(session => {
+    if (!session) return;
+    document.getElementById('finish-outer').innerHTML = renderFinishInner(session);
+  });
+  return `<div id="finish-outer">${renderGenerating()}</div>`;
+}
+
+function renderFinishInner(session) {
+  return `
+    <div class="session-wrap">
+      <div class="topbar" style="padding:20px 0 0;">
+        <button class="back" onclick="navigate('session', {id: '${session.id}'})"><i class="ti ti-chevron-left"></i> 뒤로</button>
+        <button class="icon-btn"><i class="ti ti-dots"></i></button>
+      </div>
+      <div class="pick-lead" style="padding:8px 0 20px;">
+        <h2>오늘 배운 걸 한 줄로 남겨볼까요?</h2>
+      </div>
+      <div class="title-card" style="margin-bottom:16px;">
+        <h1 class="s-title" style="font-size:18px;">${escapeHtml(session.title)}</h1>
+      </div>
+      <div class="outline-label">요약 · 느낀점 (선택)</div>
+      <textarea id="summary-input" placeholder="오늘 배운 것 중 기억하고 싶은 부분을 적어보세요..." style="width:100%; min-height:140px; padding:16px; border:1px solid var(--line); border-radius:14px; font-family:var(--font-sans); font-size:14px; line-height:1.6; resize:vertical; margin-bottom:20px;"></textarea>
+      <button class="cta" onclick="finalizeSession('${session.id}')">완료하기 <i class="ti ti-arrow-right"></i></button>
+    </div>
+    ${renderTabbar('home')}
+  `;
+}
+
+async function finalizeSession(sessionId) {
+  const input = document.getElementById('summary-input');
+  const summaryNote = input ? input.value.trim() : '';
+
   await sb.from('sessions').update({
     status: 'completed',
-    completed_at: new Date().toISOString()
+    completed_at: new Date().toISOString(),
+    summary_note: summaryNote || null
   }).eq('id', sessionId);
+
   delete _sessionCache[sessionId];
   navigate('complete', { id: sessionId });
 }
@@ -909,14 +953,14 @@ async function completeSession(sessionId) {
 function renderComplete(id) {
   fetchSessionById(id).then(session => {
     if (!session) return;
-    document.getElementById('complete-root').outerHTML = renderCompleteInner(session);
+    document.getElementById('complete-outer').innerHTML = renderCompleteInner(session);
   });
-  return `<div id="complete-root">${renderGenerating()}</div>`;
+  return `<div id="complete-outer">${renderGenerating()}</div>`;
 }
 
 function renderCompleteInner(session) {
   return `
-    <div id="complete-root" class="complete-wrap">
+    <div class="complete-wrap">
       <div class="topbar" style="padding:20px 0 0;">
         <button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button>
         <button class="icon-btn"><i class="ti ti-dots"></i></button>
@@ -931,8 +975,8 @@ function renderCompleteInner(session) {
         <div class="paper-rule"></div>
         <div class="paper-meta-row">
           <div class="paper-tags">${(session.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
-          <span>${session.read_minutes || 4} MIN READ</span>
         </div>
+        ${session.summary_note ? `<div class="pd-body-preview">${escapeHtml(session.summary_note)}</div>` : ''}
       </div>
 
       <div class="complete-below">
@@ -959,6 +1003,7 @@ function renderCompleteInner(session) {
         <button class="c-btn fill" onclick="navigate('home')">홈으로</button>
       </div>
     </div>
+    ${renderTabbar('home')}
   `;
 }
 
@@ -968,23 +1013,22 @@ function renderCompleteInner(session) {
 function renderPaper(id) {
   fetchSessionById(id).then(session => {
     if (!session) return;
-    document.getElementById('paper-root').outerHTML = renderPaperInner(session);
+    document.getElementById('paper-outer').innerHTML = renderPaperInner(session);
   });
-  return `<div id="paper-root">${renderGenerating()}</div>`;
+  return `<div id="paper-outer">${renderGenerating()}</div>`;
 }
 
 function renderPaperInner(session) {
-  const bodySections = session.body_sections || [];
-  const sectionsHtml = bodySections.map(sec => `
-    <div class="pd-section">
-      <div class="pd-num">${String(sec.num).padStart(2, '0')}</div>
-      <div class="pd-sub">${escapeHtml(sec.sub)}</div>
-      <div class="pd-body">${escapeHtml(sec.body)}</div>
+  const outline = session.outline || [];
+  const outlineHtml = outline.map((o, i) => `
+    <div class="pd-section" style="margin-bottom:12px;">
+      <div class="pd-num">${String(i + 1).padStart(2, '0')}</div>
+      <div class="pd-sub" style="margin-bottom:0;">${escapeHtml(o.text)}</div>
     </div>
   `).join('');
 
   return `
-    <div id="paper-root">
+    <div>
       <div class="topbar">
         <button class="back" onclick="history.back()"><i class="ti ti-chevron-left"></i> 아카이브</button>
         <button class="icon-btn"><i class="ti ti-dots"></i></button>
@@ -996,12 +1040,21 @@ function renderPaperInner(session) {
         </div>
         <div class="pd-meta-row">
           <span>${session.date_key}</span>
-          <span>${session.read_minutes || 4} MIN READ</span>
         </div>
         <div class="pd-title">${escapeHtml(session.title)}</div>
         <div class="pd-tags">${(session.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
 
-        ${sectionsHtml}
+        ${session.brief_summary ? `<div class="pd-body-preview" style="margin-bottom:24px;">${escapeHtml(session.brief_summary)}</div>` : ''}
+
+        <div class="outline-label" style="margin-bottom:10px;">그날 다룬 흐름</div>
+        ${outlineHtml}
+
+        ${session.summary_note ? `
+        <div class="pd-divider"></div>
+        <div class="pd-footer-note">
+          <div class="pd-footer-label">나의 요약 · 느낀점</div>
+          <div class="pd-footer-text">${escapeHtml(session.summary_note)}</div>
+        </div>` : ''}
 
         ${session.connection_note ? `
         <div class="pd-divider"></div>
@@ -1011,6 +1064,7 @@ function renderPaperInner(session) {
         </div>` : ''}
       </div>
     </div>
+    ${renderTabbar('archive')}
   `;
 }
 
