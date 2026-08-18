@@ -117,27 +117,28 @@
   .section-label { padding:22px 24px 12px; font-family:var(--font-mono); font-size:10px; color:var(--sub-ink); letter-spacing:1.5px; text-transform:uppercase; }
 
   .today-card {
-    background:var(--paper);
+    margin:0 24px; background:var(--paper);
     background-image: repeating-linear-gradient(to bottom, transparent, transparent 35px, #E4ECE0 35px, #E4ECE0 36px);
     border:1px solid var(--line); border-radius:16px; padding:18px; position:relative;
   }
-  .today-scroll {
-    display:flex; gap:12px; overflow-x:auto; padding:0 24px; margin:0 -0px;
-    scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;
-    scrollbar-width:none;
+  .today-nav { display:flex; align-items:center; justify-content:center; gap:14px; padding:12px 24px 0; }
+  .today-nav-btn {
+    width:26px; height:26px; border-radius:50%; border:none; background:none;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted);
   }
-  .today-scroll::-webkit-scrollbar { display:none; }
-  .today-scroll .today-card { flex:0 0 calc(100% - 36px); scroll-snap-align:start; }
-  .today-scroll.single-card .today-card { flex:0 0 100%; }
-  .today-scroll-dots { display:flex; justify-content:center; gap:5px; padding:12px 24px 0; }
-  .today-scroll-dots span { width:5px; height:5px; border-radius:50%; background:var(--line); }
-  .today-scroll-dots span.active { background:var(--accent-yellow); width:14px; border-radius:3px; transition:width 0.2s; }
+  .today-nav-btn:disabled { opacity:0.3; cursor:default; }
+  .today-nav-btn .ti { font-size:16px; }
+  .today-nav-dots { display:flex; gap:5px; }
+  .today-nav-dots span { width:5px; height:5px; border-radius:50%; background:var(--line); }
+  .today-nav-dots span.active { background:var(--accent-yellow); width:14px; border-radius:3px; transition:width 0.2s; }
   .today-badge.done { background:var(--sage); color:#fff; }
   .today-badge {
     position:absolute; top:-9px; left:18px; background:var(--accent-yellow); color:var(--ink);
     font-family:var(--font-mono); font-size:9px; font-weight:500; letter-spacing:0.5px;
     padding:4px 10px; border-radius:20px;
+    display:inline-flex; align-items:center; gap:4px;
   }
+  .today-badge .ti { font-size:13px; }
   .today-meta { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--sage); margin-bottom:10px; padding-top:4px; }
   .today-title { font-family:var(--font-serif); font-size:19px; font-weight:700; line-height:1.9; margin-bottom:12px; }
   .today-tags { display:flex; gap:6px; margin-bottom:16px; }
@@ -152,8 +153,9 @@
 
   .archive-cluster { padding:0 24px; margin-bottom:2px; }
   .cluster-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); cursor:pointer; }
-  .cluster-left { display:flex; align-items:baseline; gap:10px; }
+  .cluster-left { display:flex; align-items:center; gap:8px; }
   .cluster-code { font-family:var(--font-mono); font-size:11px; color:var(--sage); width:16px; }
+  .cluster-cat-icon { font-size:15px; color:var(--muted); }
   .cluster-name { font-family:var(--font-serif); font-size:15px; font-weight:600; }
   .cluster-right { display:flex; align-items:center; gap:10px; }
   .cluster-n { font-family:var(--font-mono); font-size:11px; color:var(--muted); }
@@ -298,7 +300,7 @@
 
 <div id="loading">
   <img src="./icons/logo-transparent.png" alt="chaeumlog" class="splash-logo">
-  <div class="splash-sub">daily chaeum</div>
+  <div class="splash-sub">fill everyday</div>
 </div>
 <div id="app"></div>
 
@@ -477,6 +479,19 @@ function groupArchiveByCategory(archive, categories) {
     .sort((a, b) => b.sessions.length - a.sessions.length);
 }
 
+// 카테고리별 아이콘 매핑 (Tabler Icons)
+const CATEGORY_ICONS = {
+  '역사': 'ti-hourglass',
+  '예술': 'ti-palette',
+  '음악': 'ti-music',
+  '영화': 'ti-movie',
+  '시사': 'ti-news',
+  '건축': 'ti-building'
+};
+function getCategoryIcon(nameKo) {
+  return CATEGORY_ICONS[nameKo] || 'ti-bookmark';
+}
+
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str || '';
@@ -507,17 +522,36 @@ function renderTabbar(active) {
   `;
 }
 
-// ---- 홈 화면 렌더 ----
-// ---- 홈 화면 "오늘의 기록" 스와이프 카드: 스크롤 위치에 맞춰 점 인디케이터 갱신 ----
-function updateTodayScrollDots() {
-  const scroller = document.getElementById('today-scroll');
-  const dotsWrap = document.getElementById('today-scroll-dots');
-  if (!scroller || !dotsWrap) return;
-  const cardWidth = scroller.firstElementChild ? scroller.firstElementChild.offsetWidth + 12 : 1; // gap 포함
-  const activeIdx = Math.round(scroller.scrollLeft / cardWidth);
-  Array.from(dotsWrap.children).forEach((dot, i) => {
-    dot.classList.toggle('active', i === activeIdx);
-  });
+// ---- 홈 화면 "오늘의 기록" 카드: 화살표로 하나씩 전환 ----
+function renderTodayCard(s) {
+  const isDone = s.status === 'completed';
+  return `
+    <div class="today-card">
+      <span class="today-badge${isDone ? ' done' : ''}"><i class="ti ${isDone ? 'ti-check' : 'ti-clover'}"></i> ${isDone ? '완료' : 'TODAY'}</span>
+      <div class="today-meta"><span>${todayKey()}</span><span>${escapeHtml(s.category)}</span></div>
+      <div class="today-title">${escapeHtml(s.title)}</div>
+      <div class="today-tags">${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+      <div class="today-foot">
+        <span class="read-time">${isDone ? '학습 완료' : '학습 진행 중'}</span>
+        <button class="start-link" onclick="navigate('${isDone ? 'paper' : 'session'}', {id: '${s.id}'})">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>`;
+}
+
+function goTodayCard(delta) {
+  const list = appState.todaySessions;
+  if (!list.length) return;
+  appState.todayCardIndex = Math.max(0, Math.min(list.length - 1, appState.todayCardIndex + delta));
+  const wrap = document.getElementById('today-card-wrap');
+  const dotsWrap = document.getElementById('today-nav-dots');
+  const prevBtn = document.getElementById('today-nav-prev');
+  const nextBtn = document.getElementById('today-nav-next');
+  if (wrap) wrap.innerHTML = renderTodayCard(list[appState.todayCardIndex]);
+  if (dotsWrap) {
+    Array.from(dotsWrap.children).forEach((dot, i) => dot.classList.toggle('active', i === appState.todayCardIndex));
+  }
+  if (prevBtn) prevBtn.disabled = appState.todayCardIndex === 0;
+  if (nextBtn) nextBtn.disabled = appState.todayCardIndex === list.length - 1;
 }
 
 function renderHome(todaySessions, archive, categories) {
@@ -526,34 +560,23 @@ function renderHome(todaySessions, archive, categories) {
   const branches = groupArchiveByCategory(archive, categories).length;
 
   const todaySessionsAll = todaySessions; // 진행중 + 완료 모두 포함 (오늘 생성된 전체 세션)
+  if (appState.todayCardIndex >= todaySessionsAll.length) appState.todayCardIndex = 0;
 
   let todayBlock;
   if (todaySessionsAll.length > 0) {
-    const cardsHtml = todaySessionsAll.map(s => {
-      const isDone = s.status === 'completed';
-      return `
-        <div class="today-card">
-          <span class="today-badge${isDone ? ' done' : ''}">${isDone ? '완료' : 'TODAY'}</span>
-          <div class="today-meta"><span>${todayKey()}</span><span>${escapeHtml(s.category)}</span></div>
-          <div class="today-title">${escapeHtml(s.title)}</div>
-          <div class="today-tags">${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
-          <div class="today-foot">
-            <span class="read-time">${isDone ? '학습 완료' : '학습 진행 중'}</span>
-            <button class="start-link" onclick="navigate('${isDone ? 'paper' : 'session'}', {id: '${s.id}'})">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
-          </div>
-        </div>`;
-    }).join('');
-
-    const dotsIndicator = todaySessionsAll.length > 1 ? `
-      <div class="today-scroll-dots" id="today-scroll-dots">
-        ${todaySessionsAll.map((_, i) => `<span class="${i === 0 ? 'active' : ''}"></span>`).join('')}
+    const idx = appState.todayCardIndex;
+    const navHtml = todaySessionsAll.length > 1 ? `
+      <div class="today-nav">
+        <button class="today-nav-btn" id="today-nav-prev" onclick="goTodayCard(-1)" ${idx === 0 ? 'disabled' : ''}><i class="ti ti-chevron-left"></i></button>
+        <div class="today-nav-dots" id="today-nav-dots">
+          ${todaySessionsAll.map((_, i) => `<span class="${i === idx ? 'active' : ''}"></span>`).join('')}
+        </div>
+        <button class="today-nav-btn" id="today-nav-next" onclick="goTodayCard(1)" ${idx === todaySessionsAll.length - 1 ? 'disabled' : ''}><i class="ti ti-chevron-right"></i></button>
       </div>` : '';
 
     todayBlock = `
-      <div class="today-scroll${todaySessionsAll.length === 1 ? ' single-card' : ''}" id="today-scroll" onscroll="updateTodayScrollDots()">
-        ${cardsHtml}
-      </div>
-      ${dotsIndicator}`;
+      <div id="today-card-wrap">${renderTodayCard(todaySessionsAll[idx])}</div>
+      ${navHtml}`;
   } else {
     todayBlock = isMobileDevice() ? `
       <div class="empty-today">
@@ -563,13 +586,14 @@ function renderHome(todaySessions, archive, categories) {
       <div class="empty-today">
         <i class="ti ti-device-mobile" style="font-size:22px; color:var(--muted); display:block; margin-bottom:10px;"></i>
         <div class="msg" style="font-size:13px;">오늘의 주제는 모바일에서 만들 수 있어요</div>
+
       </div>`;
   }
 
   const clusters = groupArchiveByCategory(archive, categories);
   const clusterHtml = clusters.length ? clusters.map(c => `
     <div class="cluster-row" onclick="navigate('detail', {category: encodeURIComponent('${escapeHtml(c.name_ko)}')})">
-      <div class="cluster-left"><span class="cluster-code">${escapeHtml(c.code)}</span><span class="cluster-name">${escapeHtml(c.name_ko)}</span></div>
+      <div class="cluster-left"><i class="ti ${getCategoryIcon(c.name_ko)} cluster-cat-icon"></i><span class="cluster-code">${escapeHtml(c.code)}</span><span class="cluster-name">${escapeHtml(c.name_ko)}</span></div>
       <div class="cluster-right"><span class="cluster-n">${c.sessions.length}</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
     </div>
   `).join('') : `<div style="padding:20px 0; font-family:var(--font-mono); font-size:12px; color:var(--muted);">아직 쌓인 기록이 없어요</div>`;
@@ -628,6 +652,7 @@ const appState = {
   categories: [],
   archive: [],
   todaySessions: [],
+  todayCardIndex: 0,        // 홈 화면 "오늘의 기록" 카드 중 현재 보고 있는 인덱스
   currentSessionId: null,   // 세션/완료 화면에서 보고 있는 세션
   pendingSourceType: null,  // 주제 선택 화면에서 고른 방식
   currentArchiveCategory: null // 아카이브 상세에서 보고 있는 카테고리
@@ -1471,7 +1496,7 @@ function renderArchiveAll() {
   const clusters = groupArchiveByCategory(appState.archive, appState.categories);
   const html = clusters.length ? clusters.map(c => `
     <div class="cluster-row" onclick="navigate('detail', {category: encodeURIComponent('${escapeHtml(c.name_ko)}')})">
-      <div class="cluster-left"><span class="cluster-code">${escapeHtml(c.code)}</span><span class="cluster-name">${escapeHtml(c.name_ko)}</span></div>
+      <div class="cluster-left"><i class="ti ${getCategoryIcon(c.name_ko)} cluster-cat-icon"></i><span class="cluster-code">${escapeHtml(c.code)}</span><span class="cluster-name">${escapeHtml(c.name_ko)}</span></div>
       <div class="cluster-right"><span class="cluster-n">${c.sessions.length}</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
     </div>
   `).join('') : `<div class="empty-archive">아직 쌓인 기록이 없어요</div>`;
