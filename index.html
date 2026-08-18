@@ -682,7 +682,7 @@ function buildGeneratePrompt(sourceType, category, parentSession, avoidTitles) {
   "tags": ["태그1", "태그2"],
   "readMinutes": 4,
   "outline": [
-    {"sub": "목차1 제목 (3-8단어)", "body": "해당 항목의 실제 학습 본문 3-5문장, 쉽고 흥미롭게"},
+    {"sub": "목차1 제목 (3-8단어)", "body": "해당 항목의 실제 학습 본문 2-3문장(80자 내외), 쉽고 흥미롭게"},
     {"sub": "목차2 제목", "body": "..."},
     {"sub": "목차3 제목", "body": "..."},
     {"sub": "목차4 제목", "body": "..."}
@@ -718,7 +718,7 @@ async function handleGenerate(params) {
     return;
   }
 
-  const reply = await callClaude(sys, [{ role: 'user', content: dataContext }], 1600);
+  const reply = await callClaude(sys, [{ role: 'user', content: dataContext }], 3000);
 
   if (!reply || reply.startsWith('__ERR__')) {
     const errMsg = reply ? reply.replace('__ERR__', '') : '응답을 받지 못했어요';
@@ -738,8 +738,9 @@ async function handleGenerate(params) {
     const clean = reply.replace(/```json|```/g, '').trim();
     parsed = JSON.parse(clean);
   } catch (e) {
+    console.error('JSON parse error. Raw reply length:', reply.length, 'Raw reply:', reply);
     document.getElementById('app').innerHTML = `
-      <div class="phone"><div class="empty-archive">생성 결과를 해석하지 못했어요. 다시 시도해주세요.
+      <div class="phone"><div class="empty-archive">생성 결과를 해석하지 못했어요 (응답이 잘렸을 수 있어요).
       <div style="margin-top:20px;"><button class="cta" style="width:auto; padding:12px 24px;" onclick="navigate('pick')">다시 시도</button></div>
       </div></div>`;
     return;
