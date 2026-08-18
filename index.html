@@ -582,7 +582,11 @@ document.addEventListener('touchmove', (e) => {
     _todaySwipeDirLocked = true;
     _todaySwipeDragging = Math.abs(dx) > Math.abs(dy); // 가로 이동이 더 크면 스와이프로 확정
   }
-  if (!_todaySwipeDragging) return; // 세로 스크롤로 판정되면 카드는 건드리지 않음
+  if (!_todaySwipeDragging) return; // 세로 스크롤로 판정되면 카드는 건드리지 않음, 브라우저 기본 스크롤 그대로 허용
+
+  // 가로 스와이프로 확정된 순간부터만 기본 동작(페이지 밀림/뒤로가기 제스처)을 막음.
+  // 카드 바깥이나 세로 스크롤 중에는 여기 도달하지 않으므로 다른 화면·다른 제스처엔 영향 없음.
+  e.preventDefault();
 
   // 맨 앞/맨 뒤 카드에서 반대 방향으로 당기면 저항감(절반만 이동)을 줌
   const list = appState.todaySessions;
@@ -590,7 +594,7 @@ document.addEventListener('touchmove', (e) => {
   const atEnd = appState.todayCardIndex === list.length - 1 && dx < 0;
   const resisted = (atStart || atEnd) ? dx * 0.35 : dx;
   wrap.style.transform = `translateX(${resisted}px)`;
-}, { passive: true });
+}, { passive: false });
 
 document.addEventListener('touchend', (e) => {
   if (_todaySwipeStartX === null) return;
