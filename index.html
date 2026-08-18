@@ -117,7 +117,7 @@
   .section-label { padding:22px 24px 12px; font-family:var(--font-mono); font-size:10px; color:var(--sub-ink); letter-spacing:1.5px; text-transform:uppercase; }
 
   .today-card {
-    margin:0 24px; background:var(--paper);
+    margin:8px 24px 0; background:var(--paper);
     background-image: repeating-linear-gradient(to bottom, transparent, transparent 35px, #E4ECE0 35px, #E4ECE0 36px);
     border:1px solid var(--line); border-radius:16px; padding:18px; position:relative;
   }
@@ -154,9 +154,9 @@
   .archive-cluster { padding:0 24px; margin-bottom:2px; }
   .cluster-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); cursor:pointer; }
   .cluster-left { display:flex; align-items:center; gap:8px; }
-  .cluster-code { font-family:var(--font-mono); font-size:11px; color:var(--sage); width:16px; }
-  .cluster-cat-icon { font-size:15px; color:var(--muted); }
-  .cluster-name { font-family:var(--font-serif); font-size:15px; font-weight:600; }
+  .cluster-cat-icon { font-size:15px; color:var(--muted); line-height:1; display:inline-flex; align-items:center; }
+  .cluster-code { font-family:var(--font-mono); font-size:11px; color:var(--sage); width:16px; line-height:1; display:inline-flex; align-items:center; }
+  .cluster-name { font-family:var(--font-serif); font-size:15px; font-weight:600; line-height:1; display:inline-flex; align-items:center; }
   .cluster-right { display:flex; align-items:center; gap:10px; }
   .cluster-n { font-family:var(--font-mono); font-size:11px; color:var(--muted); }
   .cluster-arrow { color:var(--accent-yellow); font-size:13px; font-weight:700; }
@@ -553,6 +553,31 @@ function goTodayCard(delta) {
   if (prevBtn) prevBtn.disabled = appState.todayCardIndex === 0;
   if (nextBtn) nextBtn.disabled = appState.todayCardIndex === list.length - 1;
 }
+
+// 오늘의 기록 카드 스와이프 (레이아웃은 그대로 두고 터치 좌표만으로 방향 판단, 화살표 버튼과 병행)
+let _todaySwipeStartX = null;
+let _todaySwipeStartY = null;
+document.addEventListener('touchstart', (e) => {
+  const wrap = e.target.closest('#today-card-wrap');
+  if (!wrap) return;
+  _todaySwipeStartX = e.touches[0].clientX;
+  _todaySwipeStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  if (_todaySwipeStartX === null) return;
+  const wrap = e.target.closest('#today-card-wrap');
+  if (!wrap) { _todaySwipeStartX = null; return; }
+  const endX = e.changedTouches[0].clientX;
+  const endY = e.changedTouches[0].clientY;
+  const dx = endX - _todaySwipeStartX;
+  const dy = endY - _todaySwipeStartY;
+  _todaySwipeStartX = null;
+  _todaySwipeStartY = null;
+  // 세로 스크롤과 헷갈리지 않도록 가로 이동이 세로 이동보다 뚜렷하고, 최소 40px 이상일 때만 스와이프로 인식
+  if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+  goTodayCard(dx < 0 ? 1 : -1);
+}, { passive: true });
 
 function renderHome(todaySessions, archive, categories) {
   const streak = calcStreak(archive);
