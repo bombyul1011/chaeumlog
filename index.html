@@ -887,7 +887,9 @@ function renderPick() {
         <div class="option-body">
           <div class="o-label">이어가기</div>
           <div class="o-title">지난 배움에서 이어서</div>
-          <div class="o-sub">"${escapeHtml(lastSession.title)}"에서 자연스럽게 이어지는 다음 이야기</div>
+          <div class="o-sub">${lastSession.connection_note
+            ? `"${escapeHtml(lastSession.connection_note)}" — 남겨두신 방향으로 이어가요`
+            : `"${escapeHtml(lastSession.title)}"에서 자연스럽게 이어지는 다음 이야기`}</div>
         </div>
       </div>` : ''}
 
@@ -964,10 +966,16 @@ function buildGeneratePrompt(sourceType, category, parentSession, avoidTitles) {
 
   let connectionLine = '';
   if (sourceType === 'tailchain' && parentSession) {
+    const userDirection = parentSession.connection_note
+      ? `사용자가 다음에 이어보고 싶다고 직접 남긴 방향이 있습니다: "${parentSession.connection_note}"
+이 방향을 최우선으로 반영해서 다음 소주제를 만들어주세요. 이 메모가 곧 "그다음"이 무엇이어야 하는지에 대한 가장 확실한 힌트입니다.`
+      : '';
     connectionLine = `아래는 사용자가 최근 완료한 학습 세션입니다.
 [최근 완료한 세션]
 제목: ${parentSession.title}
 목차: ${(parentSession.outline || []).map(o => o.text).join(' / ')}
+
+${userDirection}
 
 이 내용에서 자연스럽게 이어질 수 있는 "다음 편" 소주제를 만들어주세요.
 - 같은 대주제(${category}) 안에 있되, 방금 다룬 내용의 특정 개념에서 파생되어야 해요
@@ -1282,6 +1290,9 @@ function renderFinishInner(session) {
       </div>
       <div class="outline-label">요약 · 느낀점 (선택)</div>
       <textarea id="summary-input" placeholder="오늘 배운 것 중 기억하고 싶은 부분을 적어보세요..." style="width:100%; min-height:140px; padding:16px; border:1px solid var(--line); border-radius:14px; font-family:var(--font-sans); font-size:14px; line-height:1.6; resize:vertical; margin-bottom:20px;"></textarea>
+      <div class="outline-label">다음에 이어보고 싶은 주제 (선택)</div>
+      <div style="font-size:12px; color:var(--muted); margin:-8px 0 10px; line-height:1.5;">비워두면 오늘 목차를 기준으로 AI가 알아서 다음 주제를 확장해요. 적어두면 "지난 배움에서 이어서" 뽑을 때 이 내용을 최우선으로 반영해요.</div>
+      <textarea id="connection-input" placeholder="예: 노키아·블록버스터 같은 다른 붕괴 사례와 비교해보고 싶어요" style="width:100%; min-height:80px; padding:16px; border:1px solid var(--line); border-radius:14px; font-family:var(--font-sans); font-size:14px; line-height:1.6; resize:vertical; margin-bottom:20px;"></textarea>
       <button class="cta" onclick="finalizeSession('${session.id}')">완료하기 <i class="ti ti-arrow-right"></i></button>
     </div>
     ${renderTabbar('home')}
@@ -1291,11 +1302,14 @@ function renderFinishInner(session) {
 async function finalizeSession(sessionId) {
   const input = document.getElementById('summary-input');
   const summaryNote = input ? input.value.trim() : '';
+  const connectionInput = document.getElementById('connection-input');
+  const connectionNote = connectionInput ? connectionInput.value.trim() : '';
 
   await sb.from('sessions').update({
     status: 'completed',
     completed_at: new Date().toISOString(),
-    summary_note: summaryNote || null
+    summary_note: summaryNote || null,
+    connection_note: connectionNote || null
   }).eq('id', sessionId);
 
   delete _sessionCache[sessionId];
@@ -1414,7 +1428,7 @@ function renderPaperInner(session) {
         ${session.connection_note ? `
         <div class="pd-divider"></div>
         <div class="pd-footer-note">
-          <div class="pd-footer-label">Note</div>
+          <div class="pd-footer-label">다음에 이어보고 싶은 주제</div>
           <div class="pd-footer-text">${escapeHtml(session.connection_note)}</div>
         </div>` : ''}
       </div>
