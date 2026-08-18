@@ -84,14 +84,14 @@
   /* 하단 플로팅 메뉴 버튼(FAB) + 위로 펼쳐지는 메뉴 */
   #app-tabbar { flex-shrink:0; height:0; z-index:50; }
   #app-tabbar:empty { display:none; }
-  .fab-wrap { position:fixed; right:20px; bottom:calc(20px + env(safe-area-inset-bottom)); z-index:60; }
+  .fab-wrap { position:fixed; right:20px; bottom:calc(36px + env(safe-area-inset-bottom)); z-index:60; }
   .fab-btn {
     width:52px; height:52px; border-radius:50%;
-    background:var(--ink); color:var(--card);
+    background:var(--sage); color:var(--card);
     display:flex; align-items:center; justify-content:center;
-    border:none; box-shadow:0 4px 14px rgba(0,0,0,0.22);
+    border:none; box-shadow:0 4px 14px rgba(143,184,158,0.4);
     font-size:22px; cursor:pointer;
-    transition:transform 0.25s cubic-bezier(.34,1.56,.64,1);
+    transition:transform 0.25s cubic-bezier(.34,1.56,.64,1), background 0.2s ease;
   }
   .fab-btn.open { transform:rotate(135deg); background:var(--accent-yellow); color:var(--ink); }
   .fab-menu {
@@ -112,10 +112,10 @@
   .fab-wrap.open .fab-item:nth-child(4) { transition-delay:0.11s; }
   .fab-wrap.open .fab-item:nth-child(5) { transition-delay:0.14s; }
   .fab-item-label {
-    background:var(--ink); color:var(--card);
+    background:var(--sage); color:var(--card);
     font-family:var(--font-mono); font-size:11px; letter-spacing:0.3px;
     padding:6px 12px; border-radius:20px; white-space:nowrap;
-    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+    box-shadow:0 2px 8px rgba(143,184,158,0.35);
   }
   .fab-item-icon {
     width:42px; height:42px; border-radius:50%;
@@ -1040,6 +1040,15 @@ document.addEventListener('visibilitychange', () => {
     if (app && app.innerHTML.trim() === '') {
       render();
     }
+  }
+});
+
+// 이이코토 등 외부 사이트로 이동했다가(window.location.href) 브라우저 bfcache로
+// 복귀할 때 스크롤/뷰포트 상태가 꼬여 화면이 위로 밀려 보이는 문제 방지:
+// bfcache 복원이면 그냥 강제로 새로고침해서 깨끗한 상태로 다시 시작.
+window.addEventListener('pageshow', (e) => {
+  if (e.persisted) {
+    window.location.reload();
   }
 });
 
