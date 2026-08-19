@@ -145,6 +145,7 @@
   #topbar-sub {
     display:none;
     align-items:center;
+    justify-content:space-between;
     gap:6px;
     padding:0 24px 12px;
     font-size:14px;
@@ -155,16 +156,24 @@
   #topbar-sub.show { display:flex; }
 
   #topbar-sub .back-btn {
-    display:flex;
+    display:inline-flex;
     align-items:center;
-    justify-content:center;
-    width:28px; height:28px;
+    justify-content:flex-start;
+    gap:2px;
+    height:28px;
     margin-left:-6px;
+    padding:0 6px;
     border:none;
     background:none;
-    color:var(--sub-ink);
-    font-size:18px;
+    color:var(--sage);
+    font-family:var(--font-mono);
+    font-size:12px;
+    white-space:nowrap;
     cursor:pointer;
+  }
+
+  #topbar-sub .back-btn .ti {
+    font-size:16px;
   }
 
   /* ===== SCROLL: 남는 공간 전부, 스크롤은 여기서만 ===== */
@@ -621,6 +630,170 @@
   .pd-footer-label { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:1px; margin-bottom:8px; text-transform:uppercase; }
   .pd-footer-text { font-family:var(--font-serif); font-size:13px; font-style:italic; color:var(--sub-ink); line-height:1.6; }
   .pd-comment-box { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:16px; padding:14px 16px; border:1px dashed var(--line); border-radius:12px; font-family:var(--font-mono); font-size:11px; color:var(--muted); }
+
+  /* ===== 검색 화면 ===== */
+  .search-box {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:14px;
+  }
+
+  .search-box .ti {
+    font-size:16px;
+    color:var(--muted);
+    flex-shrink:0;
+  }
+
+  .search-box input {
+    flex:1;
+    border:none;
+    outline:none;
+    background:none;
+    font-family:var(--font-sans);
+    font-size:14px;
+    color:var(--ink);
+    min-width:0;
+  }
+
+  .search-box input::placeholder {
+    color:var(--muted);
+  }
+
+  .search-box .clear-btn {
+    display:none;
+    border:none;
+    background:none;
+    color:var(--muted);
+    font-size:16px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+
+  .search-box .clear-btn.show {
+    display:flex;
+  }
+
+  .search-filters {
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+
+  .search-filter-chip {
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--sub-ink);
+    background:var(--paper);
+    border:1px solid var(--line);
+    padding:6px 12px;
+    border-radius:20px;
+    cursor:pointer;
+  }
+
+  .search-filter-chip.active {
+    background:var(--sage);
+    border-color:var(--sage);
+    color:#fff;
+    font-weight:600;
+  }
+
+  .search-empty {
+    padding:60px 20px;
+    text-align:center;
+  }
+
+  .search-empty .ti {
+    font-size:28px;
+    color:var(--line);
+    display:block;
+    margin-bottom:12px;
+  }
+
+  .search-empty .msg {
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  .search-result-count {
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--sub-ink);
+    letter-spacing:1px;
+    margin-bottom:12px;
+  }
+
+  .search-result-count b {
+    color:var(--sage);
+  }
+
+  /* 검색 결과 리스트 — 아카이브 상세와 동일한 t-item 재사용, 카테고리 배지만 추가 */
+  .t-item .t-cat {
+    font-family:var(--font-mono);
+    font-size:9px;
+    color:var(--sage);
+    display:block;
+    margin-bottom:3px;
+  }
+
+  mark {
+    background:var(--accent-yellow-bg);
+    color:var(--accent-brown);
+    font-weight:600;
+    border-radius:3px;
+    padding:0 2px;
+  }
+
+  /* ===== topbar 아이콘 버튼 (점세개 등) ===== */
+  .icon-btn {
+    color:var(--sage);
+    font-size:16px;
+    background:none;
+    border:none;
+    cursor:pointer;
+  }
+
+  /* ===== 학습 진행 중 세션 화면 (session) ===== */
+  .session-wrap { padding-bottom:20px; }
+  .s-meta { font-family:var(--font-mono); font-size:11px; color:var(--sage); margin:0 0 6px; }
+  .s-date { font-family:var(--font-mono); font-size:11px; color:var(--muted); margin-bottom:18px; }
+  .title-card { background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:26px 22px; margin-bottom:28px; }
+  h1.s-title { font-family:var(--font-serif); font-size:24px; font-weight:700; line-height:1.5; margin-bottom:16px; word-break:keep-all; }
+  .s-tags { display:flex; gap:6px; flex-wrap:wrap; }
+  .outline-label { font-family:var(--font-mono); font-size:10px; color:var(--sage); letter-spacing:1px; margin-bottom:14px; text-transform:uppercase; }
+  .outline { list-style:none; margin-bottom:8px; padding:0; }
+  .outline li { padding:14px 2px; border-bottom:1.5px dashed var(--lime); display:flex; justify-content:space-between; align-items:center; font-size:15px; line-height:1.6; cursor:pointer; }
+  .outline li:first-child { padding-top:0; }
+  .outline li .mark { font-size:13px; color:var(--line); flex-shrink:0; margin-left:12px; }
+  .outline li.done .mark { color:var(--accent-yellow); }
+  .outline li.done .otxt { color:var(--sub-ink); }
+
+  .cta { width:100%; background:var(--sage); color:#fff; border:none; padding:16px; border-radius:14px; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:6px; }
+
+  /* ===== 토스트/액션 시트 (재학습/수정/삭제 메뉴, 확인창) ===== */
+  .toast-backdrop { position:fixed; inset:0; background:rgba(43,51,46,0.35); z-index:200; display:flex; align-items:flex-end; justify-content:center; animation:toastFadeIn 0.2s ease; }
+  @keyframes toastFadeIn { from{opacity:0;} to{opacity:1;} }
+  .toast-sheet { width:100%; max-width:480px; background:var(--card); border-radius:20px 20px 0 0; padding:22px 22px calc(22px + env(safe-area-inset-bottom)); animation:toastSlideUp 0.25s cubic-bezier(.25,.9,.4,1); }
+  @keyframes toastSlideUp { from{ transform:translateY(100%); } to{ transform:translateY(0); } }
+  .toast-icon { width:44px; height:44px; border-radius:12px; background:var(--accent-yellow-bg); color:var(--accent-yellow); display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:14px; }
+  .toast-title { font-family:var(--font-serif); font-size:17px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .toast-sub { font-size:13px; color:var(--sub-ink); line-height:1.6; margin-bottom:20px; }
+  .toast-btn-row { display:flex; gap:8px; }
+  .toast-btn-row .cta { margin-bottom:0; }
+  .toast-btn-secondary { flex:0 0 auto; padding:16px 18px; background:var(--paper); color:var(--sub-ink); border:1px solid var(--line); border-radius:14px; font-size:14px; font-weight:600; cursor:pointer; }
+
+  .action-menu-list { display:flex; flex-direction:column; gap:2px; }
+  .action-menu-item { display:flex; align-items:center; gap:12px; padding:14px 6px; background:none; border:none; text-align:left; cursor:pointer; font-size:14px; color:var(--ink); border-radius:10px; width:100%; }
+  .action-menu-item:active { background:var(--paper); }
+  .action-menu-item .ti { font-size:18px; color:var(--sage); width:20px; }
+  .action-menu-item.danger { color:#c0504d; }
+  .action-menu-item.danger .ti { color:#c0504d; }
 </style>
 </head>
 <body>
@@ -643,6 +816,7 @@
     <div id="topbar-sub">
       <button class="back-btn" onclick="goBack()"><i class="ti ti-chevron-left"></i> <span id="topbar-back-label"></span></button>
       <span id="topbar-sub-title"></span>
+      <span id="topbar-sub-action"></span>
     </div>
   </div>
 
@@ -824,11 +998,54 @@
     </div>
 
     <div class="screen" id="screen-pick">
-      <div class="empty-state">주제 선택 화면 자리 (다음 단계에서 작업)</div>
+      <div class="session-wrap">
+        <div class="s-meta">시사</div>
+        <div class="s-date">2026-08-19 · 랜덤</div>
+
+        <div class="title-card">
+          <h1 class="s-title">왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학</h1>
+          <div class="s-tags">
+            <span class="tag">국제경제</span>
+            <span class="tag">통화정책</span>
+            <span class="tag">시사</span>
+          </div>
+        </div>
+
+        <div class="outline-label">오늘 다룰 흐름</div>
+        <ul class="outline">
+          <li><span class="otxt">왜 자국 화폐를 포기하는 나라가 있을까</span><span class="mark">1</span></li>
+          <li><span class="otxt">달러화의 대표 사례들</span><span class="mark">2</span></li>
+          <li><span class="otxt">통화 주권을 잃는다는 것의 의미</span><span class="mark">3</span></li>
+          <li><span class="otxt">그럼에도 선택하는 이유</span><span class="mark">4</span></li>
+        </ul>
+
+        <button class="cta" onclick="alert('학습 프롬프트를 복사해요. (실제 데이터 연동 후 동작)')">
+          <i class="ti ti-copy"></i> 학습 프롬프트 복사하기
+        </button>
+        <div style="font-size:11px; color:var(--muted); text-align:center; margin-bottom:18px; font-family:var(--font-mono);">
+          Claude 앱에 붙여넣고 30분 학습해보세요
+        </div>
+
+        <button class="cta" style="background:var(--ink);" onclick="alert('학습 완료 처리는 실제 데이터 연동 후 동작해요.')">
+          학습 다 했어요, 완료하기 <i class="ti ti-arrow-right"></i>
+        </button>
+      </div>
     </div>
 
     <div class="screen" id="screen-search">
-      <div class="empty-state">검색 자리</div>
+      <div class="search-box">
+        <i class="ti ti-search"></i>
+        <input type="text" id="search-input" placeholder="제목, 태그, 카테고리, 코멘트로 검색" oninput="onSearchInput()">
+        <button class="clear-btn" id="search-clear" onclick="clearSearch()"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="search-filters" id="search-filters">
+        <span class="search-filter-chip active" data-scope="all" onclick="setSearchScope('all')">전체</span>
+        <span class="search-filter-chip" data-scope="title" onclick="setSearchScope('title')">제목</span>
+        <span class="search-filter-chip" data-scope="tags" onclick="setSearchScope('tags')">태그</span>
+        <span class="search-filter-chip" data-scope="category" onclick="setSearchScope('category')">카테고리</span>
+        <span class="search-filter-chip" data-scope="body" onclick="setSearchScope('body')">코멘트</span>
+      </div>
+      <div id="search-results"></div>
     </div>
 
     <div class="screen" id="screen-mypage">
@@ -872,6 +1089,240 @@
   window.addEventListener('resize', logRects);
 
   // ===== 화면 전환 (최소 골격) =====
+  // ===== 카테고리 메타데이터 (원본 CATEGORY_ICONS/CATEGORY_COLORS 매핑) =====
+  const CATEGORY_META = {
+    '시사': { code: 'C', icon: 'ti-news', color: '#DEB07E' },
+    '예술': { code: 'A', icon: 'ti-palette', color: '#CA8080' },
+    '역사': { code: 'H', icon: 'ti-hourglass', color: '#C2B9A9' },
+    '음악': { code: 'M', icon: 'ti-music', color: '#B198C7' },
+    '영화': { code: 'F', icon: 'ti-movie', color: '#8FB5D1' },
+    '건축': { code: 'B', icon: 'ti-building', color: '#7E8DBE' }
+  };
+
+  // 카테고리별 더미 세션 목록 (실제 데이터 연동 전 테스트용)
+  const ARCHIVE_SESSIONS = {
+    '시사': [
+      { date: '08.19', title: '왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학', tags: ['국제경제', '통화정책', '시사'], body: '학습 진행 중' }
+    ],
+    '예술': [
+      { date: '08.18', title: '화가들이 검은 물감 대신 파란색과 갈색을 섞어 쓴 이유', tags: ['미술사', '인상주의', '색채이론'], body: '테스트' }
+    ],
+    '역사': [],
+    '음악': [],
+    '영화': [],
+    '건축': []
+  };
+
+  function renderArchiveDetail(category) {
+    const meta = CATEGORY_META[category] || { code: '?', icon: 'ti-bookmark', color: 'var(--sage)' };
+    const sessions = ARCHIVE_SESSIONS[category] || [];
+
+    document.getElementById('detail-code').textContent = `ARCHIVE / ${meta.code}`;
+    document.getElementById('detail-title').textContent = category;
+    document.getElementById('detail-count').textContent = sessions.length;
+
+    const timelineEl = document.getElementById('detail-timeline');
+    if (!sessions.length) {
+      timelineEl.innerHTML = `<div class="empty-archive">아직 "${category}" 기록이 없어요</div>`;
+      return;
+    }
+    timelineEl.innerHTML = sessions.map(s => `
+      <div class="t-item" onclick="goScreen('paper')">
+        <div class="t-date">${s.date}</div>
+        <div class="t-dot-col"><div class="t-dot"></div></div>
+        <div class="t-text">${s.title}</div>
+        <div class="t-badge"><i class="ti ti-check"></i></div>
+      </div>
+    `).join('');
+  }
+
+  // ===== 검색 =====
+  let searchScope = 'all'; // all | title | tags | category | body
+
+  function setSearchScope(scope) {
+    searchScope = scope;
+    document.querySelectorAll('.search-filter-chip').forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.scope === scope);
+    });
+    runSearch();
+  }
+
+  function clearSearch() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-clear').classList.remove('show');
+    runSearch();
+  }
+
+  function onSearchInput() {
+    const val = document.getElementById('search-input').value;
+    document.getElementById('search-clear').classList.toggle('show', val.length > 0);
+    runSearch();
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
+  }
+
+  function highlightMatch(text, query) {
+    if (!query) return escapeHtml(text);
+    const escaped = escapeHtml(text);
+    const escapedQuery = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return escaped.replace(new RegExp(`(${escapedQuery})`, 'gi'), '<mark>$1</mark>');
+  }
+
+  function matchesScope(session, category, query) {
+    const q = query.toLowerCase();
+    const fields = {
+      title: session.title,
+      tags: (session.tags || []).join(' '),
+      category: category,
+      body: session.body || ''
+    };
+    if (searchScope === 'all') {
+      return Object.values(fields).some(v => v.toLowerCase().includes(q));
+    }
+    return (fields[searchScope] || '').toLowerCase().includes(q);
+  }
+
+  function runSearch() {
+    const query = document.getElementById('search-input').value.trim();
+    const resultsEl = document.getElementById('search-results');
+
+    if (!query) {
+      resultsEl.innerHTML = `
+        <div class="search-empty">
+          <i class="ti ti-search"></i>
+          <div class="msg">기록을 검색해보세요</div>
+        </div>`;
+      return;
+    }
+
+    const matches = [];
+    Object.keys(ARCHIVE_SESSIONS).forEach(category => {
+      ARCHIVE_SESSIONS[category].forEach(session => {
+        if (matchesScope(session, category, query)) {
+          matches.push({ ...session, category });
+        }
+      });
+    });
+
+    if (!matches.length) {
+      resultsEl.innerHTML = `
+        <div class="search-empty">
+          <i class="ti ti-mood-empty"></i>
+          <div class="msg">"${escapeHtml(query)}"에 대한 결과가 없어요</div>
+        </div>`;
+      return;
+    }
+
+    const timelineHtml = matches.map(s => `
+      <div class="t-item" onclick="goScreen('paper')">
+        <div class="t-date">${s.date}</div>
+        <div class="t-dot-col"><div class="t-dot"></div></div>
+        <div class="t-text">
+          <span class="t-cat">${escapeHtml(s.category)}</span>
+          ${highlightMatch(s.title, query)}
+        </div>
+        <div class="t-badge"><i class="ti ti-check"></i></div>
+      </div>
+    `).join('');
+
+    resultsEl.innerHTML = `
+      <div class="search-result-count"><b>${matches.length}</b>개의 기록을 찾았어요</div>
+      <div class="timeline">${timelineHtml}</div>
+    `;
+  }
+
+  // ===== 세션 액션 메뉴 (원본 구조: 진행중=삭제만 / 완료=재학습·수정·삭제) =====
+  // 실제 데이터 연동 전이라 여기서는 UI 흐름만 재현하고, DB 조작은 더미로 시뮬레이션한다.
+
+  // 진행 중(아직 학습 완료 전) 세션 — 삭제만 제공
+  function showInProgressActionMenu() {
+    const el = document.createElement('div');
+    el.id = 'session-action-menu';
+    el.className = 'toast-backdrop';
+    el.onclick = (e) => { if (e.target === el) el.remove(); };
+    el.innerHTML = `
+      <div class="toast-sheet">
+        <div class="toast-title" style="margin-bottom:14px;">이 주제에 대해</div>
+        <div class="action-menu-list">
+          <button class="action-menu-item danger" onclick="document.getElementById('session-action-menu').remove(); confirmDeleteSession('home');">
+            <i class="ti ti-trash"></i> 삭제하기
+          </button>
+        </div>
+        <button class="toast-btn-secondary" style="width:100%; margin-top:8px;" onclick="document.getElementById('session-action-menu').remove()">닫기</button>
+      </div>`;
+    document.body.appendChild(el);
+  }
+
+  // 완료된(paper) 세션 — 재학습/수정/삭제
+  function showSessionActionMenu() {
+    const el = document.createElement('div');
+    el.id = 'session-action-menu';
+    el.className = 'toast-backdrop';
+    el.onclick = (e) => { if (e.target === el) el.remove(); };
+    el.innerHTML = `
+      <div class="toast-sheet">
+        <div class="toast-title" style="margin-bottom:14px;">이 기록에 대해</div>
+        <div class="action-menu-list">
+          <button class="action-menu-item" onclick="document.getElementById('session-action-menu').remove(); relearnSession();">
+            <i class="ti ti-refresh"></i> 다시 학습하기 (프롬프트 복사)
+          </button>
+          <button class="action-menu-item" onclick="document.getElementById('session-action-menu').remove(); openEditSession();">
+            <i class="ti ti-pencil"></i> 수정하기
+          </button>
+          <button class="action-menu-item danger" onclick="document.getElementById('session-action-menu').remove(); confirmDeleteSession('archive-detail');">
+            <i class="ti ti-trash"></i> 삭제하기
+          </button>
+        </div>
+        <button class="toast-btn-secondary" style="width:100%; margin-top:8px;" onclick="document.getElementById('session-action-menu').remove()">닫기</button>
+      </div>`;
+    document.body.appendChild(el);
+  }
+
+  // 재학습: 원본은 그대로 두고, 오늘 날짜의 새 세션으로 내용을 복제해 학습 프롬프트를 만들고 복사.
+  // 원본을 나중에 삭제해도 이 새 세션은 별도 기록이라 영향받지 않는다 (parent_session_id로만 연결).
+  function relearnSession() {
+    // TODO: 실제 데이터 연동 시 — 원본 세션(제목/목차/태그/카테고리)을 복제해
+    // date_key: 오늘 날짜, source_type: 'relearn', parent_session_id: 원본 id로 새 row insert.
+    // 생성된 새 세션 기준으로 학습 프롬프트를 만들어 클립보드에 복사한 뒤 pick/session 화면으로 이동.
+    alert('오늘 날짜로 이 기록을 다시 학습할 새 세션이 만들어져요. (실제 데이터 연동 후 동작)');
+  }
+
+  function openEditSession() {
+    // TODO: 실제 데이터 연동 시 — 제목/카테고리/태그/목차/요약/느낀점 인라인 편집 시트를 띄운다.
+    alert('수정 화면은 실제 데이터 연동 후 붙일 예정이에요.');
+  }
+
+  // 삭제 확인 — redirectTo: 삭제 후 돌아갈 화면
+  function confirmDeleteSession(redirectTo) {
+    const el = document.createElement('div');
+    el.id = 'delete-confirm-toast';
+    el.className = 'toast-backdrop';
+    el.onclick = (e) => { if (e.target === el) el.remove(); };
+    el.innerHTML = `
+      <div class="toast-sheet">
+        <div class="toast-icon" style="background:#f5e5e3; color:#c0504d;"><i class="ti ti-alert-triangle"></i></div>
+        <div class="toast-title">이 기록을 삭제할까요?</div>
+        <div class="toast-sub">삭제하면 되돌릴 수 없어요. 제목, 목차, 요약이 모두 사라져요.</div>
+        <div class="toast-btn-row">
+          <button class="toast-btn-secondary" onclick="document.getElementById('delete-confirm-toast').remove()">취소</button>
+          <button class="cta" style="flex:1; background:#c0504d;" onclick="executeDeleteSession('${redirectTo || 'archive'}')">삭제하기</button>
+        </div>
+      </div>`;
+    document.body.appendChild(el);
+  }
+
+  function executeDeleteSession(redirectTo) {
+    const toast = document.getElementById('delete-confirm-toast');
+    if (toast) toast.remove();
+    // TODO: 실제 데이터 연동 시 — 이 세션을 원본으로 하는 재학습 자식이 있으면 parent_session_id를
+    // 먼저 null로 끊어(재학습 기록이 함께 지워지지 않도록 보호) 이 세션만 삭제.
+    goScreen(redirectTo === 'archive-detail' ? 'archive-detail' : redirectTo, currentArchiveCategory);
+  }
+
   const TAB_SCREENS = ['home', 'archive', 'search', 'mypage']; // 탭바에 직접 대응되는 화면
   const SUB_TITLES = {}; // 원본 디자인은 별도 서브 제목 없이 "< 아카이브" 형태의 뒤로가기 라벨만 사용
   // 서브줄 뒤로가기가 어디로 갈지: 지정 없으면 기본값으로 홈
@@ -880,12 +1331,19 @@
   const PARENT_TAB = { 'archive-detail': 'archive', 'paper': 'archive', 'pick': 'home' };
 
   let currentScreen = 'home';
+  let currentArchiveCategory = null; // 아카이브 상세에서 보고 있는 카테고리
 
   function goScreen(name, subTitle) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     document.getElementById('screen-' + name).classList.add('active');
     document.getElementById('app-scroll').scrollTop = 0;
     currentScreen = name;
+
+    // archive-detail은 subTitle로 넘어온 카테고리명 기준으로 내용을 다시 채운다
+    if (name === 'archive-detail' && subTitle) {
+      currentArchiveCategory = subTitle;
+      renderArchiveDetail(subTitle);
+    }
 
     // 탭바 active 표시: 탭에 직접 속하지 않는 화면(예: archive-detail)은 상위 탭 유지
     const tabName = TAB_SCREENS.includes(name) ? name : (PARENT_TAB[name] || name.split('-')[0]);
@@ -896,18 +1354,29 @@
     // topbar 서브줄: 탭바에 없는 화면(상세 화면)이면 뒤로가기 서브줄 노출
     const subBar = document.getElementById('topbar-sub');
     if (!TAB_SCREENS.includes(name)) {
-      document.getElementById('topbar-sub-title').textContent = subTitle || SUB_TITLES[name] || '';
       const backLabel = document.getElementById('topbar-back-label');
       if (backLabel) backLabel.textContent = BACK_LABELS[name] || '뒤로';
       subBar.classList.add('show');
     } else {
       subBar.classList.remove('show');
     }
+
+    // topbar 우측 액션(점세개 등) — 화면마다 다른 버튼이 필요하면 여기서 채운다
+    const actionSlot = document.getElementById('topbar-sub-action');
+    if (actionSlot) {
+      if (name === 'pick') {
+        actionSlot.innerHTML = `<button class="icon-btn" onclick="showInProgressActionMenu()"><i class="ti ti-dots"></i></button>`;
+      } else if (name === 'paper') {
+        actionSlot.innerHTML = `<button class="icon-btn" onclick="showSessionActionMenu()"><i class="ti ti-dots"></i></button>`;
+      } else {
+        actionSlot.innerHTML = '';
+      }
+    }
   }
 
   function goBack() {
     const target = BACK_TARGETS[currentScreen] || 'home';
-    goScreen(target);
+    goScreen(target, target === 'archive-detail' ? currentArchiveCategory : undefined);
   }
 
   function goHome() {
