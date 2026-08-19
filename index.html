@@ -582,6 +582,42 @@
   .outline li.done .otxt { color:var(--sub-ink); }
 
   .cta { width:100%; background:var(--sage); color:#fff; border:none; padding:16px; border-radius:14px; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:6px; }
+
+  /* ===== 액션 메뉴/토스트/모달 CSS ===== */
+
+  .icon-btn {
+    color:var(--sage);
+    font-size:16px;
+    background:none;
+    border:none;
+    cursor:pointer;
+  }
+
+  .toast-backdrop { position:fixed; inset:0; background:rgba(43,51,46,0.35); z-index:200; display:flex; align-items:flex-end; justify-content:center; animation:toastFadeIn 0.2s ease; }
+  @keyframes toastFadeIn { from{opacity:0;} to{opacity:1;} }
+  .toast-sheet { width:100%; max-width:480px; background:var(--card); border-radius:20px 20px 0 0; padding:22px 22px calc(22px + env(safe-area-inset-bottom)); animation:toastSlideUp 0.25s cubic-bezier(.25,.9,.4,1); }
+  @keyframes toastSlideUp { from{ transform:translateY(100%); } to{ transform:translateY(0); } }
+  .toast-icon { width:44px; height:44px; border-radius:12px; background:var(--accent-yellow-bg); color:var(--accent-yellow); display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:14px; }
+  .toast-title { font-family:var(--font-serif); font-size:17px; font-weight:600; color:var(--ink); margin-bottom:6px; }
+  .toast-sub { font-size:13px; color:var(--sub-ink); line-height:1.6; margin-bottom:20px; }
+  .toast-btn-row { display:flex; gap:8px; }
+  .toast-btn-row .cta { margin-bottom:0; }
+  .toast-btn-secondary { flex:0 0 auto; padding:16px 18px; background:var(--paper); color:var(--sub-ink); border:1px solid var(--line); border-radius:14px; font-size:14px; font-weight:600; cursor:pointer; }
+
+  .action-menu-list { display:flex; flex-direction:column; gap:2px; }
+  .action-menu-item { display:flex; align-items:center; gap:12px; padding:14px 6px; background:none; border:none; text-align:left; cursor:pointer; font-size:14px; color:var(--ink); border-radius:10px; width:100%; }
+  .action-menu-item:active { background:var(--paper); }
+  .action-menu-item .ti { font-size:18px; color:var(--sage); width:20px; }
+  .action-menu-item.danger { color:#c0504d; }
+  .action-menu-item.danger .ti { color:#c0504d; }
+
+  /* ===== 기록 수정 폼 ===== */
+  .edit-field-label { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; text-transform:uppercase; margin:16px 0 6px; }
+  .edit-field-label:first-child { margin-top:0; }
+  .edit-input, .edit-textarea { width:100%; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit; color:var(--ink); background:var(--card); box-sizing:border-box; }
+  .edit-textarea { resize:vertical; min-height:60px; line-height:1.6; }
+  .edit-outline-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .edit-outline-row .num { font-family:var(--font-mono); font-size:11px; color:var(--muted); width:16px; flex-shrink:0; }
 </style>
 </head>
 <body>
@@ -861,86 +897,712 @@
 <div class="debug-marker"></div>
 
 <script>
-  const d = new Date();
-  document.getElementById('topbar-date').textContent = `${d.getMonth()+1}.${d.getDate()}`;
-
-  // ===== 실제 boot() 흐름 재현: Supabase 클라이언트 생성 + 비동기 fetch 후 DOM 재작성 =====
+  // ===== Supabase 연결 =====
   const SUPABASE_URL = 'https://sqeyoqpchiljvinuqxjf.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZXlvcXBjaGlsanZpbnVxeGpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5ODY5NTksImV4cCI6MjEwMjU2Mjk1OX0.H_JNNYz7_eguAqds-Wm6cwK926U74aVPaS_XwGRKeB0';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  async function boot() {
-    try {
-      const { data, error } = await sb.from('sessions').select('id').limit(1);
-      console.log('fetch result:', data, error);
-    } catch (err) {
-      console.error('fetch error:', err);
+  // 실시간 좌표 확인용 (콘솔에서 확인, 필요시 삭제 가능)
+  function logRects() {
+    const app = document.getElementById('app');
+    const tabbar = document.getElementById('app-tabbar');
+    console.log('innerHeight:', window.innerHeight);
+    console.log('#app rect:', app.getBoundingClientRect());
+    console.log('#app-tabbar rect:', tabbar.getBoundingClientRect());
+  }
+  window.addEventListener('load', logRects);
+  window.addEventListener('resize', logRects);
+
+  // ===== 화면 전환 (최소 골격) =====
+  // ===== 카테고리 메타데이터 (원본 CATEGORY_ICONS/CATEGORY_COLORS 매핑) =====
+  const CATEGORY_META = {
+    '시사': { code: 'C', icon: 'ti-news', color: '#DEB07E' },
+    '예술': { code: 'A', icon: 'ti-palette', color: '#CA8080' },
+    '역사': { code: 'H', icon: 'ti-hourglass', color: '#C2B9A9' },
+    '음악': { code: 'M', icon: 'ti-music', color: '#B198C7' },
+    '영화': { code: 'F', icon: 'ti-movie', color: '#8FB5D1' },
+    '건축': { code: 'B', icon: 'ti-building', color: '#7E8DBE' }
+  };
+
+  // ===== 실제 데이터 상태 (Supabase) =====
+  const appState = {
+    categories: [],     // categories 테이블 전체
+    archive: [],         // status='completed' 세션 전체 (완료일 내림차순)
+    todaySessions: []    // status='in_progress' 세션 전체 (뽑힌 순, 최대 3개)
+  };
+
+  async function fetchCategories() {
+    const { data, error } = await sb.from('categories').select('*').order('sort_order');
+    if (error) { console.error(error); return []; }
+    return data || [];
+  }
+
+  async function fetchArchive() {
+    const { data, error } = await sb.from('sessions')
+      .select('*')
+      .eq('status', 'completed')
+      .order('completed_at', { ascending: false });
+    if (error) { console.error(error); return []; }
+    return data || [];
+  }
+
+  // 오늘 date_key로 뽑힌 세션 전체 (진행중+완료 모두 포함) — 원본 fetchTodaySession과 동일 기준
+  function dateKey(d) {
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+  function todayKey() { return dateKey(new Date()); }
+
+  // 완료 세션의 DISTINCT date_key 기준 연속 일수 계산 (원본 calcStreak 그대로)
+  function calcStreak(archive) {
+    const dateSet = new Set(archive.map(s => s.date_key));
+    if (dateSet.size === 0) return 0;
+
+    let streak = 0;
+    let cursor = new Date();
+    if (!dateSet.has(todayKey())) {
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    while (dateSet.has(dateKey(cursor))) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  }
+
+  // 최근 7일(6일 전 ~ 오늘) 완료 여부 배열, 과거 → 오늘 순
+  function calcRecent7Days(archive) {
+    const dateSet = new Set(archive.map(s => s.date_key));
+    const result = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      result.push(dateSet.has(dateKey(d)));
+    }
+    return result;
+  }
+
+  // 상단 통계(Branches)는 실제 기록이 있는 갈래 수만 카운트
+  function countActiveBranches(archive) {
+    return new Set(archive.map(s => s.category)).size;
+  }
+
+  async function fetchTodaySessions() {
+    const { data, error } = await sb.from('sessions')
+      .select('*')
+      .eq('date_key', todayKey())
+      .order('created_at', { ascending: false });
+    if (error) { console.error(error); return []; }
+    return data || [];
+  }
+
+  async function fetchSessionById(id) {
+    const { data, error } = await sb.from('sessions').select('*').eq('id', id).maybeSingle();
+    if (error) { console.error(error); return null; }
+    return data;
+  }
+
+  async function refreshData() {
+    const [categories, archive, todaySessions] = await Promise.all([
+      fetchCategories(), fetchArchive(), fetchTodaySessions()
+    ]);
+    appState.categories = categories;
+    appState.archive = archive;
+    appState.todaySessions = todaySessions;
+  }
+
+  // category(name_ko) 기준으로 archive에서 완료된 세션만 뽑아 detail-timeline용으로 정리
+  function getArchiveByCategory(category) {
+    return appState.archive
+      .filter(s => s.category === category)
+      .map(s => ({
+        id: s.id,
+        date: (s.completed_at || s.date_key || '').slice(5, 10).replace('-', '.'),
+        title: s.title
+      }));
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
+  }
+
+  // 홈 화면 하단 "YOUR KNOWLEDGE, GROWING" 도트 — 총 세션 수만큼 점을 찍고
+  // 3의 배수는 sage, 7의 배수는 옐로로 강조 (원본 dotsHtml 로직 그대로)
+  function renderHomeAccumDots() {
+    const totalSessions = appState.archive.length;
+    const dotsEl = document.getElementById('home-accum-dots');
+    if (!dotsEl) return;
+    dotsEl.innerHTML = Array.from({ length: Math.max(totalSessions, 1) }).map((_, i) => {
+      const cls = totalSessions === 0 ? '' : (i % 7 === 0 ? 'd2' : (i % 3 === 0 ? 'd1' : ''));
+      return `<span class="${cls}"></span>`;
+    }).join('');
+  }
+
+  function renderArchiveDetail(category) {
+    const meta = CATEGORY_META[category] || { code: '?', icon: 'ti-bookmark', color: 'var(--sage)' };
+    const sessions = getArchiveByCategory(category);
+
+    document.getElementById('detail-code').textContent = `ARCHIVE / ${meta.code}`;
+    document.getElementById('detail-title').textContent = category;
+    document.getElementById('detail-count').textContent = sessions.length;
+
+    const timelineEl = document.getElementById('detail-timeline');
+    if (!sessions.length) {
+      timelineEl.innerHTML = `<div class="empty-archive">아직 "${category}" 기록이 없어요</div>`;
+      return;
+    }
+    timelineEl.innerHTML = sessions.map(s => `
+      <div class="t-item" onclick="openPaper('${s.id}')">
+        <div class="t-date">${s.date}</div>
+        <div class="t-dot-col"><div class="t-dot"></div></div>
+        <div class="t-text">${escapeHtml(s.title)}</div>
+        <div class="t-badge"><i class="ti ti-check"></i></div>
+      </div>
+    `).join('');
+  }
+
+  // 홈 화면 아카이브 그리드 + 아카이브 탭의 카테고리별 카운트를 실제 데이터로 채운다
+  function renderArchiveTabAndHomeGrid() {
+    Object.keys(CATEGORY_META).forEach(category => {
+      const count = appState.archive.filter(s => s.category === category).length;
+
+      const gridEl = document.getElementById(`grid-count-${category}`);
+      if (gridEl) gridEl.textContent = count;
+
+      const clusterEl = document.querySelector(`#screen-archive .cluster-row[onclick*="'${category}'"] .cluster-n`);
+      if (clusterEl) clusterEl.textContent = count;
+    });
+
+    const totalBranches = Object.keys(CATEGORY_META).filter(category =>
+      appState.archive.some(s => s.category === category)
+    ).length;
+    const clusterLabel = document.querySelector('#screen-archive .section-label');
+    if (clusterLabel) clusterLabel.textContent = `전체 아카이브 · ${totalBranches}개 갈래`;
+  }
+
+  // 홈/마이페이지 상단 통계(Days/Sessions/Branches)와 최근 7일 미니닷을 실제 데이터로 채운다
+  function renderStats() {
+    const streak = String(calcStreak(appState.archive)).padStart(2, '0');
+    const totalSessions = String(appState.archive.length).padStart(2, '0');
+    const branches = String(countActiveBranches(appState.archive)).padStart(2, '0');
+
+    const daysEl = document.getElementById('home-stat-days');
+    if (daysEl) daysEl.textContent = streak;
+    const sessionsEl = document.getElementById('home-stat-sessions');
+    if (sessionsEl) sessionsEl.textContent = totalSessions;
+    const branchesEl = document.getElementById('home-stat-branches');
+    if (branchesEl) branchesEl.textContent = branches;
+
+    const myDaysEl = document.getElementById('my-stat-days');
+    if (myDaysEl) myDaysEl.textContent = streak;
+    const mySessionsEl = document.getElementById('my-stat-sessions');
+    if (mySessionsEl) mySessionsEl.textContent = totalSessions;
+
+    const dotsEl = document.getElementById('home-mini-dots');
+    if (dotsEl) {
+      dotsEl.innerHTML = calcRecent7Days(appState.archive)
+        .map(done => `<span class="mini-dot${done ? ' on' : ''}"></span>`)
+        .join('');
+    }
+  }
+
+  // ===== 검색 =====
+  let searchScope = 'all'; // all | title | tags | category | body
+
+  function setSearchScope(scope) {
+    searchScope = scope;
+    document.querySelectorAll('.search-filter-chip').forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.scope === scope);
+    });
+    runSearch();
+  }
+
+  function clearSearch() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('search-clear').classList.remove('show');
+    runSearch();
+  }
+
+  function onSearchInput() {
+    const val = document.getElementById('search-input').value;
+    document.getElementById('search-clear').classList.toggle('show', val.length > 0);
+    runSearch();
+  }
+
+  function highlightMatch(text, query) {
+    if (!query) return escapeHtml(text);
+    const escaped = escapeHtml(text);
+    const escapedQuery = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return escaped.replace(new RegExp(`(${escapedQuery})`, 'gi'), '<mark>$1</mark>');
+  }
+
+  function matchesScope(session, query) {
+    const q = query.toLowerCase();
+    const fields = {
+      title: session.title || '',
+      tags: (session.tags || []).join(' '),
+      category: session.category || '',
+      body: [session.brief_summary, session.summary_note, session.connection_note].filter(Boolean).join(' ')
+    };
+    if (searchScope === 'all') {
+      return Object.values(fields).some(v => v.toLowerCase().includes(q));
+    }
+    return (fields[searchScope] || '').toLowerCase().includes(q);
+  }
+
+  function runSearch() {
+    const query = document.getElementById('search-input').value.trim();
+    const resultsEl = document.getElementById('search-results');
+
+    if (!query) {
+      resultsEl.innerHTML = `
+        <div class="search-empty">
+          <i class="ti ti-search"></i>
+          <div class="msg">기록을 검색해보세요</div>
+        </div>`;
+      return;
     }
 
-    // 실제 데이터로 홈 화면 콘텐츠를 다시 그리는 것을 흉내
-    const scrollEl = document.getElementById('screen-home');
-    const extra = document.createElement('div');
-    extra.className = 'block';
-    extra.textContent = '서버에서 받아온 것처럼 나중에 추가된 블록';
-    scrollEl.appendChild(extra);
+    const matches = appState.archive.filter(s => matchesScope(s, query));
 
-    renderTodayCardWrap();
+    if (!matches.length) {
+      resultsEl.innerHTML = `
+        <div class="search-empty">
+          <i class="ti ti-mood-empty"></i>
+          <div class="msg">"${escapeHtml(query)}"에 대한 결과가 없어요</div>
+        </div>`;
+      return;
+    }
+
+    const timelineHtml = matches.map(s => `
+      <div class="t-item" onclick="openPaper('${s.id}')">
+        <div class="t-date">${(s.completed_at || s.date_key || '').slice(5, 10).replace('-', '.')}</div>
+        <div class="t-dot-col"><div class="t-dot"></div></div>
+        <div class="t-text">
+          <span class="t-cat">${escapeHtml(s.category)}</span>
+          ${highlightMatch(s.title, query)}
+        </div>
+        <div class="t-badge"><i class="ti ti-check"></i></div>
+      </div>
+    `).join('');
+
+    resultsEl.innerHTML = `
+      <div class="search-result-count"><b>${matches.length}</b>개의 기록을 찾았어요</div>
+      <div class="timeline">${timelineHtml}</div>
+    `;
   }
 
-  // ===== today-card 최소 렌더 (실제 파일 구조 재현) =====
-  const todaySlots = [
-    { title: '왜 어떤 나라는 화폐를 스스로 포기했을까', category: '시사', tags: ['국제경제','통화정책'], status: 'in_progress' },
-    { title: '화가들이 검은 물감 대신 파란색을 쓴 이유', category: '예술', tags: ['미술사'], status: 'completed' }
-  ];
-  let todayCardIndex = 0;
+  // ===== 세션 액션 메뉴 (원본 구조: 진행중=삭제만 / 완료=재학습·수정·삭제) =====
+  // 실제 데이터 연동 전이라 여기서는 UI 흐름만 재현하고, DB 조작은 더미로 시뮬레이션한다.
 
-  function renderTodayCard(s) {
-    const isDone = s.status === 'completed';
-    return `
-      <div class="today-card">
-        <span class="today-badge${isDone ? ' done' : ''}"><i class="ti ${isDone ? 'ti-check' : 'ti-clover'}"></i> ${isDone ? '완료' : 'TODAY'}</span>
-        <div class="today-meta"><span>08.19</span><span>${s.category}</span></div>
-        <div class="today-title">${s.title}</div>
-        <div class="today-tags">${s.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
-        <div class="today-foot">
-          <span class="read-time">${isDone ? '학습 완료' : '학습 진행 중'}</span>
-          <button class="start-link" onclick="goScreen('${isDone ? 'paper' : 'pick'}')">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
+  // 진행 중(아직 학습 완료 전) 세션 — 삭제만 제공
+  function showInProgressActionMenu() {
+    const el = document.createElement('div');
+    el.id = 'session-action-menu';
+    el.className = 'toast-backdrop';
+    el.onclick = (e) => { if (e.target === el) el.remove(); };
+    el.innerHTML = `
+      <div class="toast-sheet">
+        <div class="toast-title" style="margin-bottom:14px;">이 주제에 대해</div>
+        <div class="action-menu-list">
+          <button class="action-menu-item danger" onclick="document.getElementById('session-action-menu').remove(); confirmDeleteSession('home');">
+            <i class="ti ti-trash"></i> 삭제하기
+          </button>
+        </div>
+        <button class="toast-btn-secondary" style="width:100%; margin-top:8px;" onclick="document.getElementById('session-action-menu').remove()">닫기</button>
+      </div>`;
+    document.body.appendChild(el);
+  }
+
+  // 완료된(paper) 세션 — 재학습/수정/삭제
+  function showSessionActionMenu() {
+    const el = document.createElement('div');
+    el.id = 'session-action-menu';
+    el.className = 'toast-backdrop';
+    el.onclick = (e) => { if (e.target === el) el.remove(); };
+    el.innerHTML = `
+      <div class="toast-sheet">
+        <div class="toast-title" style="margin-bottom:14px;">이 기록에 대해</div>
+        <div class="action-menu-list">
+          <button class="action-menu-item" onclick="document.getElementById('session-action-menu').remove(); relearnSession();">
+            <i class="ti ti-refresh"></i> 다시 학습하기 (프롬프트 복사)
+          </button>
+          <button class="action-menu-item" onclick="document.getElementById('session-action-menu').remove(); openEditSession();">
+            <i class="ti ti-pencil"></i> 수정하기
+          </button>
+          <button class="action-menu-item danger" onclick="document.getElementById('session-action-menu').remove(); confirmDeleteSession('archive-detail');">
+            <i class="ti ti-trash"></i> 삭제하기
+          </button>
+        </div>
+        <button class="toast-btn-secondary" style="width:100%; margin-top:8px;" onclick="document.getElementById('session-action-menu').remove()">닫기</button>
+      </div>`;
+    document.body.appendChild(el);
+  }
+
+  // ===== 학습 프롬프트 생성/복사 & Claude 핸드오프 =====
+  // pick 화면에 지금 표시 중인 세션 — todaySlots 중 현재 인덱스가 가리키는 진행중 세션과 동기화된다.
+  let CURRENT_PICK_SESSION = null;
+
+  const SOURCE_TYPE_LABEL = { tailchain: '이어가기', relearn: '다시 학습', category: '카테고리 선택', random: '랜덤' };
+
+  function renderPickFromCurrent() {
+    const s = CURRENT_PICK_SESSION;
+    if (!s) return;
+    document.getElementById('pick-category').textContent = s.category;
+    document.getElementById('pick-date').textContent = `${s.date_key} · ${SOURCE_TYPE_LABEL[s.source_type] || '랜덤'}`;
+    document.getElementById('pick-title').textContent = s.title;
+    document.getElementById('pick-tags').innerHTML = (s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+
+    const briefEl = document.getElementById('pick-brief');
+    if (s.brief_summary) {
+      briefEl.textContent = s.brief_summary;
+      briefEl.style.display = '';
+    } else {
+      briefEl.style.display = 'none';
+    }
+
+    document.getElementById('pick-outline').innerHTML = (s.outline || []).map((o, i) => `
+      <li><span class="otxt">${escapeHtml(o.text)}</span><span class="mark">${i + 1}</span></li>
+    `).join('');
+
+    const finishTitleEl = document.getElementById('finish-title');
+    if (finishTitleEl) finishTitleEl.textContent = s.title;
+  }
+
+  // 원본 buildLearningPrompt 그대로 — 프롬프트 문구/분량 기준 변경 없음
+  function buildLearningPrompt(session) {
+    const outlineLines = (session.outline || []).map((o, i) => `${i + 1}. ${o.text}`).join('\n');
+
+    return `오늘 [${session.category}] 주제로 "${session.title}"를 30분 정도 배워보려고 해. 아래 흐름으로 설명해줘:
+
+${outlineLines}
+
+**분량 기준**: 총 30분 학습 분량으로, 4개 항목 각각을 꽤 깊이 있게 다뤄줘. 항목당 최소 3~4문단 정도로, 짧게 요약하고 넘어가지 말고 충분히 풀어서 설명해줘.
+
+각 항목마다 이렇게 채워줘:
+- 소제목 아래 핵심 흐름을 먼저 설명하고, 그 안에서 구체적인 사례·인물·연도·수치를 최소 2개 이상 짚어줘 (두루뭉술한 설명 대신 "누가, 언제, 무엇을, 어떻게"가 드러나게)
+- 필요하면 소주제 안에서 다시 작은 소제목(중제목)으로 한 번 더 쪼개도 좋아
+- 통념과 다르거나 의외인 지점이 있다면 짚어줘
+- 각 항목 끝에 다음 항목으로 자연스럽게 넘어가는 연결 문장을 넣어줘
+
+시작할 때 왜 이 주제가 흥미로운지 짧은 도입부를 넣어주고, 마지막엔 전체 흐름을 한 문단으로 정리해줘. 그 다음 오늘 다룬 내용에서 자연스럽게 뻗어나갈 수 있는 후속 탐구 주제를 2개 제시해줘. 각각 오늘 이야기의 어느 지점에서 파생되는 건지 알 수 있게, 한 줄로 구체적으로 적어줘. 관련해서 최신 정보가 필요하면 검색해서 확인해주고, 더 찾아볼 만한 유튜브 영상(가능하면 한국어 콘텐츠)이나 책, 자료도 추천해줘.`;
+  }
+
+  async function copyLearningPrompt() {
+    const prompt = buildLearningPrompt(CURRENT_PICK_SESSION);
+    try {
+      await navigator.clipboard.writeText(prompt);
+      showClaudeHandoffToast();
+    } catch (e) {
+      alert('복사에 실패했어요. 아래 내용을 직접 복사해주세요:\n\n' + prompt);
+    }
+  }
+
+  // 프롬프트 복사 완료 안내 + "나중에 / Claude 앱 열기" 선택 바텀시트
+  function showClaudeHandoffToast() {
+    const existing = document.getElementById('claude-handoff-toast');
+    if (existing) existing.remove();
+
+    const el = document.createElement('div');
+    el.id = 'claude-handoff-toast';
+    el.className = 'toast-backdrop';
+    el.onclick = (e) => { if (e.target === el) el.remove(); };
+    el.innerHTML = `
+      <div class="toast-sheet">
+        <div class="toast-icon"><i class="ti ti-check"></i></div>
+        <div class="toast-title">프롬프트를 복사했어요</div>
+        <div class="toast-sub">Claude 앱을 열어서 붙여넣으면 바로 학습을 시작할 수 있어요.</div>
+        <div class="toast-btn-row">
+          <button class="toast-btn-secondary" onclick="document.getElementById('claude-handoff-toast').remove()">나중에</button>
+          <button class="cta" style="flex:1;" onclick="openClaudeApp()">
+            <i class="ti ti-external-link"></i> Claude 앱 열기
+          </button>
         </div>
       </div>`;
+    document.body.appendChild(el);
   }
 
-  function renderTodayNav() {
-    const dotsWrap = document.getElementById('today-nav-dots');
-    const prevBtn = document.getElementById('today-nav-prev');
-    const nextBtn = document.getElementById('today-nav-next');
-    dotsWrap.innerHTML = todaySlots.map((_, i) => `<span class="${i === todayCardIndex ? 'active' : ''}"></span>`).join('');
-    prevBtn.disabled = todayCardIndex === 0;
-    nextBtn.disabled = todayCardIndex === todaySlots.length - 1;
+  // Claude 앱을 새 탭(외부)으로 연다 — 커스텀 스킴 대신 웹 주소 사용 (원본과 동일한 이유:
+  // 커스텀 스킴이 실패하면 채움로그 화면이 언로드된 채로 남는 문제를 피하기 위함)
+  function openClaudeApp() {
+    const toast = document.getElementById('claude-handoff-toast');
+    if (toast) toast.remove();
+    window.open('https://claude.ai/new', '_blank');
   }
 
-  function renderTodayCardWrap() {
-    document.getElementById('today-card-wrap').innerHTML = renderTodayCard(todaySlots[todayCardIndex]);
-    renderTodayNav();
-  }
+  // 완료 처리 — 코멘트/다음 주제 둘 다 선택 입력, 비워도 완료 가능
+  async function finalizeSession() {
+    const session = CURRENT_PICK_SESSION;
+    if (!session) { goScreen('home'); return; }
 
-  function goTodayCard(dir) {
-    const next = todayCardIndex + dir;
-    if (next < 0 || next >= todaySlots.length) return;
-    todayCardIndex = next;
+    const summaryInput = document.getElementById('summary-input');
+    const summaryNote = summaryInput ? summaryInput.value.trim() : '';
+    const connectionInput = document.getElementById('connection-input');
+    const connectionNote = connectionInput ? connectionInput.value.trim() : '';
+
+    // connection_note는 뉴스페이퍼(paper) 화면에는 노출하지 않고, "지난 배움에서 이어서" 뽑을 때만
+    // AI 프롬프트에 반영해 확장 주제를 제안하는 데 쓴다.
+    const { error } = await sb.from('sessions').update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      summary_note: summaryNote || null,
+      connection_note: connectionNote || null
+    }).eq('id', session.id);
+
+    if (error) {
+      alert('완료 처리에 실패했어요: ' + error.message);
+      return;
+    }
+
+    await refreshData();
+    renderArchiveTabAndHomeGrid();
+    renderStats();
+    renderHomeAccumDots();
     renderTodayCardWrap();
+
+    const fresh = await fetchSessionById(session.id);
+    CURRENT_PAPER_SESSION = fresh;
+    renderPaperFromCurrent();
+    goScreen('paper');
   }
 
-  boot();
 
-  // ===== 화면 전환 =====
-  const TAB_SCREENS = ['home', 'archive', 'search', 'mypage'];
-  const TAB_ORDER = ['home', 'archive', 'search', 'mypage'];
+  // 재학습: 원본은 그대로 두고, 오늘 날짜의 새 세션으로 내용을 복제해 학습 프롬프트를 만들고 복사.
+  // 원본을 나중에 삭제해도 이 새 세션은 별도 기록이라 영향받지 않는다 (parent_session_id로만 연결).
+  async function relearnSession() {
+    const original = CURRENT_PAPER_SESSION;
+    if (!original) return;
+
+    if (countInProgressSlots() >= MAX_IN_PROGRESS) {
+      showMaxInProgressToast();
+      return;
+    }
+
+    const clientId = 'cid_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    const { data: newSession, error } = await sb.from('sessions').insert({
+      client_id: clientId,
+      date_key: todayKey(),
+      category: original.category,
+      title: original.title,
+      short_title: original.short_title,
+      outline: original.outline,
+      brief_summary: original.brief_summary,
+      tags: original.tags,
+      source_type: 'relearn',
+      parent_session_id: original.id,
+      connection_note: null,
+      status: 'in_progress'
+    }).select().single();
+
+    if (error) {
+      alert('재학습 세션을 만드는 중 오류가 발생했어요: ' + error.message);
+      return;
+    }
+
+    await refreshData();
+    renderTodayCardWrap();
+    renderArchiveTabAndHomeGrid();
+    renderStats();
+
+    CURRENT_PICK_SESSION = newSession;
+    renderPickFromCurrent();
+    await copyLearningPrompt();
+    goScreen('pick');
+  }
+
+  // paper 화면에 지금 표시 중인 세션 데이터 (실제 데이터 연동 전이라 이 객체 하나로 관리)
+  let CURRENT_PAPER_SESSION = null;
+
+  function renderPaperFromCurrent() {
+    const s = CURRENT_PAPER_SESSION;
+    if (!s) return;
+    document.getElementById('paper-vol').textContent = `${s.category} EDITION`;
+    document.getElementById('paper-title').textContent = s.title;
+    document.getElementById('paper-tags').innerHTML = (s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+
+    const briefEl = document.getElementById('paper-brief');
+    if (s.brief_summary) {
+      briefEl.textContent = s.brief_summary;
+      briefEl.style.display = '';
+    } else {
+      briefEl.style.display = 'none';
+    }
+
+    document.getElementById('paper-outline').innerHTML = (s.outline || []).map((o, i) => `
+      <div class="pd-section">
+        <div class="pd-num">${String(i + 1).padStart(2, '0')}</div>
+        <div class="pd-sub">${escapeHtml(o.text)}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('paper-comment').textContent = s.summary_note || '';
+
+    const metaEl = document.querySelector('#screen-paper .pd-meta-row span');
+    if (metaEl) metaEl.textContent = formatCompletedDateTime(s.completed_at);
+  }
+
+  // 완료일시를 "YYYY-MM-DD HH:MM" 형식으로
+  function formatCompletedDateTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  // 아카이브 타임라인/completed 카드에서 특정 세션을 눌렀을 때 paper 화면을 그 세션으로 채우고 이동
+  async function openPaper(sessionId) {
+    const session = await fetchSessionById(sessionId);
+    if (!session) return;
+    CURRENT_PAPER_SESSION = session;
+    renderPaperFromCurrent();
+    goScreen('paper');
+  }
+
+  function openEditSession() {
+    const session = CURRENT_PAPER_SESSION;
+    if (!session) return;
+    const outline = session.outline || [];
+
+    const el = document.createElement('div');
+    el.id = 'edit-session-modal';
+    el.className = 'toast-backdrop';
+    el.style.alignItems = 'center';
+    el.onclick = (e) => { if (e.target === el) el.remove(); };
+    el.innerHTML = `
+      <div class="toast-sheet" style="max-height:85vh; overflow-y:auto; border-radius:20px;">
+        <div class="toast-title" style="margin-bottom:14px;">기록 수정하기</div>
+
+        <div class="edit-field-label">제목</div>
+        <input class="edit-input" id="edit-title" value="${escapeHtml(session.title)}">
+
+        <div class="edit-field-label">태그 (쉼표로 구분)</div>
+        <input class="edit-input" id="edit-tags" value="${escapeHtml((session.tags || []).join(', '))}">
+
+        <div class="edit-field-label">목차</div>
+        ${outline.map((o, i) => `
+          <div class="edit-outline-row">
+            <span class="num">${i + 1}</span>
+            <input class="edit-input" data-outline-idx="${i}" value="${escapeHtml(o.text)}">
+          </div>
+        `).join('')}
+
+        <div class="edit-field-label">짧은 요약</div>
+        <textarea class="edit-textarea" id="edit-brief">${escapeHtml(session.brief_summary || '')}</textarea>
+
+        <div class="edit-field-label">Comment</div>
+        <textarea class="edit-textarea" id="edit-summary-note">${escapeHtml(session.summary_note || '')}</textarea>
+
+        <div class="toast-btn-row" style="margin-top:20px;">
+          <button class="toast-btn-secondary" onclick="document.getElementById('edit-session-modal').remove()">취소</button>
+          <button class="cta" style="flex:1;" onclick="saveEditSession()">저장하기</button>
+        </div>
+      </div>`;
+    document.body.appendChild(el);
+  }
+
+  async function saveEditSession() {
+    const modal = document.getElementById('edit-session-modal');
+    if (!modal || !CURRENT_PAPER_SESSION) return;
+
+    const title = modal.querySelector('#edit-title').value.trim();
+    const tagsRaw = modal.querySelector('#edit-tags').value.trim();
+    const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+    const briefSummary = modal.querySelector('#edit-brief').value.trim();
+    const summaryNote = modal.querySelector('#edit-summary-note').value.trim();
+    const outlineInputs = Array.from(modal.querySelectorAll('[data-outline-idx]'));
+    const outline = outlineInputs.map(inp => ({ text: inp.value.trim() })).filter(o => o.text);
+
+    if (!title) { alert('제목은 비워둘 수 없어요.'); return; }
+
+    try {
+      const { error } = await sb.from('sessions').update({
+        title,
+        tags,
+        brief_summary: briefSummary || null,
+        summary_note: summaryNote || null,
+        outline,
+        updated_at: new Date().toISOString()
+      }).eq('id', CURRENT_PAPER_SESSION.id);
+      if (error) throw error;
+
+      CURRENT_PAPER_SESSION.title = title;
+      CURRENT_PAPER_SESSION.tags = tags;
+      CURRENT_PAPER_SESSION.brief_summary = briefSummary;
+      CURRENT_PAPER_SESSION.summary_note = summaryNote;
+      CURRENT_PAPER_SESSION.outline = outline;
+
+      // 아카이브 캐시(appState.archive)에도 같은 세션이 있으면 최신화
+      const idx = appState.archive.findIndex(s => s.id === CURRENT_PAPER_SESSION.id);
+      if (idx !== -1) appState.archive[idx] = { ...appState.archive[idx], ...CURRENT_PAPER_SESSION };
+
+      modal.remove();
+      renderPaperFromCurrent();
+    } catch (e) {
+      alert('저장에 실패했어요: ' + (e.message || e));
+    }
+  }
+
+  // 삭제 확인 — redirectTo: 삭제 후 돌아갈 화면
+  function confirmDeleteSession(redirectTo) {
+    const el = document.createElement('div');
+    el.id = 'delete-confirm-toast';
+    el.className = 'toast-backdrop';
+    el.onclick = (e) => { if (e.target === el) el.remove(); };
+    el.innerHTML = `
+      <div class="toast-sheet">
+        <div class="toast-icon" style="background:#f5e5e3; color:#c0504d;"><i class="ti ti-alert-triangle"></i></div>
+        <div class="toast-title">이 기록을 삭제할까요?</div>
+        <div class="toast-sub">삭제하면 되돌릴 수 없어요. 제목, 목차, 요약이 모두 사라져요.</div>
+        <div class="toast-btn-row">
+          <button class="toast-btn-secondary" onclick="document.getElementById('delete-confirm-toast').remove()">취소</button>
+          <button class="cta" style="flex:1; background:#c0504d;" onclick="executeDeleteSession('${redirectTo || 'archive'}')">삭제하기</button>
+        </div>
+      </div>`;
+    document.body.appendChild(el);
+  }
+
+  async function executeDeleteSession(redirectTo) {
+    const toast = document.getElementById('delete-confirm-toast');
+    if (toast) toast.remove();
+
+    // 삭제 대상은 지금 보고 있는 화면 기준: pick이면 진행중 세션, paper면 완료 세션
+    const target = currentScreen === 'paper' ? CURRENT_PAPER_SESSION : CURRENT_PICK_SESSION;
+    if (!target) { goScreen(redirectTo === 'archive-detail' ? 'archive' : redirectTo); return; }
+
+    try {
+      // 이 세션을 원본으로 재학습된 자식 세션이 있다면, 삭제 전에 부모 연결만 끊어서
+      // 재학습 기록이 함께 지워지지 않도록 보호
+      const { error: unlinkError } = await sb.from('sessions')
+        .update({ parent_session_id: null })
+        .eq('parent_session_id', target.id);
+      if (unlinkError) console.error('자식 세션 연결 해제 중 오류:', unlinkError);
+
+      const { error } = await sb.from('sessions').delete().eq('id', target.id);
+      if (error) throw error;
+
+      await refreshData();
+      renderTodayCardWrap();
+      renderArchiveTabAndHomeGrid();
+      renderStats();
+      renderHomeAccumDots();
+
+      goScreen(redirectTo === 'archive-detail' ? 'archive' : redirectTo);
+    } catch (e) {
+      alert('삭제에 실패했어요: ' + (e.message || e));
+    }
+  }
+
+  const TAB_SCREENS = ['home', 'archive', 'search', 'mypage']; // 탭바에 직접 대응되는 화면
+  const SUB_TITLES = {}; // 원본 디자인은 별도 서브 제목 없이 "< 아카이브" 형태의 뒤로가기 라벨만 사용
+  // 서브줄 뒤로가기가 어디로 갈지: 지정 없으면 기본값으로 홈
   const BACK_TARGETS = { 'archive-detail': 'archive', 'paper': 'archive-detail', 'pick': 'home', 'finish': 'pick' };
   const BACK_LABELS = { 'archive-detail': '아카이브', 'paper': '아카이브', 'finish': '뒤로' };
   const PARENT_TAB = { 'archive-detail': 'archive', 'paper': 'archive', 'pick': 'home', 'finish': 'home' };
 
   let currentScreen = 'home';
-  let currentArchiveCategory = null;
+  let currentArchiveCategory = null; // 아카이브 상세에서 보고 있는 카테고리
 
   function goScreen(name, subTitle) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
@@ -948,15 +1610,19 @@
     document.getElementById('app-scroll').scrollTop = 0;
     currentScreen = name;
 
+    // archive-detail은 subTitle로 넘어온 카테고리명 기준으로 내용을 다시 채운다
     if (name === 'archive-detail' && subTitle) {
       currentArchiveCategory = subTitle;
+      renderArchiveDetail(subTitle);
     }
 
+    // 탭바 active 표시: 탭에 직접 속하지 않는 화면(예: archive-detail)은 상위 탭 유지
     const tabName = TAB_SCREENS.includes(name) ? name : (PARENT_TAB[name] || name.split('-')[0]);
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
 
+    // topbar 서브줄: 탭바에 없는 화면(상세 화면)이면 뒤로가기 서브줄 노출
     const subBar = document.getElementById('topbar-sub');
     if (!TAB_SCREENS.includes(name)) {
       const backLabel = document.getElementById('topbar-back-label');
@@ -964,6 +1630,18 @@
       subBar.classList.add('show');
     } else {
       subBar.classList.remove('show');
+    }
+
+    // topbar 우측 액션(점세개 등) — 화면마다 다른 버튼이 필요하면 여기서 채운다
+    const actionSlot = document.getElementById('topbar-sub-action');
+    if (actionSlot) {
+      if (name === 'pick' || name === 'finish') {
+        actionSlot.innerHTML = `<button class="icon-btn" onclick="showInProgressActionMenu()"><i class="ti ti-dots"></i></button>`;
+      } else if (name === 'paper') {
+        actionSlot.innerHTML = `<button class="icon-btn" onclick="showSessionActionMenu()"><i class="ti ti-dots"></i></button>`;
+      } else {
+        actionSlot.innerHTML = '';
+      }
     }
   }
 
@@ -976,15 +1654,254 @@
     goScreen('home');
   }
 
-  function finalizeSession() {
-    goScreen('paper');
+  // 이이코토 앱으로 이동 (외부 링크, 탭 화면 아님)
+  function goIikoto() {
+    window.location.href = 'https://bombyul1011.github.io/iikoto/';
   }
 
-  // ===== 실제 파일의 document 레벨 touch 리스너 재현 (오늘의 기록 카드 스와이프) =====
+  // ===== 마이페이지: Claude API Key =====
+  // 원본 S(로컬 저장 헬퍼) 그대로 — localStorage에 JSON으로 저장/조회
+  const S = {
+    get(key) {
+      try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+    },
+    set(key, val) {
+      try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+    }
+  };
+  function getClaudeKey() { return S.get('claude_api_key') || ''; }
+  function setClaudeKey(key) { S.set('claude_api_key', key); }
+
+  function renderMyKeyStatus() {
+    const statusEl = document.getElementById('my-key-status');
+    const btnEl = document.getElementById('my-api-key-btn');
+    if (!statusEl || !btnEl) return;
+    const key = getClaudeKey();
+    if (key) {
+      statusEl.textContent = key.slice(0, 8) + '••••••••';
+      statusEl.classList.remove('empty');
+      btnEl.textContent = '키 변경하기';
+    } else {
+      statusEl.textContent = '등록된 키가 없어요';
+      statusEl.classList.add('empty');
+      btnEl.textContent = '키 등록하기';
+    }
+  }
+
+  function saveMyApiKey() {
+    const input = document.getElementById('my-api-key-input');
+    const key = input.value.trim();
+    if (!key) return;
+    setClaudeKey(key);
+    input.value = '';
+    renderMyKeyStatus();
+  }
+
+  // ===== 마이페이지: 수동 동기화 =====
+  // 서버 기반 자동 동기화가 기본이라 평소엔 불필요하지만, 화면이 오래된 데이터를 보여줄 때
+  // 강제로 다시 불러오는 안전장치.
+  async function runManualSync() {
+    const btn = document.getElementById('my-sync-btn');
+    if (!btn || btn.classList.contains('syncing')) return;
+    btn.classList.add('syncing');
+    btn.innerHTML = `<i class="ti ti-refresh"></i> 새로고침 중...`;
+
+    try {
+      await refreshData();
+      renderTodayCardWrap();
+      renderArchiveTabAndHomeGrid();
+      renderStats();
+      renderHomeAccumDots();
+      if (currentScreen === 'archive-detail' && currentArchiveCategory) {
+        renderArchiveDetail(currentArchiveCategory);
+      }
+    } catch (e) {
+      console.error('[chaeumlog] manual sync error:', e);
+    }
+
+    btn.classList.remove('syncing');
+    btn.innerHTML = `<i class="ti ti-refresh"></i> 새로고침`;
+  }
+
+  // 상단 날짜 표시 (예: 08.19 WED)
+  function renderDate() {
+    const d = new Date();
+    const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    document.getElementById('topbar-date').textContent = `${mm}.${dd} ${days[d.getDay()]}`;
+  }
+  renderDate();
+
+  // ===== 앱 부팅: 서버 데이터 로드 후 전체 화면을 실제 데이터로 채운다 =====
+  async function boot() {
+    const splashStart = Date.now();
+    const minSplashMs = 1300; // 로고+문구 페이드업 애니메이션이 끝까지 보일 최소 시간
+
+    try {
+      await refreshData();
+    } catch (err) {
+      console.error('[chaeumlog] boot fetch error:', err);
+    }
+
+    renderTodayCardWrap();
+    renderHomeAccumDots();
+    renderMyKeyStatus();
+    renderArchiveTabAndHomeGrid();
+    renderStats();
+
+    const elapsed = Date.now() - splashStart;
+    const remaining = Math.max(0, minSplashMs - elapsed);
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = document.getElementById('loading');
+          if (el) el.remove(); // 진단용: hide 클래스 대신 완전 제거
+        });
+      });
+    }, remaining);
+  }
+
+  boot().catch(err => {
+    console.error('[chaeumlog] boot fatal error:', err);
+    const el = document.getElementById('loading');
+    if (el) el.innerHTML = '<div class="splash-sub">초기화 오류: ' + (err.message || err) + '</div>';
+  });
+
+  // ---- 서비스워커 등록 ----
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
+
+  // ===== 오늘의 기록 카드 (좌우 화살표 네비게이션) =====
+  const MAX_IN_PROGRESS = 3; // 미완료(진행 중) 카드는 최대 3개까지만 동시 보유 가능
+
+  // 오늘 date_key로 뽑힌 세션 전체(진행중+완료) + 맨 뒤 "새 주제 뽑기" 가상 슬롯(null)
+  function getTodaySlots() {
+    return [...appState.todaySessions, null];
+  }
+
+  function countInProgressSlots() {
+    return appState.todaySessions.filter(s => s.status === 'in_progress').length;
+  }
+
+  // 새 주제 뽑기 — 진행 중(미완료) 카드가 이미 3개면 막고 안내한다.
+  function goPickNewTopic() {
+    if (countInProgressSlots() >= MAX_IN_PROGRESS) {
+      showMaxInProgressToast();
+      return;
+    }
+    // TODO: 실제로는 여기서 handleGenerate() 등으로 새 세션을 생성한 뒤 pick으로 이동해야 함.
+    // 지금은 카테고리 랜덤 생성 파이프라인이 없어 기존 첫 진행중 세션을 열람하는 것으로 대체.
+    const active = appState.todaySessions.find(s => s.status === 'in_progress');
+    if (active) {
+      CURRENT_PICK_SESSION = active;
+      renderPickFromCurrent();
+    }
+    goScreen('pick');
+  }
+
+  function showMaxInProgressToast() {
+    const el = document.createElement('div');
+    el.id = 'max-in-progress-toast';
+    el.className = 'toast-backdrop';
+    el.onclick = (e) => { if (e.target === el) el.remove(); };
+    el.innerHTML = `
+      <div class="toast-sheet">
+        <div class="toast-icon"><i class="ti ti-stack-2"></i></div>
+        <div class="toast-title">이미 3개를 진행 중이에요</div>
+        <div class="toast-sub">아직 학습하지 않은 카드가 3개 있어요. 하나를 마치거나 삭제하고 다시 뽑아주세요.</div>
+        <button class="toast-btn-secondary" style="width:100%;" onclick="document.getElementById('max-in-progress-toast').remove()">확인</button>
+      </div>`;
+    document.body.appendChild(el);
+  }
+
+  let todayCardIndex = 0;
+
+  // 오늘의 기록 카드에서 특정 세션을 열 때 — 진행중이면 pick(계속 학습), 완료면 paper(뉴스페이퍼)로
+  function openTodaySlot(session) {
+    if (session.status === 'completed') {
+      CURRENT_PAPER_SESSION = session;
+      renderPaperFromCurrent();
+      goScreen('paper');
+    } else {
+      CURRENT_PICK_SESSION = session;
+      renderPickFromCurrent();
+      goScreen('pick');
+    }
+  }
+
+  function renderTodayCard(s) {
+    if (s === null) {
+      return `
+      <div class="today-card">
+        <span class="today-badge"><i class="ti ti-plus"></i> 선택</span>
+        <div class="today-meta"><span>${todayKey()}</span><span>&nbsp;</span></div>
+        <div class="today-title">오늘 다룰 다른 이야기를<br>골라볼까요?</div>
+        <div class="today-tags"></div>
+        <div class="today-foot">
+          <span class="read-time">&nbsp;</span>
+          <button class="start-link" onclick="goPickNewTopic()">주제 고르기 <i class="ti ti-arrow-right"></i></button>
+        </div>
+      </div>`;
+    }
+    const isDone = s.status === 'completed';
+    return `
+      <div class="today-card">
+        <span class="today-badge${isDone ? ' done' : ''}"><i class="ti ${isDone ? 'ti-check' : 'ti-clover'}"></i> ${isDone ? '완료' : 'TODAY'}</span>
+        <div class="today-meta"><span>${s.date_key}</span><span>${escapeHtml(s.category)}</span></div>
+        <div class="today-title">${escapeHtml(s.title)}</div>
+        <div class="today-tags">${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+        <div class="today-foot">
+          <span class="read-time">${isDone ? '학습 완료' : '학습 진행 중'}</span>
+          <button class="start-link" onclick="openTodaySlotByIndex(${todayCardIndex})">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
+        </div>
+      </div>`;
+  }
+
+  function openTodaySlotByIndex(idx) {
+    const slots = getTodaySlots();
+    const s = slots[idx];
+    if (s) openTodaySlot(s);
+  }
+
+  function renderTodayNav() {
+    const slots = getTodaySlots();
+    const dotsWrap = document.getElementById('today-nav-dots');
+    const prevBtn = document.getElementById('today-nav-prev');
+    const nextBtn = document.getElementById('today-nav-next');
+    if (!dotsWrap) return;
+
+    dotsWrap.innerHTML = slots.map((_, i) =>
+      `<span class="${i === todayCardIndex ? 'active' : ''}"></span>`
+    ).join('');
+
+    prevBtn.disabled = todayCardIndex === 0;
+    nextBtn.disabled = todayCardIndex === slots.length - 1;
+  }
+
+  function renderTodayCardWrap() {
+    const slots = getTodaySlots();
+    if (todayCardIndex >= slots.length) todayCardIndex = 0;
+    document.getElementById('today-card-wrap').innerHTML = renderTodayCard(slots[todayCardIndex]);
+    renderTodayNav();
+  }
+
+  function goTodayCard(dir) {
+    const slots = getTodaySlots();
+    const next = todayCardIndex + dir;
+    if (next < 0 || next >= slots.length) return;
+    todayCardIndex = next;
+    renderTodayCardWrap();
+  }
+
+  // ===== 오늘의 기록 카드 스와이프 — 손가락 따라 실시간으로 카드가 밀리는 드래그 추적형 =====
   let _todaySwipeStartX = null;
   let _todaySwipeStartY = null;
-  let _todaySwipeDragging = false;
-  let _todaySwipeDirLocked = false;
+  let _todaySwipeDragging = false; // 가로 스와이프로 판정된 이후에만 true
+  let _todaySwipeDirLocked = false; // 방향(가로/세로) 판정 완료 여부
 
   document.addEventListener('touchstart', (e) => {
     const wrap = e.target.closest('#today-card-wrap');
@@ -993,38 +1910,90 @@
     _todaySwipeStartY = e.touches[0].clientY;
     _todaySwipeDragging = false;
     _todaySwipeDirLocked = false;
+    wrap.style.transition = 'none';
   }, { passive: true });
 
   document.addEventListener('touchmove', (e) => {
     if (_todaySwipeStartX === null) return;
+    const wrap = document.getElementById('today-card-wrap');
+    if (!wrap) return;
     const dx = e.touches[0].clientX - _todaySwipeStartX;
     const dy = e.touches[0].clientY - _todaySwipeStartY;
+
     if (!_todaySwipeDirLocked) {
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return; // 판정 전, 아직 대기
       _todaySwipeDirLocked = true;
-      _todaySwipeDragging = Math.abs(dx) > Math.abs(dy);
+      _todaySwipeDragging = Math.abs(dx) > Math.abs(dy); // 가로 이동이 더 크면 스와이프로 확정
     }
-    if (!_todaySwipeDragging) return;
+    if (!_todaySwipeDragging) return; // 세로 스크롤로 판정되면 카드는 건드리지 않음
+
     e.preventDefault();
+
+    // 맨 앞/맨 뒤 카드에서 반대 방향으로 당기면 저항감(절반만 이동)
+    const swipeSlots = getTodaySlots();
+    const atStart = todayCardIndex === 0 && dx > 0;
+    const atEnd = todayCardIndex === swipeSlots.length - 1 && dx < 0;
+    const resisted = (atStart || atEnd) ? dx * 0.35 : dx;
+    wrap.style.transform = `translateX(${resisted}px)`;
   }, { passive: false });
 
   document.addEventListener('touchend', (e) => {
     if (_todaySwipeStartX === null) return;
+    const wrap = document.getElementById('today-card-wrap');
     const dx = e.changedTouches[0].clientX - _todaySwipeStartX;
     const wasDragging = _todaySwipeDragging;
     _todaySwipeStartX = null;
     _todaySwipeStartY = null;
     _todaySwipeDragging = false;
     _todaySwipeDirLocked = false;
-    if (!wasDragging || Math.abs(dx) < 40) return;
-    goTodayCard(dx < 0 ? 1 : -1);
+    if (!wrap) return;
+
+    wrap.style.transition = 'transform 0.25s ease';
+
+    if (!wasDragging || Math.abs(dx) < 40) {
+      wrap.style.transform = 'translateX(0)';
+      return;
+    }
+
+    const delta = dx < 0 ? 1 : -1;
+    const nextIdx = todayCardIndex + delta;
+    if (nextIdx < 0 || nextIdx > getTodaySlots().length - 1) {
+      wrap.style.transform = 'translateX(0)';
+      return;
+    }
+
+    const exitX = dx < 0 ? -60 : 60;
+    wrap.style.transform = `translateX(${exitX}px)`;
+    wrap.style.opacity = '0';
+    setTimeout(() => {
+      goTodayCard(delta);
+      const freshWrap = document.getElementById('today-card-wrap');
+      if (freshWrap) {
+        freshWrap.style.transition = 'none';
+        freshWrap.style.transform = `translateX(${-exitX}px)`;
+        freshWrap.style.opacity = '0';
+        requestAnimationFrame(() => {
+          freshWrap.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+          freshWrap.style.transform = 'translateX(0)';
+          freshWrap.style.opacity = '1';
+        });
+      }
+    }, 180);
   }, { passive: true });
+
+  // ===== 탭 간 왼쪽 스와이프 전환 =====
+  // 오른쪽 스와이프는 브라우저 기본 "뒤로가기" 제스처와 겹치므로 쓰지 않고,
+  // 탭 화면(홈/아카이브/검색/마이페이지)에서 "왼쪽으로 밀면" 다음 탭으로 이동한다.
+  // 오늘의 기록 카드(#today-card-wrap) 위에서의 스와이프와 겹치지 않도록 그 영역은 제외.
+  // 이이코토는 외부 링크라 탭 전환 순서에 포함하지 않는다.
+  const TAB_ORDER = ['home', 'archive', 'search', 'mypage'];
   let _tabSwipeStartX = null;
   let _tabSwipeStartY = null;
   let _tabSwipeDirLocked = false;
   let _tabSwipeIsHorizontal = false;
 
   document.addEventListener('touchstart', (e) => {
+    if (e.target.closest('#today-card-wrap')) return; // 카드 스와이프와 충돌 방지
     const scrollEl = e.target.closest('#app-scroll');
     if (!scrollEl) return;
     _tabSwipeStartX = e.touches[0].clientX;
@@ -1040,7 +2009,7 @@
     if (!_tabSwipeDirLocked) {
       if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
       _tabSwipeDirLocked = true;
-      _tabSwipeIsHorizontal = Math.abs(dx) > Math.abs(dy) * 1.5;
+      _tabSwipeIsHorizontal = Math.abs(dx) > Math.abs(dy) * 1.5; // 세로 스크롤 오인 방지, 확실히 가로일 때만
     }
   }, { passive: true });
 
@@ -1053,14 +2022,56 @@
     _tabSwipeDirLocked = false;
     _tabSwipeIsHorizontal = false;
     if (!wasHorizontal) return;
-    if (dx >= -60) return; // 왼쪽으로 60px 이상 이동해야 인정
+    if (Math.abs(dx) < 60) return; // 60px 이상 이동해야 인정
 
     const curIdx = TAB_ORDER.indexOf(currentScreen);
-    if (curIdx === -1) return;
-    const nextIdx = curIdx + 1;
-    if (nextIdx > TAB_ORDER.length - 1) return;
-    goScreen(TAB_ORDER[nextIdx]);
+    if (curIdx === -1) return; // 탭 화면이 아니면(상세 화면 등) 무시
+
+    if (dx < 0) {
+      // 왼쪽으로 스와이프 → 다음 탭
+      const nextIdx = curIdx + 1;
+      if (nextIdx > TAB_ORDER.length - 1) return;
+      goScreen(TAB_ORDER[nextIdx]);
+    } else {
+      // 오른쪽으로 스와이프 → 이전 탭
+      const prevIdx = curIdx - 1;
+      if (prevIdx < 0) return;
+      goScreen(TAB_ORDER[prevIdx]);
+    }
   }, { passive: true });
+
+  // ===== 진단용: 빨간 마커 + 실측 좌표 오버레이 =====
+  (function debugOverlay() {
+    const marker = document.createElement('div');
+    marker.style.cssText = 'position:fixed; left:0; right:0; bottom:0; height:2px; background:red; z-index:999; pointer-events:none;';
+    document.body.appendChild(marker);
+
+    const info = document.createElement('div');
+    info.id = 'debug-info';
+    info.style.cssText = 'position:fixed; top:50%; left:0; right:0; z-index:1000; background:rgba(0,0,0,0.8); color:#fff; font-size:11px; padding:8px; text-align:center; font-family:monospace; pointer-events:none;';
+    document.body.appendChild(info);
+
+    function logRectsDebug() {
+      const app = document.getElementById('app');
+      const tabbar = document.getElementById('app-tabbar');
+      const scrollEl = document.getElementById('app-scroll');
+      const appRect = app.getBoundingClientRect();
+      const tabRect = tabbar.getBoundingClientRect();
+      info.innerHTML =
+        `window.innerHeight: ${window.innerHeight}<br>` +
+        `visualViewport.height: ${window.visualViewport ? window.visualViewport.height : 'N/A'}<br>` +
+        `body.clientHeight: ${document.body.clientHeight}<br>` +
+        `#app height: ${appRect.height.toFixed(1)} (bottom:${appRect.bottom.toFixed(1)})<br>` +
+        `#app-scroll scrollHeight:${scrollEl.scrollHeight} clientHeight:${scrollEl.clientHeight}<br>` +
+        `tabbar bottom: ${tabRect.bottom.toFixed(1)}`;
+    }
+    window.addEventListener('load', logRectsDebug);
+    window.addEventListener('resize', logRectsDebug);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', logRectsDebug);
+    setTimeout(logRectsDebug, 500);
+    setTimeout(logRectsDebug, 1500);
+    setTimeout(logRectsDebug, 3000);
+  })();
 </script>
 
 </body>
