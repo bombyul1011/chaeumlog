@@ -169,15 +169,6 @@
     font-weight:600;
   }
 
-  .debug-marker {
-    position:fixed;
-    left:0; right:0; bottom:0;
-    height:2px;
-    background:red;
-    z-index:999;
-    pointer-events:none;
-  }
-
   /* ===== 홈 화면 관련 CSS (실제 파일에서 이식) ===== */
   .stat-index {
     display:flex;
@@ -894,24 +885,13 @@
 
 </div>
 
-<div class="debug-marker"></div>
+<div style="position:fixed; left:0; right:0; bottom:0; height:2px; background:red; z-index:999; pointer-events:none;"></div>
 
 <script>
   // ===== Supabase 연결 =====
   const SUPABASE_URL = 'https://sqeyoqpchiljvinuqxjf.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZXlvcXBjaGlsanZpbnVxeGpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5ODY5NTksImV4cCI6MjEwMjU2Mjk1OX0.H_JNNYz7_eguAqds-Wm6cwK926U74aVPaS_XwGRKeB0';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // 실시간 좌표 확인용 (콘솔에서 확인, 필요시 삭제 가능)
-  function logRects() {
-    const app = document.getElementById('app');
-    const tabbar = document.getElementById('app-tabbar');
-    console.log('innerHeight:', window.innerHeight);
-    console.log('#app rect:', app.getBoundingClientRect());
-    console.log('#app-tabbar rect:', tabbar.getBoundingClientRect());
-  }
-  window.addEventListener('load', logRects);
-  window.addEventListener('resize', logRects);
 
   // ===== 화면 전환 (최소 골격) =====
   // ===== 카테고리 메타데이터 (원본 CATEGORY_ICONS/CATEGORY_COLORS 매핑) =====
@@ -2039,39 +2019,6 @@ ${outlineLines}
       goScreen(TAB_ORDER[prevIdx]);
     }
   }, { passive: true });
-
-  // ===== 진단용: 빨간 마커 + 실측 좌표 오버레이 =====
-  (function debugOverlay() {
-    const marker = document.createElement('div');
-    marker.style.cssText = 'position:fixed; left:0; right:0; bottom:0; height:2px; background:red; z-index:999; pointer-events:none;';
-    document.body.appendChild(marker);
-
-    const info = document.createElement('div');
-    info.id = 'debug-info';
-    info.style.cssText = 'position:fixed; top:50%; left:0; right:0; z-index:1000; background:rgba(0,0,0,0.8); color:#fff; font-size:11px; padding:8px; text-align:center; font-family:monospace; pointer-events:none;';
-    document.body.appendChild(info);
-
-    function logRectsDebug() {
-      const app = document.getElementById('app');
-      const tabbar = document.getElementById('app-tabbar');
-      const scrollEl = document.getElementById('app-scroll');
-      const appRect = app.getBoundingClientRect();
-      const tabRect = tabbar.getBoundingClientRect();
-      info.innerHTML =
-        `window.innerHeight: ${window.innerHeight}<br>` +
-        `visualViewport.height: ${window.visualViewport ? window.visualViewport.height : 'N/A'}<br>` +
-        `body.clientHeight: ${document.body.clientHeight}<br>` +
-        `#app height: ${appRect.height.toFixed(1)} (bottom:${appRect.bottom.toFixed(1)})<br>` +
-        `#app-scroll scrollHeight:${scrollEl.scrollHeight} clientHeight:${scrollEl.clientHeight}<br>` +
-        `tabbar bottom: ${tabRect.bottom.toFixed(1)}`;
-    }
-    window.addEventListener('load', logRectsDebug);
-    window.addEventListener('resize', logRectsDebug);
-    if (window.visualViewport) window.visualViewport.addEventListener('resize', logRectsDebug);
-    setTimeout(logRectsDebug, 500);
-    setTimeout(logRectsDebug, 1500);
-    setTimeout(logRectsDebug, 3000);
-  })();
 </script>
 
 </body>
