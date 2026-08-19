@@ -69,6 +69,12 @@
     padding:0;
   }
 
+  #topbar-main .brand img {
+    width:26px;
+    height:26px;
+    object-fit:contain;
+  }
+
   #topbar-main .brand .app-name {
     font-size:12px;
     letter-spacing:1px;
@@ -818,7 +824,7 @@
   <div id="app-topbar">
     <div id="topbar-main">
       <button class="brand" onclick="goHome()">
-        <i class="ti ti-notebook" style="font-size:16px; color:var(--sage);"></i>
+        <img src="data:image/png;base64,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" alt="chaeumlog">
         <span class="app-name">chaeumlog</span>
       </button>
       <span class="date" id="topbar-date"></span>
@@ -1882,6 +1888,14 @@ ${outlineLines}
   function goIikoto() {
     window.location.href = 'https://bombyul1011.github.io/iikoto/';
   }
+
+  // 이이코토에서 뒤로가기/닫기로 돌아왔을 때 — bfcache로 복원되면 오래된 화면이 그대로 보이므로
+  // 강제로 새로고침해서 항상 최신 상태로 시작하게 한다.
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
+      window.location.reload();
+    }
+  });
 
   // ===== 마이페이지: Claude API Key =====
   // 원본 S(로컬 저장 헬퍼) 그대로 — localStorage에 JSON으로 저장/조회
