@@ -27,7 +27,7 @@
     width:100%;
     height:100%;
     overflow:hidden;
-    background:var(--bg);
+    background:#ff00ff; /* 진단용: body 배경을 마젠타로 - 이 색이 보이면 body가 #app보다 큰 것 */
     font-family:var(--font-sans);
     color:var(--ink);
   }
@@ -222,17 +222,30 @@
 <!-- 빨간 선이 항상 화면 맨 아래 붙어있어야 정상. 탭바 아래 여백 있으면 이 선과 탭바 사이에 틈이 보임 -->
 <div class="debug-marker"></div>
 
+<div id="debug-info" style="position:fixed; top:50%; left:0; right:0; z-index:1000; background:rgba(0,0,0,0.8); color:#fff; font-size:11px; padding:8px; text-align:center; font-family:monospace; pointer-events:none;"></div>
+
 <script>
   // 실시간 좌표 확인용 (콘솔에서 확인)
   function logRects() {
     const app = document.getElementById('app');
     const tabbar = document.getElementById('app-tabbar');
-    console.log('innerHeight:', window.innerHeight);
-    console.log('#app rect:', app.getBoundingClientRect());
-    console.log('#app-tabbar rect:', tabbar.getBoundingClientRect());
+    const scrollEl = document.getElementById('app-scroll');
+    const appRect = app.getBoundingClientRect();
+    const tabRect = tabbar.getBoundingClientRect();
+    const info = document.getElementById('debug-info');
+    info.innerHTML =
+      `window.innerHeight: ${window.innerHeight}<br>` +
+      `visualViewport.height: ${window.visualViewport ? window.visualViewport.height : 'N/A'}<br>` +
+      `body.clientHeight: ${document.body.clientHeight}<br>` +
+      `#app height: ${appRect.height.toFixed(1)} (bottom:${appRect.bottom.toFixed(1)})<br>` +
+      `#app-scroll scrollHeight:${scrollEl.scrollHeight} clientHeight:${scrollEl.clientHeight}<br>` +
+      `tabbar bottom: ${tabRect.bottom.toFixed(1)}`;
   }
   window.addEventListener('load', logRects);
   window.addEventListener('resize', logRects);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', logRects);
+  setTimeout(logRects, 500);
+  setTimeout(logRects, 1500);
 
   // ===== 화면 전환 (최소 골격) =====
   const TAB_SCREENS = ['home', 'archive', 'search', 'mypage']; // 탭바에 직접 대응되는 화면
