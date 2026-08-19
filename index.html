@@ -223,6 +223,7 @@
   /* ===== 홈 화면 관련 CSS (실제 파일에서 이식) ===== */
   .stat-index {
     display:flex;
+    margin-top:-8px;
   }
 
   .stat-nums {
@@ -297,6 +298,29 @@
     color:var(--sub-ink);
     letter-spacing:1.5px;
     text-transform:uppercase;
+  }
+
+  .archive-label-row {
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+  }
+
+  .archive-sort-select {
+    -webkit-appearance:none;
+    appearance:none;
+    background:transparent;
+    border:none;
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--sub-ink);
+    letter-spacing:1px;
+    text-transform:uppercase;
+    padding:0 14px 0 0;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'><path d='M0 0L4 6L8 0Z' fill='%237E8A7F'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right center;
+    background-size:8px 6px;
   }
 
   /* ===== 오늘의 기록 카드 (좌우 화살표 네비게이션) ===== */
@@ -913,7 +937,6 @@
       </div>
       <div class="divider-thin"></div>
 
-      <div class="section-label">오늘의 기록</div>
       <div id="today-card-wrap"></div>
       <div class="today-nav">
         <button class="today-nav-btn" id="today-nav-prev" onclick="goTodayCard(-1)"><i class="ti ti-chevron-left"></i></button>
@@ -921,44 +944,50 @@
         <button class="today-nav-btn" id="today-nav-next" onclick="goTodayCard(1)"><i class="ti ti-chevron-right"></i></button>
       </div>
 
-      <div class="section-label" style="padding-top:16px;">아카이브</div>
-      <div class="archive-grid">
-        <div class="grid-card" onclick="goScreen('archive-detail','시사')">
+      <div class="section-label archive-label-row" style="padding-top:16px;">
+        <span></span>
+        <select id="home-archive-sort" class="archive-sort-select" onchange="renderArchiveTabAndHomeGrid()">
+          <option value="recent">최신순</option>
+          <option value="usage">사용순</option>
+        </select>
+      </div>
+      <div class="archive-grid" id="home-archive-grid">
+        <div class="grid-card" data-category="시사" onclick="goScreen('archive-detail','시사')">
           <i class="ti ti-news grid-card-icon" style="color:#DEB07E;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">C</span><span class="grid-card-name">시사</span></span>
             <span class="grid-card-n" id="grid-count-시사" style="color:#DEB07E;">0</span>
           </div>
         </div>
-        <div class="grid-card" onclick="goScreen('archive-detail','예술')">
+        <div class="grid-card" data-category="예술" onclick="goScreen('archive-detail','예술')">
           <i class="ti ti-palette grid-card-icon" style="color:#CA8080;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">A</span><span class="grid-card-name">예술</span></span>
             <span class="grid-card-n" id="grid-count-예술" style="color:#CA8080;">0</span>
           </div>
         </div>
-        <div class="grid-card" onclick="goScreen('archive-detail','역사')">
+        <div class="grid-card" data-category="역사" onclick="goScreen('archive-detail','역사')">
           <i class="ti ti-hourglass grid-card-icon" style="color:#C2B9A9;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">H</span><span class="grid-card-name">역사</span></span>
             <span class="grid-card-n" id="grid-count-역사" style="color:#C2B9A9;">0</span>
           </div>
         </div>
-        <div class="grid-card" onclick="goScreen('archive-detail','음악')">
+        <div class="grid-card" data-category="음악" onclick="goScreen('archive-detail','음악')">
           <i class="ti ti-music grid-card-icon" style="color:#B198C7;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">M</span><span class="grid-card-name">음악</span></span>
             <span class="grid-card-n" id="grid-count-음악" style="color:#B198C7;">0</span>
           </div>
         </div>
-        <div class="grid-card" onclick="goScreen('archive-detail','영화')">
+        <div class="grid-card" data-category="영화" onclick="goScreen('archive-detail','영화')">
           <i class="ti ti-movie grid-card-icon" style="color:#8FB5D1;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">F</span><span class="grid-card-name">영화</span></span>
             <span class="grid-card-n" id="grid-count-영화" style="color:#8FB5D1;">0</span>
           </div>
         </div>
-        <div class="grid-card" onclick="goScreen('archive-detail','건축')">
+        <div class="grid-card" data-category="건축" onclick="goScreen('archive-detail','건축')">
           <i class="ti ti-building grid-card-icon" style="color:#7E8DBE;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">B</span><span class="grid-card-name">건축</span></span>
@@ -1382,6 +1411,30 @@
     ).length;
     const clusterLabel = document.querySelector('#screen-archive .section-label');
     if (clusterLabel) clusterLabel.textContent = `전체 아카이브 · ${totalBranches}개 갈래`;
+
+    // 홈탭 아카이브 그리드 카드 순서를 최신순/사용순으로 재배열
+    const sortSelect = document.getElementById('home-archive-sort');
+    const sortMode = sortSelect ? sortSelect.value : 'recent';
+    const gridWrap = document.getElementById('home-archive-grid');
+    if (gridWrap) {
+      const cards = Array.from(gridWrap.querySelectorAll('.grid-card'));
+      const scored = cards.map(card => {
+        const category = card.dataset.category;
+        const items = appState.archive.filter(s => s.category === category);
+        let score;
+        if (sortMode === 'usage') {
+          score = items.length;
+        } else {
+          score = items.reduce((latest, s) => {
+            const t = new Date(s.date).getTime();
+            return isNaN(t) ? latest : Math.max(latest, t);
+          }, 0);
+        }
+        return { card, score };
+      });
+      scored.sort((a, b) => b.score - a.score);
+      scored.forEach(({ card }) => gridWrap.appendChild(card));
+    }
   }
 
   // 홈/마이페이지 상단 통계(Days/Sessions/Branches)와 최근 7일 미니닷을 실제 데이터로 채운다
