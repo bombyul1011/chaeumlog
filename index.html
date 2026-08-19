@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>chaeumlog</title>
+<link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <meta name="theme-color" content="#EFF5EC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="chaeumlog">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
@@ -1247,7 +1252,7 @@
       <div style="font-size:13px; color:var(--sub-ink); line-height:1.6; margin-bottom:24px;">삭제하면 되돌릴 수 없어요. 제목, 목차, 요약이 모두 사라져요.</div>
       <div class="toast-btn-row">
         <button class="toast-btn-secondary" onclick="goScreen(DELETE_CANCEL_TO)">취소</button>
-        <button class="cta" style="flex:1; background:#c0504d;" onclick="executeDeleteSession()">삭제하기</button>
+        <button class="cta" style="flex:1; background:var(--accent-yellow); color:#2B332E;" onclick="executeDeleteSession()">삭제하기</button>
       </div>
     </div>
 
