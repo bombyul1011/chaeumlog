@@ -39,14 +39,13 @@
   }
 
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html { height:100%; overflow:hidden; }
+  html { height:100%; overflow:hidden; background:var(--bg); }
   body {
+    height:100%; overflow:hidden;
     font-family: var(--font-sans);
     background: var(--bg);
     color: var(--ink);
     overscroll-behavior-y: none;
-    position:fixed; inset:0;
-    /* height 지정 제거: inset:0이 이미 뷰포트 4변에 고정. 100dvh와 중복 지정하면 iOS에서 실제 높이가 짧게 잡혀 탭바가 화면 중간에 뜨는 문제 발생 */
   }
   button { font-family:inherit; }
   a { color:inherit; text-decoration:none; }
@@ -55,7 +54,11 @@
   .start-link { display:inline-flex; align-items:center; gap:4px; }
   .cta { display:flex; align-items:center; justify-content:center; gap:6px; }
 
-  #app { position:fixed; inset:0; display:flex; flex-direction:column; }
+  #app {
+    position:relative; z-index:1; max-width:480px; margin:0 auto;
+    height:100vh; height:-webkit-fill-available; height:100dvh;
+    display:flex; flex-direction:column; background:var(--bg); overflow:hidden;
+  }
   #app-topbar { flex-shrink:0; background:var(--bg); padding-top:env(safe-area-inset-top); position:relative; z-index:10; }
   #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:calc(28px + env(safe-area-inset-bottom)); }
 
@@ -1523,7 +1526,7 @@ function renderSessionInner(session) {
   return `
     <div class="session-wrap">
       <div class="topbar" style="padding:8px 0 0; justify-content:flex-end;">
-        <button class="icon-btn" onclick="showInProgressActionMenu('${session.id}')" style="margin-right:-6px;"><i class="ti ti-dots"></i></button>
+        <button class="icon-btn" onclick="showInProgressActionMenu('${session.id}')"><i class="ti ti-dots"></i></button>
       </div>
       <div class="s-meta">${escapeHtml(session.category)}</div>
       <div class="s-date">${session.date_key} · ${session.source_type === 'tailchain' ? '이어가기' : session.source_type === 'relearn' ? '다시 학습' : session.source_type === 'category' ? '카테고리 선택' : '랜덤'}</div>
@@ -1665,7 +1668,7 @@ function renderCompleteInner(session) {
   return `
     <div class="complete-wrap">
       <div class="topbar" style="padding:8px 0 0; justify-content:flex-end;">
-        <button class="icon-btn" style="margin-right:-6px;"><i class="ti ti-dots"></i></button>
+        <button class="icon-btn"><i class="ti ti-dots"></i></button>
       </div>
       <div class="paper-card" onclick="navigate('paper', {id: '${session.id}'})" style="cursor:pointer;">
         <div class="paper-vol-row">
