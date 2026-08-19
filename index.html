@@ -637,6 +637,53 @@
   }
 
   .toast-backdrop { position:fixed; inset:0; background:rgba(43,51,46,0.35); z-index:200; display:flex; align-items:flex-end; justify-content:center; animation:toastFadeIn 0.2s ease; }
+
+  /* ===== 주제 생성 로딩 오버레이 ===== */
+  .gen-loading-overlay {
+    position:fixed; inset:0; z-index:300;
+    background:var(--paper, #FDFEFC);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+  }
+  .gen-loading-overlay .spin {
+    width:32px; height:32px; border-radius:50%;
+    border:3px solid var(--line, #DDE6DC); border-top-color:var(--sage, #8FB89E);
+    animation:genSpin 0.8s linear infinite;
+  }
+  .gen-loading-overlay .msg {
+    font-family:var(--font-mono); font-size:12px; color:var(--sub-ink);
+  }
+  @keyframes genSpin { to { transform:rotate(360deg); } }
+
+  /* ===== 주제 선택 3분기 카드 ===== */
+  .option-card {
+    display:flex; align-items:center; gap:14px;
+    padding:16px; margin-bottom:12px;
+    background:#FDFEFC; border:1px solid var(--line, #DDE6DC); border-radius:14px;
+    cursor:pointer;
+  }
+  .option-card.featured { border-color:var(--sage, #8FB89E); }
+  .option-card .option-icon {
+    flex-shrink:0; width:40px; height:40px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    background:#EFF4EE; color:var(--sage, #8FB89E); font-size:18px;
+  }
+  .option-card .o-label {
+    font-family:var(--font-mono); font-size:10px; color:var(--sub-ink);
+    letter-spacing:1px; text-transform:uppercase; margin-bottom:4px;
+  }
+  .option-card .o-title { font-size:15px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+  .option-card .o-sub { font-size:12px; color:var(--sub-ink); line-height:1.5; }
+
+  .cat-grid {
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+  }
+  .cat-chip {
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    padding:20px 8px; background:#FDFEFC; border:1px solid var(--line, #DDE6DC); border-radius:14px;
+    cursor:pointer;
+  }
+  .cat-chip .code { font-family:var(--font-mono); font-size:11px; color:var(--sage, #8FB89E); }
+  .cat-chip .name { font-size:14px; font-weight:600; color:var(--ink); }
   @keyframes toastFadeIn { from{opacity:0;} to{opacity:1;} }
   .toast-sheet { width:100%; max-width:480px; background:var(--card); border-radius:20px 20px 0 0; padding:22px 22px calc(22px + env(safe-area-inset-bottom)); animation:toastSlideUp 0.25s cubic-bezier(.25,.9,.4,1); }
   @keyframes toastSlideUp { from{ transform:translateY(100%); } to{ transform:translateY(0); } }
@@ -1071,6 +1118,20 @@
 
       <div class="my-app-version">chaeumlog v1.1</div>
     </div>
+    <div class="screen" id="screen-pick-select">
+      <div class="pick-lead" style="padding:8px 0 20px;">
+        <h2 style="font-size:19px; font-weight:700; margin:0;">오늘은 어떻게 시작해볼까요?</h2>
+      </div>
+      <div id="pick-select-options"></div>
+    </div>
+
+    <div class="screen" id="screen-pick-category">
+      <div class="pick-lead" style="padding:8px 0 20px;">
+        <h2 style="font-size:19px; font-weight:700; margin:0;">어떤 갈래가 궁금하신가요?</h2>
+      </div>
+      <div class="cat-grid" id="pick-category-grid"></div>
+    </div>
+
     <div class="screen" id="screen-pick">
       <div class="session-wrap">
         <div class="s-meta" id="pick-category">시사</div>
@@ -1894,9 +1955,9 @@ ${outlineLines}
   const TAB_SCREENS = ['home', 'archive', 'search', 'mypage']; // 탭바에 직접 대응되는 화면
   const SUB_TITLES = {}; // 원본 디자인은 별도 서브 제목 없이 "< 아카이브" 형태의 뒤로가기 라벨만 사용
   // 서브줄 뒤로가기가 어디로 갈지: 지정 없으면 기본값으로 홈
-  const BACK_TARGETS = { 'archive-detail': 'archive', 'paper': 'archive-detail', 'pick': 'home', 'finish': 'pick', 'edit': 'paper' };
-  const BACK_LABELS = { 'archive-detail': '아카이브', 'paper': '아카이브', 'finish': '뒤로', 'edit': '뒤로' };
-  const PARENT_TAB = { 'archive-detail': 'archive', 'paper': 'archive', 'pick': 'home', 'finish': 'home', 'edit': 'archive' };
+  const BACK_TARGETS = { 'archive-detail': 'archive', 'paper': 'archive-detail', 'pick': 'home', 'finish': 'pick', 'edit': 'paper', 'pick-select': 'home', 'pick-category': 'pick-select' };
+  const BACK_LABELS = { 'archive-detail': '아카이브', 'paper': '아카이브', 'finish': '뒤로', 'edit': '뒤로', 'pick-select': '홈', 'pick-category': '뒤로' };
+  const PARENT_TAB = { 'archive-detail': 'archive', 'paper': 'archive', 'pick': 'home', 'finish': 'home', 'edit': 'archive', 'pick-select': 'home', 'pick-category': 'home' };
 
   let currentScreen = 'home';
   let currentArchiveCategory = null; // 아카이브 상세에서 보고 있는 카테고리
@@ -2002,6 +2063,213 @@ ${outlineLines}
     renderMyKeyStatus();
   }
 
+  // ===== 주제 생성 (Claude API 직접 호출) — 구버전 buildGeneratePrompt/callClaude/handleGenerate 이식 =====
+  async function callClaude(systemPrompt, messages, maxTokens) {
+    const key = getClaudeKey();
+    if (!key) return '__ERR__API 키가 설정되지 않았어요';
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 45000);
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-5',
+          max_tokens: maxTokens || 1500,
+          system: systemPrompt,
+          messages,
+          thinking: { type: 'disabled' }
+        })
+      });
+      clearTimeout(timer);
+      if (!res.ok) {
+        let errText = String(res.status);
+        try {
+          const err = await res.json();
+          errText = (err.error && err.error.message) ? `${res.status}: ${err.error.message}` : String(res.status);
+        } catch (parseErr) {
+          try { errText = `${res.status}: ${await res.text()}`; } catch (e2) {}
+        }
+        console.error('Claude API err:', errText);
+        return '__ERR__' + errText;
+      }
+      const data = await res.json();
+      const textBlock = Array.isArray(data.content)
+        ? data.content.find(b => b && b.type === 'text' && b.text)
+        : null;
+      const text = textBlock ? textBlock.text : null;
+      if (!text) {
+        console.error('Claude API — no text block found:', JSON.stringify(data));
+        return '__ERR__응답에서 텍스트를 찾지 못했어요 (stop_reason: ' + (data.stop_reason || '?') + ', content types: ' + (Array.isArray(data.content) ? data.content.map(b => b.type).join(',') : 'none') + ')';
+      }
+      return text;
+    } catch (e) {
+      console.error('Claude fetch err:', e);
+      if (e.name === 'AbortError') return '__ERR__요청 시간 초과 (45초)';
+      return '__ERR__네트워크 오류: ' + (e.message || String(e));
+    }
+  }
+
+  // sourceType: 'random' | 'category' | 'tailchain'
+  function buildGeneratePrompt(sourceType, category, parentSession, avoidTitles) {
+    const avoidLine = avoidTitles && avoidTitles.length
+      ? `오늘 이미 다룬 주제: ${avoidTitles.join(', ')} — 이것과 겹치지 않는 새로운 소주제로.`
+      : '';
+
+    let connectionLine = '';
+    if (sourceType === 'tailchain' && parentSession) {
+      const userDirection = parentSession.connection_note
+        ? `사용자가 다음에 이어보고 싶다고 직접 남긴 방향이 있습니다: "${parentSession.connection_note}"
+이 방향을 최우선으로 반영해서 다음 소주제를 만들어주세요. 이 메모가 곧 "그다음"이 무엇이어야 하는지에 대한 가장 확실한 힌트입니다.`
+        : '';
+      connectionLine = `아래는 사용자가 최근 완료한 학습 세션입니다.
+[최근 완료한 세션]
+제목: ${parentSession.title}
+목차: ${(parentSession.outline || []).map(o => o.text).join(' / ')}
+
+${userDirection}
+
+이 내용에서 자연스럽게 이어질 수 있는 "다음 편" 소주제를 만들어주세요.
+- 같은 대주제(${category}) 안에 있되, 방금 다룬 내용의 특정 개념에서 파생되어야 해요
+- "그래서 그다음은?" 같은 심화/확장이어야 하고, 완전히 새로운 이야기면 안 돼요
+- 제목이나 소재가 방금 세션과 겹치지 않아야 해요`;
+    }
+
+    const dataContext = [
+      `오늘의 대주제: ${category}`,
+      connectionLine,
+      avoidLine
+    ].filter(Boolean).join('\n\n');
+
+    const sys = `당신은 학습 큐레이터예요. 주어진 대주제 안에서 하루 30분 정도 깊이 파볼 만한 구체적인 소주제 하나를 만들어주세요.
+소주제는 "기승전결이 있는 하나의 완결된 이야기"여야 해요 — 서로 다른 네 개의 소재를 나열하는 게 아니라, 하나의 질문에서 시작해 네 단계를 거쳐 결론에 도달하는 흐름이어야 합니다.
+
+반드시 아래 JSON 형식으로만 응답해요. 다른 텍스트나 마크다운 코드블록 없이 순수 JSON만 출력해요.
+{
+  "title": "흥미를 끄는 구체적인 소주제 제목 (한 줄)",
+  "shortTitle": "핵심 키워드만 5-10자 내외로 짧게",
+  "tags": ["태그1", "태그2"],
+  "briefSummary": "오늘 배울 내용을 3-4줄로 미리 보여주는 간략 요약. 궁금증을 자극하되 전체 답은 주지 않기",
+  "outline": ["1번 소제목 (3-8단어)", "2번 소제목", "3번 소제목", "4번 소제목"],
+  "connectionNote": "이어가기인 경우, 방금 배운 것과 어떻게 이어지는지 한 문장 (이어가기가 아니면 빈 문자열)"
+}
+
+제목은 궁금증을 자아내는 질문형이나 구체적인 문장으로. "왜 ~일까?" 패턴만 반복하지 말고, 반전형("사실은 ~였다"), 인물 뒷이야기형, 의외의 연결형 등 다양한 화법을 섞어주세요. 이미 잘 알려진 대표 사례는 피하고, 상대적으로 덜 알려졌지만 흥미로운 각도를 골라주세요. outline 4개는 반드시 하나의 이야기가 순서대로 전개되는 흐름이어야 해요 (예: 배경 → 전환점 → 핵심 원리 → 오늘날의 의미).`;
+
+    return { sys, dataContext };
+  }
+
+  // 새 주제 생성 실제 처리 — API 호출 → JSON 파싱 → sessions insert → pick 화면 이동
+  // sourceType: 'random' | 'category' | 'tailchain', category는 category일 때만 필수
+  async function handleGenerate(sourceType, category) {
+    if (countInProgressSlots() >= MAX_IN_PROGRESS) {
+      showMaxInProgressToast();
+      return;
+    }
+    if (!getClaudeKey()) {
+      goScreen('my');
+      alert('주제를 생성하려면 마이페이지에서 Claude API 키를 먼저 등록해주세요.');
+      return;
+    }
+
+    const categories = appState.categories && appState.categories.length
+      ? appState.categories
+      : await fetchCategories();
+
+    let parentSession = null;
+    if (sourceType === 'tailchain' && appState.archive[0]) {
+      parentSession = appState.archive[0];
+      category = parentSession.category;
+    } else if (!category) {
+      category = categories.length
+        ? categories[Math.floor(Math.random() * categories.length)].name_ko
+        : Object.keys(CATEGORY_META)[Math.floor(Math.random() * Object.keys(CATEGORY_META).length)];
+    }
+
+    showGeneratingOverlay();
+
+    const todayTitles = appState.todaySessions.map(s => s.title).filter(Boolean);
+    const { sys, dataContext } = buildGeneratePrompt(sourceType, category, parentSession, todayTitles);
+
+    const reply = await callClaude(sys, [{ role: 'user', content: dataContext }], 600);
+
+    if (!reply || reply.startsWith('__ERR__')) {
+      hideGeneratingOverlay();
+      const errMsg = reply ? reply.replace('__ERR__', '') : '응답을 받지 못했어요';
+      alert('주제 생성 중 오류가 발생했어요: ' + errMsg);
+      return;
+    }
+
+    let parsed;
+    try {
+      const clean = reply.replace(/```json|```/g, '').trim();
+      parsed = JSON.parse(clean);
+    } catch (e) {
+      console.error('JSON parse error. Raw reply:', reply);
+      hideGeneratingOverlay();
+      alert('생성 결과를 해석하지 못했어요 (응답이 잘렸을 수 있어요). 다시 시도해주세요.');
+      return;
+    }
+
+    const outline = (parsed.outline || []).map(text => ({ text }));
+    const connectionNote = (sourceType === 'tailchain' && parsed.connectionNote) ? parsed.connectionNote : null;
+    const clientId = 'cid_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+
+    const { data, error } = await sb.from('sessions').insert({
+      client_id: clientId,
+      date_key: todayKey(),
+      category: category,
+      title: parsed.title,
+      short_title: parsed.shortTitle || parsed.title,
+      outline: outline,
+      brief_summary: parsed.briefSummary || '',
+      tags: parsed.tags || [category],
+      source_type: sourceType,
+      parent_session_id: parentSession ? parentSession.id : null,
+      connection_note: connectionNote,
+      status: 'in_progress'
+    }).select().single();
+
+    hideGeneratingOverlay();
+
+    if (error) {
+      console.error(error);
+      alert('저장 중 오류: ' + error.message);
+      return;
+    }
+
+    await refreshData();
+    renderArchiveTabAndHomeGrid();
+    renderStats();
+    renderHomeAccumDots();
+    renderTodayCardWrap();
+
+    CURRENT_PICK_SESSION = data;
+    renderPickFromCurrent();
+    goScreen('pick');
+  }
+
+  // 생성 중 로딩 오버레이 — 별도 화면 라우트 없이 pick 진입 전 잠깐 덮는 간단한 방식
+  function showGeneratingOverlay() {
+    const existing = document.getElementById('gen-loading-overlay');
+    if (existing) return;
+    const el = document.createElement('div');
+    el.id = 'gen-loading-overlay';
+    el.className = 'gen-loading-overlay';
+    el.innerHTML = `<div class="spin"></div><div class="msg">오늘의 주제를 만드는 중...</div>`;
+    document.body.appendChild(el);
+  }
+  function hideGeneratingOverlay() {
+    const el = document.getElementById('gen-loading-overlay');
+    if (el) el.remove();
+  }
+
   // ===== 마이페이지: 수동 동기화 =====
   // 서버 기반 자동 동기화가 기본이라 평소엔 불필요하지만, 화면이 오래된 데이터를 보여줄 때
   // 강제로 다시 불러오는 안전장치.
@@ -2092,20 +2360,82 @@ ${outlineLines}
     return appState.todaySessions.filter(s => s.status === 'in_progress').length;
   }
 
-  // 새 주제 뽑기 — 진행 중(미완료) 카드가 이미 3개면 막고 안내한다.
+  // 새 주제 뽑기 — 진행 중(미완료) 카드가 이미 3개면 막고, 아니면 3분기 선택 화면으로 진입
   function goPickNewTopic() {
     if (countInProgressSlots() >= MAX_IN_PROGRESS) {
       showMaxInProgressToast();
       return;
     }
-    // TODO: 실제로는 여기서 handleGenerate() 등으로 새 세션을 생성한 뒤 pick으로 이동해야 함.
-    // 지금은 카테고리 랜덤 생성 파이프라인이 없어 기존 첫 진행중 세션을 열람하는 것으로 대체.
-    const active = appState.todaySessions.find(s => s.status === 'in_progress');
-    if (active) {
-      CURRENT_PICK_SESSION = active;
-      renderPickFromCurrent();
+    renderPickSelectOptions();
+    goScreen('pick-select');
+  }
+
+  // 이어가기(꼬리물기) / 카테고리 선택 / 완전 랜덤 3분기 옵션 렌더링
+  function renderPickSelectOptions() {
+    const wrap = document.getElementById('pick-select-options');
+    if (!wrap) return;
+
+    const hasArchive = appState.archive.length > 0;
+    const lastSession = appState.archive[0];
+
+    let html = '';
+    if (hasArchive) {
+      const subText = lastSession.connection_note
+        ? `"${escapeHtml(lastSession.connection_note)}" — 남겨두신 방향으로 이어가요`
+        : `"${escapeHtml(lastSession.title)}"에서 자연스럽게 이어지는 다음 이야기`;
+      html += `
+        <div class="option-card featured" onclick="startGenerate('tailchain')">
+          <div class="option-icon"><i class="ti ti-link"></i></div>
+          <div class="option-body">
+            <div class="o-label">이어가기</div>
+            <div class="o-title">지난 배움에서 이어서</div>
+            <div class="o-sub">${subText}</div>
+          </div>
+        </div>`;
     }
-    goScreen('pick');
+
+    html += `
+      <div class="option-card" onclick="goPickCategoryScreen()">
+        <div class="option-icon"><i class="ti ti-folder"></i></div>
+        <div class="option-body">
+          <div class="o-label">카테고리 선택</div>
+          <div class="o-title">원하는 주제 직접 고르기</div>
+          <div class="o-sub">시사, 예술, 역사 등 갈래 안에서 소주제를 뽑아요</div>
+        </div>
+      </div>
+      <div class="option-card" onclick="startGenerate('random')">
+        <div class="option-icon"><i class="ti ti-dice-5"></i></div>
+        <div class="option-body">
+          <div class="o-label">완전 랜덤</div>
+          <div class="o-title">오늘은 무엇이 나올지 몰라요</div>
+          <div class="o-sub">카테고리까지 무작위로 뽑아드려요</div>
+        </div>
+      </div>`;
+
+    wrap.innerHTML = html;
+  }
+
+  function goPickCategoryScreen() {
+    const grid = document.getElementById('pick-category-grid');
+    if (grid) {
+      grid.innerHTML = Object.keys(CATEGORY_META).map(category => {
+        const meta = CATEGORY_META[category];
+        return `<button class="cat-chip" onclick="startGenerate('category','${escapeHtml(category)}')">
+          <div class="code">${meta.code}</div>
+          <div class="name">${escapeHtml(category)}</div>
+        </button>`;
+      }).join('');
+    }
+    goScreen('pick-category');
+  }
+
+  // 실제 생성 시작 — 진행중 개수 재확인 후 handleGenerate 호출
+  function startGenerate(sourceType, category) {
+    if (countInProgressSlots() >= MAX_IN_PROGRESS) {
+      showMaxInProgressToast();
+      return;
+    }
+    handleGenerate(sourceType, category);
   }
 
   function showMaxInProgressToast() {
