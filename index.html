@@ -528,6 +528,23 @@
   .t-dot { width:7px; height:7px; border-radius:50%; background:var(--sage); z-index:1; }
   .t-text { font-size:14px; line-height:1.55; padding-right:8px; }
   .t-badge { width:24px; height:24px; border-radius:50%; border:1.5px solid var(--accent-yellow); background:var(--accent-yellow); color:var(--ink); display:flex; align-items:center; justify-content:center; font-size:11px; }
+
+  /* ===== paper 화면 관련 CSS ===== */
+  .paper-detail { padding-bottom:40px; }
+  .pd-masthead { text-align:center; padding:18px 0 14px; border-bottom:2px solid var(--ink); margin-bottom:18px; }
+  .pd-masthead .name { font-family:var(--font-serif); font-size:15px; font-weight:700; letter-spacing:3px; }
+  .pd-masthead .vol { font-family:var(--font-mono); font-size:9px; color:var(--sage); margin-top:4px; letter-spacing:1px; }
+  .pd-meta-row { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--muted); margin-bottom:16px; }
+  .pd-title { font-family:var(--font-serif); font-size:23px; font-weight:700; line-height:1.5; margin-bottom:14px; word-break:keep-all; }
+  .pd-tags { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
+  .pd-body-preview { font-size:14px; line-height:1.8; color:#3d463f; margin-bottom:24px; }
+  .pd-section { margin-bottom:22px; }
+  .pd-num { font-family:var(--font-mono); font-size:10px; color:var(--accent-yellow); background:var(--ink); display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; margin-bottom:8px; }
+  .pd-sub { font-family:var(--font-serif); font-size:16px; font-weight:600; margin-bottom:8px; }
+  .pd-divider { height:1px; background:var(--line); margin:26px 0; }
+  .pd-footer-note { background:var(--paper); border:1px dashed var(--lime); border-radius:12px; padding:16px; }
+  .pd-footer-label { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:1px; margin-bottom:8px; text-transform:uppercase; }
+  .pd-footer-text { font-family:var(--font-serif); font-size:13px; font-style:italic; color:var(--sub-ink); line-height:1.6; }
 </style>
 </head>
 <body>
@@ -691,7 +708,51 @@
     </div>
     <div class="screen" id="screen-pick"><div class="block">pick (숨김)</div></div>
     <div class="screen" id="screen-finish"><div class="block">finish (숨김)</div></div>
-    <div class="screen" id="screen-paper"><div class="block">paper (숨김)</div></div>
+    <div class="screen" id="screen-paper">
+      <div class="paper-detail">
+        <div class="pd-masthead">
+          <div class="name">C H A E U M L O G</div>
+          <div class="vol" id="paper-vol">예술 EDITION</div>
+        </div>
+        <div class="pd-meta-row">
+          <span>2026-08-18 14:05</span>
+        </div>
+        <div class="pd-title" id="paper-title">화가들이 검은 물감 대신 파란색과 갈색을 섞어 쓴 이유</div>
+        <div class="pd-tags" id="paper-tags">
+          <span class="tag">미술사</span>
+          <span class="tag">인상주의</span>
+          <span class="tag">색채이론</span>
+        </div>
+
+        <div class="pd-body-preview" id="paper-brief" style="display:none;"></div>
+
+        <div class="pd-section-wrap" id="paper-outline">
+          <div class="pd-section">
+            <div class="pd-num">01</div>
+            <div class="pd-sub">그림자는 사실 검은색이 아니다</div>
+          </div>
+          <div class="pd-section">
+            <div class="pd-num">02</div>
+            <div class="pd-sub">인상주의자들의 발견</div>
+          </div>
+          <div class="pd-section">
+            <div class="pd-num">03</div>
+            <div class="pd-sub">왜 파란색이 자연스러운가</div>
+          </div>
+          <div class="pd-section">
+            <div class="pd-num">04</div>
+            <div class="pd-sub">지금도 이어지는 기법</div>
+          </div>
+        </div>
+
+        <div class="pd-divider"></div>
+        <div class="pd-footer-note">
+          <div class="pd-footer-label">Comment</div>
+          <div class="pd-footer-text" id="paper-comment">테스트</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <div id="app-tabbar">
