@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>채움로그 - 레이아웃 골격 테스트</title>
+<title>chaeumlog</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<meta name="theme-color" content="#EFF5EC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="chaeumlog">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
@@ -2106,6 +2113,13 @@ ${outlineLines}
     const el = document.getElementById('loading');
     if (el) el.innerHTML = '<div class="splash-sub">초기화 오류: ' + (err.message || err) + '</div>';
   });
+
+  // ---- 서비스워커 등록 ----
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
 
   // ===== 오늘의 기록 카드 (좌우 화살표 네비게이션) =====
   const MAX_IN_PROGRESS = 3; // 미완료(진행 중) 카드는 최대 3개까지만 동시 보유 가능
