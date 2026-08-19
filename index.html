@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
   :root {
@@ -921,24 +922,21 @@
       <div class="stat-index">
         <div class="stat-nums">
           <div class="item">
-            <div class="n" style="color:var(--accent-yellow);">01</div>
+            <div class="n" id="home-stat-days" style="color:var(--accent-yellow);">00</div>
             <div class="l">Days</div>
           </div>
           <div class="item">
-            <div class="n">02</div>
+            <div class="n" id="home-stat-sessions">00</div>
             <div class="l">Sessions</div>
           </div>
           <div class="item">
-            <div class="n">02</div>
+            <div class="n" id="home-stat-branches">00</div>
             <div class="l">Branches</div>
           </div>
         </div>
         <div class="stat-recent">
           <div class="spacer"></div>
-          <div class="mini-dots">
-            <span class="mini-dot"></span><span class="mini-dot"></span><span class="mini-dot on"></span>
-            <span class="mini-dot on"></span><span class="mini-dot"></span><span class="mini-dot on"></span><span class="mini-dot"></span>
-          </div>
+          <div class="mini-dots" id="home-mini-dots"></div>
         </div>
       </div>
       <div class="divider-thin"></div>
@@ -957,42 +955,42 @@
           <i class="ti ti-news grid-card-icon" style="color:#DEB07E;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">C</span><span class="grid-card-name">시사</span></span>
-            <span class="grid-card-n" style="color:#DEB07E;">1</span>
+            <span class="grid-card-n" id="grid-count-시사" style="color:#DEB07E;">0</span>
           </div>
         </div>
         <div class="grid-card" onclick="goScreen('archive-detail','예술')">
           <i class="ti ti-palette grid-card-icon" style="color:#CA8080;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">A</span><span class="grid-card-name">예술</span></span>
-            <span class="grid-card-n" style="color:#CA8080;">1</span>
+            <span class="grid-card-n" id="grid-count-예술" style="color:#CA8080;">0</span>
           </div>
         </div>
         <div class="grid-card" onclick="goScreen('archive-detail','역사')">
           <i class="ti ti-hourglass grid-card-icon" style="color:#C2B9A9;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">H</span><span class="grid-card-name">역사</span></span>
-            <span class="grid-card-n" style="color:#C2B9A9;">0</span>
+            <span class="grid-card-n" id="grid-count-역사" style="color:#C2B9A9;">0</span>
           </div>
         </div>
         <div class="grid-card" onclick="goScreen('archive-detail','음악')">
           <i class="ti ti-music grid-card-icon" style="color:#B198C7;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">M</span><span class="grid-card-name">음악</span></span>
-            <span class="grid-card-n" style="color:#B198C7;">0</span>
+            <span class="grid-card-n" id="grid-count-음악" style="color:#B198C7;">0</span>
           </div>
         </div>
         <div class="grid-card" onclick="goScreen('archive-detail','영화')">
           <i class="ti ti-movie grid-card-icon" style="color:#8FB5D1;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">F</span><span class="grid-card-name">영화</span></span>
-            <span class="grid-card-n" style="color:#8FB5D1;">0</span>
+            <span class="grid-card-n" id="grid-count-영화" style="color:#8FB5D1;">0</span>
           </div>
         </div>
         <div class="grid-card" onclick="goScreen('archive-detail','건축')">
           <i class="ti ti-building grid-card-icon" style="color:#7E8DBE;"></i>
           <div class="grid-card-foot">
             <span class="grid-card-label"><span class="grid-card-code">B</span><span class="grid-card-name">건축</span></span>
-            <span class="grid-card-n" style="color:#7E8DBE;">0</span>
+            <span class="grid-card-n" id="grid-count-건축" style="color:#7E8DBE;">0</span>
           </div>
         </div>
       </div>
@@ -1102,12 +1100,12 @@
 
     <div class="screen" id="screen-pick">
       <div class="session-wrap">
-        <div class="s-meta">시사</div>
-        <div class="s-date">2026-08-19 · 랜덤</div>
+        <div class="s-meta" id="pick-category">시사</div>
+        <div class="s-date" id="pick-date">2026-08-19 · 랜덤</div>
 
         <div class="title-card">
-          <h1 class="s-title">왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학</h1>
-          <div class="s-tags">
+          <h1 class="s-title" id="pick-title">왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학</h1>
+          <div class="s-tags" id="pick-tags">
             <span class="tag">국제경제</span>
             <span class="tag">통화정책</span>
             <span class="tag">시사</span>
@@ -1117,7 +1115,7 @@
         <div class="pd-body-preview" id="pick-brief" style="margin:0 0 20px; padding:0;">에콰도르, 엘살바도르 같은 나라들은 자국 화폐를 버리고 미국 달러를 공식 화폐로 채택했어요. 통화주권을 포기하는 극단적 선택을 왜 했을까요? 그 결과는 예상과 같았을까요, 아니면 전혀 다른 이야기가 펼쳐졌을까요.</div>
 
         <div class="outline-label">오늘 다룰 흐름</div>
-        <ul class="outline">
+        <ul class="outline" id="pick-outline">
           <li><span class="otxt">초인플레이션의 악몽, 통화 신뢰 붕괴의 순간들</span><span class="mark">1</span></li>
           <li><span class="otxt">달러화 채택이라는 극단적 결단의 배경</span><span class="mark">2</span></li>
           <li><span class="otxt">중앙은행 없는 나라의 딜레마: 통화정책 자율성 상실</span><span class="mark">3</span></li>
@@ -1143,7 +1141,7 @@
           <h2 style="font-family:var(--font-serif); font-size:19px; font-weight:700; line-height:1.5;">오늘 배운 걸 한 줄로 남겨볼까요?</h2>
         </div>
         <div class="title-card" style="margin-bottom:16px;">
-          <h1 class="s-title" style="font-size:18px;">왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학</h1>
+          <h1 class="s-title" style="font-size:18px;" id="finish-title">왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학</h1>
         </div>
 
         <div class="outline-label">코멘트 (선택)</div>
@@ -1176,11 +1174,11 @@
     <div class="screen" id="screen-mypage">
       <div class="stat-index" style="gap:28px;">
         <div class="item" style="text-align:left;">
-          <div class="n" style="font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--accent-yellow); line-height:1;">01</div>
+          <div class="n" id="my-stat-days" style="font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--accent-yellow); line-height:1;">00</div>
           <div class="l" style="font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:4px; text-transform:uppercase;">Days</div>
         </div>
         <div class="item">
-          <div class="n" style="font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--ink); line-height:1;">02</div>
+          <div class="n" id="my-stat-sessions" style="font-family:var(--font-mono); font-size:22px; font-weight:500; color:var(--ink); line-height:1;">00</div>
           <div class="l" style="font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; margin-top:4px; text-transform:uppercase;">Sessions</div>
         </div>
       </div>
@@ -1233,6 +1231,11 @@
 
 
 <script>
+  // ===== Supabase 연결 =====
+  const SUPABASE_URL = 'https://sqeyoqpchiljvinuqxjf.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZXlvcXBjaGlsanZpbnVxeGpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5ODY5NTksImV4cCI6MjEwMjU2Mjk1OX0.H_JNNYz7_eguAqds-Wm6cwK926U74aVPaS_XwGRKeB0';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   // 실시간 좌표 확인용 (콘솔에서 확인, 필요시 삭제 가능)
   function logRects() {
     const app = document.getElementById('app');
@@ -1255,24 +1258,114 @@
     '건축': { code: 'B', icon: 'ti-building', color: '#7E8DBE' }
   };
 
-  // 카테고리별 더미 세션 목록 (실제 데이터 연동 전 테스트용)
-  const ARCHIVE_SESSIONS = {
-    '시사': [
-      { date: '08.19', title: '왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학', tags: ['국제경제', '통화정책', '시사'], body: '학습 진행 중' }
-    ],
-    '예술': [
-      { date: '08.18', title: '화가들이 검은 물감 대신 파란색과 갈색을 섞어 쓴 이유', tags: ['미술사', '인상주의', '색채이론'], body: '테스트' }
-    ],
-    '역사': [],
-    '음악': [],
-    '영화': [],
-    '건축': []
+  // ===== 실제 데이터 상태 (Supabase) =====
+  const appState = {
+    categories: [],     // categories 테이블 전체
+    archive: [],         // status='completed' 세션 전체 (완료일 내림차순)
+    todaySessions: []    // status='in_progress' 세션 전체 (뽑힌 순, 최대 3개)
   };
+
+  async function fetchCategories() {
+    const { data, error } = await sb.from('categories').select('*').order('sort_order');
+    if (error) { console.error(error); return []; }
+    return data || [];
+  }
+
+  async function fetchArchive() {
+    const { data, error } = await sb.from('sessions')
+      .select('*')
+      .eq('status', 'completed')
+      .order('completed_at', { ascending: false });
+    if (error) { console.error(error); return []; }
+    return data || [];
+  }
+
+  // 오늘 date_key로 뽑힌 세션 전체 (진행중+완료 모두 포함) — 원본 fetchTodaySession과 동일 기준
+  function dateKey(d) {
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+  function todayKey() { return dateKey(new Date()); }
+
+  // 완료 세션의 DISTINCT date_key 기준 연속 일수 계산 (원본 calcStreak 그대로)
+  function calcStreak(archive) {
+    const dateSet = new Set(archive.map(s => s.date_key));
+    if (dateSet.size === 0) return 0;
+
+    let streak = 0;
+    let cursor = new Date();
+    if (!dateSet.has(todayKey())) {
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    while (dateSet.has(dateKey(cursor))) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  }
+
+  // 최근 7일(6일 전 ~ 오늘) 완료 여부 배열, 과거 → 오늘 순
+  function calcRecent7Days(archive) {
+    const dateSet = new Set(archive.map(s => s.date_key));
+    const result = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      result.push(dateSet.has(dateKey(d)));
+    }
+    return result;
+  }
+
+  // 상단 통계(Branches)는 실제 기록이 있는 갈래 수만 카운트
+  function countActiveBranches(archive) {
+    return new Set(archive.map(s => s.category)).size;
+  }
+
+  async function fetchTodaySessions() {
+    const { data, error } = await sb.from('sessions')
+      .select('*')
+      .eq('date_key', todayKey())
+      .order('created_at', { ascending: false });
+    if (error) { console.error(error); return []; }
+    return data || [];
+  }
+
+  async function fetchSessionById(id) {
+    const { data, error } = await sb.from('sessions').select('*').eq('id', id).maybeSingle();
+    if (error) { console.error(error); return null; }
+    return data;
+  }
+
+  async function refreshData() {
+    const [categories, archive, todaySessions] = await Promise.all([
+      fetchCategories(), fetchArchive(), fetchTodaySessions()
+    ]);
+    appState.categories = categories;
+    appState.archive = archive;
+    appState.todaySessions = todaySessions;
+  }
+
+  // category(name_ko) 기준으로 archive에서 완료된 세션만 뽑아 detail-timeline용으로 정리
+  function getArchiveByCategory(category) {
+    return appState.archive
+      .filter(s => s.category === category)
+      .map(s => ({
+        id: s.id,
+        date: (s.completed_at || s.date_key || '').slice(5, 10).replace('-', '.'),
+        title: s.title
+      }));
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
+  }
 
   // 홈 화면 하단 "YOUR KNOWLEDGE, GROWING" 도트 — 총 세션 수만큼 점을 찍고
   // 3의 배수는 sage, 7의 배수는 옐로로 강조 (원본 dotsHtml 로직 그대로)
   function renderHomeAccumDots() {
-    const totalSessions = Object.values(ARCHIVE_SESSIONS).reduce((sum, list) => sum + list.length, 0);
+    const totalSessions = appState.archive.length;
     const dotsEl = document.getElementById('home-accum-dots');
     if (!dotsEl) return;
     dotsEl.innerHTML = Array.from({ length: Math.max(totalSessions, 1) }).map((_, i) => {
@@ -1283,7 +1376,7 @@
 
   function renderArchiveDetail(category) {
     const meta = CATEGORY_META[category] || { code: '?', icon: 'ti-bookmark', color: 'var(--sage)' };
-    const sessions = ARCHIVE_SESSIONS[category] || [];
+    const sessions = getArchiveByCategory(category);
 
     document.getElementById('detail-code').textContent = `ARCHIVE / ${meta.code}`;
     document.getElementById('detail-title').textContent = category;
@@ -1295,13 +1388,58 @@
       return;
     }
     timelineEl.innerHTML = sessions.map(s => `
-      <div class="t-item" onclick="goScreen('paper')">
+      <div class="t-item" onclick="openPaper('${s.id}')">
         <div class="t-date">${s.date}</div>
         <div class="t-dot-col"><div class="t-dot"></div></div>
-        <div class="t-text">${s.title}</div>
+        <div class="t-text">${escapeHtml(s.title)}</div>
         <div class="t-badge"><i class="ti ti-check"></i></div>
       </div>
     `).join('');
+  }
+
+  // 홈 화면 아카이브 그리드 + 아카이브 탭의 카테고리별 카운트를 실제 데이터로 채운다
+  function renderArchiveTabAndHomeGrid() {
+    Object.keys(CATEGORY_META).forEach(category => {
+      const count = appState.archive.filter(s => s.category === category).length;
+
+      const gridEl = document.getElementById(`grid-count-${category}`);
+      if (gridEl) gridEl.textContent = count;
+
+      const clusterEl = document.querySelector(`#screen-archive .cluster-row[onclick*="'${category}'"] .cluster-n`);
+      if (clusterEl) clusterEl.textContent = count;
+    });
+
+    const totalBranches = Object.keys(CATEGORY_META).filter(category =>
+      appState.archive.some(s => s.category === category)
+    ).length;
+    const clusterLabel = document.querySelector('#screen-archive .section-label');
+    if (clusterLabel) clusterLabel.textContent = `전체 아카이브 · ${totalBranches}개 갈래`;
+  }
+
+  // 홈/마이페이지 상단 통계(Days/Sessions/Branches)와 최근 7일 미니닷을 실제 데이터로 채운다
+  function renderStats() {
+    const streak = String(calcStreak(appState.archive)).padStart(2, '0');
+    const totalSessions = String(appState.archive.length).padStart(2, '0');
+    const branches = String(countActiveBranches(appState.archive)).padStart(2, '0');
+
+    const daysEl = document.getElementById('home-stat-days');
+    if (daysEl) daysEl.textContent = streak;
+    const sessionsEl = document.getElementById('home-stat-sessions');
+    if (sessionsEl) sessionsEl.textContent = totalSessions;
+    const branchesEl = document.getElementById('home-stat-branches');
+    if (branchesEl) branchesEl.textContent = branches;
+
+    const myDaysEl = document.getElementById('my-stat-days');
+    if (myDaysEl) myDaysEl.textContent = streak;
+    const mySessionsEl = document.getElementById('my-stat-sessions');
+    if (mySessionsEl) mySessionsEl.textContent = totalSessions;
+
+    const dotsEl = document.getElementById('home-mini-dots');
+    if (dotsEl) {
+      dotsEl.innerHTML = calcRecent7Days(appState.archive)
+        .map(done => `<span class="mini-dot${done ? ' on' : ''}"></span>`)
+        .join('');
+    }
   }
 
   // ===== 검색 =====
@@ -1327,12 +1465,6 @@
     runSearch();
   }
 
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, m => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    })[m]);
-  }
-
   function highlightMatch(text, query) {
     if (!query) return escapeHtml(text);
     const escaped = escapeHtml(text);
@@ -1340,13 +1472,13 @@
     return escaped.replace(new RegExp(`(${escapedQuery})`, 'gi'), '<mark>$1</mark>');
   }
 
-  function matchesScope(session, category, query) {
+  function matchesScope(session, query) {
     const q = query.toLowerCase();
     const fields = {
-      title: session.title,
+      title: session.title || '',
       tags: (session.tags || []).join(' '),
-      category: category,
-      body: session.body || ''
+      category: session.category || '',
+      body: [session.brief_summary, session.summary_note, session.connection_note].filter(Boolean).join(' ')
     };
     if (searchScope === 'all') {
       return Object.values(fields).some(v => v.toLowerCase().includes(q));
@@ -1367,14 +1499,7 @@
       return;
     }
 
-    const matches = [];
-    Object.keys(ARCHIVE_SESSIONS).forEach(category => {
-      ARCHIVE_SESSIONS[category].forEach(session => {
-        if (matchesScope(session, category, query)) {
-          matches.push({ ...session, category });
-        }
-      });
-    });
+    const matches = appState.archive.filter(s => matchesScope(s, query));
 
     if (!matches.length) {
       resultsEl.innerHTML = `
@@ -1386,8 +1511,8 @@
     }
 
     const timelineHtml = matches.map(s => `
-      <div class="t-item" onclick="goScreen('paper')">
-        <div class="t-date">${s.date}</div>
+      <div class="t-item" onclick="openPaper('${s.id}')">
+        <div class="t-date">${(s.completed_at || s.date_key || '').slice(5, 10).replace('-', '.')}</div>
         <div class="t-dot-col"><div class="t-dot"></div></div>
         <div class="t-text">
           <span class="t-cat">${escapeHtml(s.category)}</span>
@@ -1451,19 +1576,34 @@
   }
 
   // ===== 학습 프롬프트 생성/복사 & Claude 핸드오프 =====
-  // pick 화면에 지금 표시 중인 세션 (실제 데이터 연동 전이라 todaySlots[0] 고정 사용)
-  const CURRENT_PICK_SESSION = {
-    category: '시사',
-    title: '왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학',
-    date_key: '2026-08-19',
-    brief_summary: '에콰도르, 엘살바도르 같은 나라들은 자국 화폐를 버리고 미국 달러를 공식 화폐로 채택했어요. 통화주권을 포기하는 극단적 선택을 왜 했을까요? 그 결과는 예상과 같았을까요, 아니면 전혀 다른 이야기가 펼쳐졌을까요.',
-    outline: [
-      { text: '초인플레이션의 악몽, 통화 신뢰 붕괴의 순간들' },
-      { text: '달러화 채택이라는 극단적 결단의 배경' },
-      { text: '중앙은행 없는 나라의 딜레마: 통화정책 자율성 상실' },
-      { text: '오늘날 비트코인 법정화폐 실험과의 묘한 연결고리' }
-    ]
-  };
+  // pick 화면에 지금 표시 중인 세션 — todaySlots 중 현재 인덱스가 가리키는 진행중 세션과 동기화된다.
+  let CURRENT_PICK_SESSION = null;
+
+  const SOURCE_TYPE_LABEL = { tailchain: '이어가기', relearn: '다시 학습', category: '카테고리 선택', random: '랜덤' };
+
+  function renderPickFromCurrent() {
+    const s = CURRENT_PICK_SESSION;
+    if (!s) return;
+    document.getElementById('pick-category').textContent = s.category;
+    document.getElementById('pick-date').textContent = `${s.date_key} · ${SOURCE_TYPE_LABEL[s.source_type] || '랜덤'}`;
+    document.getElementById('pick-title').textContent = s.title;
+    document.getElementById('pick-tags').innerHTML = (s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+
+    const briefEl = document.getElementById('pick-brief');
+    if (s.brief_summary) {
+      briefEl.textContent = s.brief_summary;
+      briefEl.style.display = '';
+    } else {
+      briefEl.style.display = 'none';
+    }
+
+    document.getElementById('pick-outline').innerHTML = (s.outline || []).map((o, i) => `
+      <li><span class="otxt">${escapeHtml(o.text)}</span><span class="mark">${i + 1}</span></li>
+    `).join('');
+
+    const finishTitleEl = document.getElementById('finish-title');
+    if (finishTitleEl) finishTitleEl.textContent = s.title;
+  }
 
   // 원본 buildLearningPrompt 그대로 — 프롬프트 문구/분량 기준 변경 없음
   function buildLearningPrompt(session) {
@@ -1527,56 +1667,94 @@ ${outlineLines}
   }
 
   // 완료 처리 — 코멘트/다음 주제 둘 다 선택 입력, 비워도 완료 가능
-  function finalizeSession() {
+  async function finalizeSession() {
+    const session = CURRENT_PICK_SESSION;
+    if (!session) { goScreen('home'); return; }
+
     const summaryInput = document.getElementById('summary-input');
     const summaryNote = summaryInput ? summaryInput.value.trim() : '';
     const connectionInput = document.getElementById('connection-input');
     const connectionNote = connectionInput ? connectionInput.value.trim() : '';
 
-    // TODO: 실제 데이터 연동 시 —
-    // await sb.from('sessions').update({
-    //   status: 'completed',
-    //   completed_at: new Date().toISOString(),
-    //   summary_note: summaryNote || null,
-    //   connection_note: connectionNote || null
-    // }).eq('id', sessionId);
     // connection_note는 뉴스페이퍼(paper) 화면에는 노출하지 않고, "지난 배움에서 이어서" 뽑을 때만
     // AI 프롬프트에 반영해 확장 주제를 제안하는 데 쓴다.
+    const { error } = await sb.from('sessions').update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      summary_note: summaryNote || null,
+      connection_note: connectionNote || null
+    }).eq('id', session.id);
 
+    if (error) {
+      alert('완료 처리에 실패했어요: ' + error.message);
+      return;
+    }
+
+    await refreshData();
+    renderArchiveTabAndHomeGrid();
+    renderStats();
+    renderHomeAccumDots();
+    renderTodayCardWrap();
+
+    const fresh = await fetchSessionById(session.id);
+    CURRENT_PAPER_SESSION = fresh;
+    renderPaperFromCurrent();
     goScreen('paper');
   }
 
 
   // 재학습: 원본은 그대로 두고, 오늘 날짜의 새 세션으로 내용을 복제해 학습 프롬프트를 만들고 복사.
   // 원본을 나중에 삭제해도 이 새 세션은 별도 기록이라 영향받지 않는다 (parent_session_id로만 연결).
-  function relearnSession() {
-    // TODO: 실제 데이터 연동 시 — 원본 세션(제목/목차/태그/카테고리)을 복제해
-    // date_key: 오늘 날짜, source_type: 'relearn', parent_session_id: 원본 id로 새 row insert.
-    // 생성된 새 세션 기준으로 학습 프롬프트를 만들어 클립보드에 복사한 뒤 pick/session 화면으로 이동.
-    copyLearningPrompt();
+  async function relearnSession() {
+    const original = CURRENT_PAPER_SESSION;
+    if (!original) return;
+
+    if (countInProgressSlots() >= MAX_IN_PROGRESS) {
+      showMaxInProgressToast();
+      return;
+    }
+
+    const clientId = 'cid_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    const { data: newSession, error } = await sb.from('sessions').insert({
+      client_id: clientId,
+      date_key: todayKey(),
+      category: original.category,
+      title: original.title,
+      short_title: original.short_title,
+      outline: original.outline,
+      brief_summary: original.brief_summary,
+      tags: original.tags,
+      source_type: 'relearn',
+      parent_session_id: original.id,
+      connection_note: null,
+      status: 'in_progress'
+    }).select().single();
+
+    if (error) {
+      alert('재학습 세션을 만드는 중 오류가 발생했어요: ' + error.message);
+      return;
+    }
+
+    await refreshData();
+    renderTodayCardWrap();
+    renderArchiveTabAndHomeGrid();
+    renderStats();
+
+    CURRENT_PICK_SESSION = newSession;
+    renderPickFromCurrent();
+    await copyLearningPrompt();
     goScreen('pick');
   }
 
   // paper 화면에 지금 표시 중인 세션 데이터 (실제 데이터 연동 전이라 이 객체 하나로 관리)
-  const CURRENT_PAPER_SESSION = {
-    category: '예술',
-    title: '화가들이 검은 물감 대신 파란색과 갈색을 섞어 쓴 이유',
-    tags: ['미술사', '인상주의', '색채이론'],
-    outline: [
-      { text: '그림자는 사실 검은색이 아니다' },
-      { text: '인상주의자들의 발견' },
-      { text: '왜 파란색이 자연스러운가' },
-      { text: '지금도 이어지는 기법' }
-    ],
-    brief_summary: '19세기 후반 인상주의 화가들은 그림자를 검은색이 아니라 파란색과 갈색을 섞어 표현하기 시작했어요. 왜 오랫동안 당연하게 여겨지던 색채 관습을 깨고 새로운 방식을 택했을까요? 그 발견은 이후 미술사에 어떤 변화를 남겼을까요.',
-    summary_note: '테스트'
-  };
+  let CURRENT_PAPER_SESSION = null;
 
   function renderPaperFromCurrent() {
     const s = CURRENT_PAPER_SESSION;
+    if (!s) return;
     document.getElementById('paper-vol').textContent = `${s.category} EDITION`;
     document.getElementById('paper-title').textContent = s.title;
-    document.getElementById('paper-tags').innerHTML = s.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+    document.getElementById('paper-tags').innerHTML = (s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
 
     const briefEl = document.getElementById('paper-brief');
     if (s.brief_summary) {
@@ -1586,7 +1764,7 @@ ${outlineLines}
       briefEl.style.display = 'none';
     }
 
-    document.getElementById('paper-outline').innerHTML = s.outline.map((o, i) => `
+    document.getElementById('paper-outline').innerHTML = (s.outline || []).map((o, i) => `
       <div class="pd-section">
         <div class="pd-num">${String(i + 1).padStart(2, '0')}</div>
         <div class="pd-sub">${escapeHtml(o.text)}</div>
@@ -1594,10 +1772,31 @@ ${outlineLines}
     `).join('');
 
     document.getElementById('paper-comment').textContent = s.summary_note || '';
+
+    const metaEl = document.querySelector('#screen-paper .pd-meta-row span');
+    if (metaEl) metaEl.textContent = formatCompletedDateTime(s.completed_at);
+  }
+
+  // 완료일시를 "YYYY-MM-DD HH:MM" 형식으로
+  function formatCompletedDateTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  // 아카이브 타임라인/completed 카드에서 특정 세션을 눌렀을 때 paper 화면을 그 세션으로 채우고 이동
+  async function openPaper(sessionId) {
+    const session = await fetchSessionById(sessionId);
+    if (!session) return;
+    CURRENT_PAPER_SESSION = session;
+    renderPaperFromCurrent();
+    goScreen('paper');
   }
 
   function openEditSession() {
     const session = CURRENT_PAPER_SESSION;
+    if (!session) return;
     const outline = session.outline || [];
 
     const el = document.createElement('div');
@@ -1637,9 +1836,9 @@ ${outlineLines}
     document.body.appendChild(el);
   }
 
-  function saveEditSession() {
+  async function saveEditSession() {
     const modal = document.getElementById('edit-session-modal');
-    if (!modal) return;
+    if (!modal || !CURRENT_PAPER_SESSION) return;
 
     const title = modal.querySelector('#edit-title').value.trim();
     const tagsRaw = modal.querySelector('#edit-tags').value.trim();
@@ -1651,17 +1850,32 @@ ${outlineLines}
 
     if (!title) { alert('제목은 비워둘 수 없어요.'); return; }
 
-    // TODO: 실제 데이터 연동 시 —
-    // await sb.from('sessions').update({ title, tags, brief_summary: briefSummary || null,
-    //   summary_note: summaryNote || null, outline, updated_at: new Date().toISOString() }).eq('id', sessionId);
-    CURRENT_PAPER_SESSION.title = title;
-    CURRENT_PAPER_SESSION.tags = tags;
-    CURRENT_PAPER_SESSION.brief_summary = briefSummary;
-    CURRENT_PAPER_SESSION.summary_note = summaryNote;
-    CURRENT_PAPER_SESSION.outline = outline;
+    try {
+      const { error } = await sb.from('sessions').update({
+        title,
+        tags,
+        brief_summary: briefSummary || null,
+        summary_note: summaryNote || null,
+        outline,
+        updated_at: new Date().toISOString()
+      }).eq('id', CURRENT_PAPER_SESSION.id);
+      if (error) throw error;
 
-    modal.remove();
-    renderPaperFromCurrent();
+      CURRENT_PAPER_SESSION.title = title;
+      CURRENT_PAPER_SESSION.tags = tags;
+      CURRENT_PAPER_SESSION.brief_summary = briefSummary;
+      CURRENT_PAPER_SESSION.summary_note = summaryNote;
+      CURRENT_PAPER_SESSION.outline = outline;
+
+      // 아카이브 캐시(appState.archive)에도 같은 세션이 있으면 최신화
+      const idx = appState.archive.findIndex(s => s.id === CURRENT_PAPER_SESSION.id);
+      if (idx !== -1) appState.archive[idx] = { ...appState.archive[idx], ...CURRENT_PAPER_SESSION };
+
+      modal.remove();
+      renderPaperFromCurrent();
+    } catch (e) {
+      alert('저장에 실패했어요: ' + (e.message || e));
+    }
   }
 
   // 삭제 확인 — redirectTo: 삭제 후 돌아갈 화면
@@ -1683,12 +1897,35 @@ ${outlineLines}
     document.body.appendChild(el);
   }
 
-  function executeDeleteSession(redirectTo) {
+  async function executeDeleteSession(redirectTo) {
     const toast = document.getElementById('delete-confirm-toast');
     if (toast) toast.remove();
-    // TODO: 실제 데이터 연동 시 — 이 세션을 원본으로 하는 재학습 자식이 있으면 parent_session_id를
-    // 먼저 null로 끊어(재학습 기록이 함께 지워지지 않도록 보호) 이 세션만 삭제.
-    goScreen(redirectTo === 'archive-detail' ? 'archive-detail' : redirectTo, currentArchiveCategory);
+
+    // 삭제 대상은 지금 보고 있는 화면 기준: pick이면 진행중 세션, paper면 완료 세션
+    const target = currentScreen === 'paper' ? CURRENT_PAPER_SESSION : CURRENT_PICK_SESSION;
+    if (!target) { goScreen(redirectTo === 'archive-detail' ? 'archive' : redirectTo); return; }
+
+    try {
+      // 이 세션을 원본으로 재학습된 자식 세션이 있다면, 삭제 전에 부모 연결만 끊어서
+      // 재학습 기록이 함께 지워지지 않도록 보호
+      const { error: unlinkError } = await sb.from('sessions')
+        .update({ parent_session_id: null })
+        .eq('parent_session_id', target.id);
+      if (unlinkError) console.error('자식 세션 연결 해제 중 오류:', unlinkError);
+
+      const { error } = await sb.from('sessions').delete().eq('id', target.id);
+      if (error) throw error;
+
+      await refreshData();
+      renderTodayCardWrap();
+      renderArchiveTabAndHomeGrid();
+      renderStats();
+      renderHomeAccumDots();
+
+      goScreen(redirectTo === 'archive-detail' ? 'archive' : redirectTo);
+    } catch (e) {
+      alert('삭제에 실패했어요: ' + (e.message || e));
+    }
   }
 
   const TAB_SCREENS = ['home', 'archive', 'search', 'mypage']; // 탭바에 직접 대응되는 화면
@@ -1757,15 +1994,25 @@ ${outlineLines}
   }
 
   // ===== 마이페이지: Claude API Key =====
-  // TODO: 실제 데이터 연동 시 — localStorage에 저장/조회하는 getClaudeKey()/setClaudeKey()로 교체
-  let _myApiKey = null;
+  // 원본 S(로컬 저장 헬퍼) 그대로 — localStorage에 JSON으로 저장/조회
+  const S = {
+    get(key) {
+      try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+    },
+    set(key, val) {
+      try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+    }
+  };
+  function getClaudeKey() { return S.get('claude_api_key') || ''; }
+  function setClaudeKey(key) { S.set('claude_api_key', key); }
 
   function renderMyKeyStatus() {
     const statusEl = document.getElementById('my-key-status');
     const btnEl = document.getElementById('my-api-key-btn');
     if (!statusEl || !btnEl) return;
-    if (_myApiKey) {
-      statusEl.textContent = _myApiKey.slice(0, 8) + '••••••••';
+    const key = getClaudeKey();
+    if (key) {
+      statusEl.textContent = key.slice(0, 8) + '••••••••';
       statusEl.classList.remove('empty');
       btnEl.textContent = '키 변경하기';
     } else {
@@ -1779,23 +2026,35 @@ ${outlineLines}
     const input = document.getElementById('my-api-key-input');
     const key = input.value.trim();
     if (!key) return;
-    _myApiKey = key;
+    setClaudeKey(key);
     input.value = '';
     renderMyKeyStatus();
   }
 
   // ===== 마이페이지: 수동 동기화 =====
   // 서버 기반 자동 동기화가 기본이라 평소엔 불필요하지만, 화면이 오래된 데이터를 보여줄 때
-  // 강제로 다시 불러오는 안전장치. TODO: 실제 데이터 연동 시 refreshData() 호출로 교체.
-  function runManualSync() {
+  // 강제로 다시 불러오는 안전장치.
+  async function runManualSync() {
     const btn = document.getElementById('my-sync-btn');
     if (!btn || btn.classList.contains('syncing')) return;
     btn.classList.add('syncing');
     btn.innerHTML = `<i class="ti ti-refresh"></i> 새로고침 중...`;
-    setTimeout(() => {
-      btn.classList.remove('syncing');
-      btn.innerHTML = `<i class="ti ti-refresh"></i> 새로고침`;
-    }, 900);
+
+    try {
+      await refreshData();
+      renderTodayCardWrap();
+      renderArchiveTabAndHomeGrid();
+      renderStats();
+      renderHomeAccumDots();
+      if (currentScreen === 'archive-detail' && currentArchiveCategory) {
+        renderArchiveDetail(currentArchiveCategory);
+      }
+    } catch (e) {
+      console.error('[chaeumlog] manual sync error:', e);
+    }
+
+    btn.classList.remove('syncing');
+    btn.innerHTML = `<i class="ti ti-refresh"></i> 새로고침`;
   }
 
   // 상단 날짜 표시 (예: 08.19 WED)
@@ -1808,34 +2067,70 @@ ${outlineLines}
   }
   renderDate();
 
+  // ===== 앱 부팅: 서버 데이터 로드 후 전체 화면을 실제 데이터로 채운다 =====
+  async function boot() {
+    const splashStart = Date.now();
+    const minSplashMs = 1300; // 로고+문구 페이드업 애니메이션이 끝까지 보일 최소 시간
+
+    try {
+      await refreshData();
+    } catch (err) {
+      console.error('[chaeumlog] boot fetch error:', err);
+    }
+
+    renderTodayCardWrap();
+    renderHomeAccumDots();
+    renderMyKeyStatus();
+    renderArchiveTabAndHomeGrid();
+    renderStats();
+
+    // #app은 CSS에서 visibility:hidden으로 시작 — 스플래시가 화면을 완전히 덮은 지금 시점에
+    // app-ready를 붙여 뒤에서 준비되도록 한다 (스플래시 아래라 사용자에게는 보이지 않음).
+    document.getElementById('app').classList.add('app-ready');
+
+    const elapsed = Date.now() - splashStart;
+    const remaining = Math.max(0, minSplashMs - elapsed);
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = document.getElementById('loading');
+          if (el) el.classList.add('hide');
+          // DOM에서 완전히 제거하지 않음 — reflow로 배경이 잠깐 씹히는 현상 방지
+        });
+      });
+    }, remaining);
+  }
+
+  boot().catch(err => {
+    console.error('[chaeumlog] boot fatal error:', err);
+    const el = document.getElementById('loading');
+    if (el) el.innerHTML = '<div class="splash-sub">초기화 오류: ' + (err.message || err) + '</div>';
+  });
+
   // ===== 오늘의 기록 카드 (좌우 화살표 네비게이션) =====
-  const todayKey = '2026-08-19';
   const MAX_IN_PROGRESS = 3; // 미완료(진행 중) 카드는 최대 3개까지만 동시 보유 가능
 
-  const todaySlots = [
-    {
-      id: 1, status: 'active', category: '시사',
-      title: '왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학',
-      tags: ['국제경제', '통화정책', '시사']
-    },
-    {
-      id: 2, status: 'completed', category: '예술',
-      title: '인상주의는 왜 처음엔 조롱받았을까',
-      tags: ['미술사', '인상주의']
-    },
-    null // 새 주제 뽑기 슬롯
-  ];
+  // 오늘 date_key로 뽑힌 세션 전체(진행중+완료) + 맨 뒤 "새 주제 뽑기" 가상 슬롯(null)
+  function getTodaySlots() {
+    return [...appState.todaySessions, null];
+  }
 
   function countInProgressSlots() {
-    return todaySlots.filter(s => s && s.status === 'active').length;
+    return appState.todaySessions.filter(s => s.status === 'in_progress').length;
   }
 
   // 새 주제 뽑기 — 진행 중(미완료) 카드가 이미 3개면 막고 안내한다.
-  // TODO: 실제 데이터 연동 시 — countInProgressSlots() 대신 status='in_progress' 세션 개수를 DB에서 센다.
   function goPickNewTopic() {
     if (countInProgressSlots() >= MAX_IN_PROGRESS) {
       showMaxInProgressToast();
       return;
+    }
+    // TODO: 실제로는 여기서 handleGenerate() 등으로 새 세션을 생성한 뒤 pick으로 이동해야 함.
+    // 지금은 카테고리 랜덤 생성 파이프라인이 없어 기존 첫 진행중 세션을 열람하는 것으로 대체.
+    const active = appState.todaySessions.find(s => s.status === 'in_progress');
+    if (active) {
+      CURRENT_PICK_SESSION = active;
+      renderPickFromCurrent();
     }
     goScreen('pick');
   }
@@ -1857,12 +2152,25 @@ ${outlineLines}
 
   let todayCardIndex = 0;
 
+  // 오늘의 기록 카드에서 특정 세션을 열 때 — 진행중이면 pick(계속 학습), 완료면 paper(뉴스페이퍼)로
+  function openTodaySlot(session) {
+    if (session.status === 'completed') {
+      CURRENT_PAPER_SESSION = session;
+      renderPaperFromCurrent();
+      goScreen('paper');
+    } else {
+      CURRENT_PICK_SESSION = session;
+      renderPickFromCurrent();
+      goScreen('pick');
+    }
+  }
+
   function renderTodayCard(s) {
     if (s === null) {
       return `
       <div class="today-card">
         <span class="today-badge"><i class="ti ti-plus"></i> 선택</span>
-        <div class="today-meta"><span>${todayKey}</span><span>&nbsp;</span></div>
+        <div class="today-meta"><span>${todayKey()}</span><span>&nbsp;</span></div>
         <div class="today-title">오늘 다룰 다른 이야기를<br>골라볼까요?</div>
         <div class="today-tags"></div>
         <div class="today-foot">
@@ -1875,46 +2183,51 @@ ${outlineLines}
     return `
       <div class="today-card">
         <span class="today-badge${isDone ? ' done' : ''}"><i class="ti ${isDone ? 'ti-check' : 'ti-clover'}"></i> ${isDone ? '완료' : 'TODAY'}</span>
-        <div class="today-meta"><span>${todayKey}</span><span>${s.category}</span></div>
-        <div class="today-title">${s.title}</div>
-        <div class="today-tags">${s.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        <div class="today-meta"><span>${s.date_key}</span><span>${escapeHtml(s.category)}</span></div>
+        <div class="today-title">${escapeHtml(s.title)}</div>
+        <div class="today-tags">${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
         <div class="today-foot">
           <span class="read-time">${isDone ? '학습 완료' : '학습 진행 중'}</span>
-          <button class="start-link" onclick="goScreen('${isDone ? 'paper' : 'pick'}')">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
+          <button class="start-link" onclick="openTodaySlotByIndex(${todayCardIndex})">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
         </div>
       </div>`;
   }
 
+  function openTodaySlotByIndex(idx) {
+    const slots = getTodaySlots();
+    const s = slots[idx];
+    if (s) openTodaySlot(s);
+  }
+
   function renderTodayNav() {
+    const slots = getTodaySlots();
     const dotsWrap = document.getElementById('today-nav-dots');
     const prevBtn = document.getElementById('today-nav-prev');
     const nextBtn = document.getElementById('today-nav-next');
     if (!dotsWrap) return;
 
-    dotsWrap.innerHTML = todaySlots.map((_, i) =>
+    dotsWrap.innerHTML = slots.map((_, i) =>
       `<span class="${i === todayCardIndex ? 'active' : ''}"></span>`
     ).join('');
 
     prevBtn.disabled = todayCardIndex === 0;
-    nextBtn.disabled = todayCardIndex === todaySlots.length - 1;
+    nextBtn.disabled = todayCardIndex === slots.length - 1;
   }
 
   function renderTodayCardWrap() {
-    document.getElementById('today-card-wrap').innerHTML = renderTodayCard(todaySlots[todayCardIndex]);
+    const slots = getTodaySlots();
+    if (todayCardIndex >= slots.length) todayCardIndex = 0;
+    document.getElementById('today-card-wrap').innerHTML = renderTodayCard(slots[todayCardIndex]);
     renderTodayNav();
   }
 
   function goTodayCard(dir) {
+    const slots = getTodaySlots();
     const next = todayCardIndex + dir;
-    if (next < 0 || next >= todaySlots.length) return;
+    if (next < 0 || next >= slots.length) return;
     todayCardIndex = next;
     renderTodayCardWrap();
   }
-
-  renderTodayCardWrap();
-  renderHomeAccumDots();
-  renderMyKeyStatus();
-  renderPaperFromCurrent();
 
   // ===== 오늘의 기록 카드 스와이프 — 손가락 따라 실시간으로 카드가 밀리는 드래그 추적형 =====
   let _todaySwipeStartX = null;
@@ -1949,8 +2262,9 @@ ${outlineLines}
     e.preventDefault();
 
     // 맨 앞/맨 뒤 카드에서 반대 방향으로 당기면 저항감(절반만 이동)
+    const swipeSlots = getTodaySlots();
     const atStart = todayCardIndex === 0 && dx > 0;
-    const atEnd = todayCardIndex === todaySlots.length - 1 && dx < 0;
+    const atEnd = todayCardIndex === swipeSlots.length - 1 && dx < 0;
     const resisted = (atStart || atEnd) ? dx * 0.35 : dx;
     wrap.style.transform = `translateX(${resisted}px)`;
   }, { passive: false });
@@ -1975,7 +2289,7 @@ ${outlineLines}
 
     const delta = dx < 0 ? 1 : -1;
     const nextIdx = todayCardIndex + delta;
-    if (nextIdx < 0 || nextIdx > todaySlots.length - 1) {
+    if (nextIdx < 0 || nextIdx > getTodaySlots().length - 1) {
       wrap.style.transform = 'translateX(0)';
       return;
     }
@@ -2048,29 +2362,6 @@ ${outlineLines}
     if (nextIdx > TAB_ORDER.length - 1) return; // 마지막 탭에서는 더 이동하지 않음
     goScreen(TAB_ORDER[nextIdx]);
   }, { passive: true });
-
-  // ===== 오프닝 스플래시 =====
-  // #app은 CSS에서 visibility:hidden으로 시작 — 스플래시가 화면을 완전히 덮은 지금 시점에
-  // app-ready를 붙여 뒤에서 준비되도록 한다 (스플래시 아래라 사용자에게는 보이지 않음).
-  document.getElementById('app').classList.add('app-ready');
-
-  // 골격/렌더가 이미 동기적으로 끝난 상태이므로, 최소 노출 시간만 채우고 hide.
-  // requestAnimationFrame 두 번으로 레이아웃이 완전히 정착된 뒤 제거해 골격 흔들림 방지.
-  (function bootSplash() {
-    const minSplashMs = 1300; // 로고+문구 페이드업 애니메이션이 끝까지 보일 최소 시간
-    const start = Date.now();
-    const elapsed = Date.now() - start;
-    const remaining = Math.max(0, minSplashMs - elapsed);
-    setTimeout(() => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const el = document.getElementById('loading');
-          if (el) el.classList.add('hide');
-          // DOM에서 완전히 제거하지 않음 — reflow로 배경이 잠깐 씹히는 현상 방지
-        });
-      });
-    }, remaining);
-  })();
 </script>
 
 </body>
