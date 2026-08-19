@@ -49,8 +49,7 @@
 
   #app-topbar {
     flex-shrink:0;
-    background:#FDFEFC;
-    border-bottom:1px solid #DDE6DC;
+    background:var(--bg);
   }
 
   #topbar-main {
@@ -819,6 +818,7 @@
   <div id="app-topbar">
     <div id="topbar-main">
       <button class="brand" onclick="goHome()">
+        <i class="ti ti-notebook" style="font-size:16px; color:var(--sage);"></i>
         <span class="app-name">chaeumlog</span>
       </button>
       <span class="date" id="topbar-date"></span>
@@ -1124,6 +1124,7 @@
     <button class="tab-btn" data-tab="archive" onclick="goScreen('archive')"><i class="ti ti-books"></i><span>아카이브</span></button>
     <button class="tab-btn" data-tab="search" onclick="goScreen('search')"><i class="ti ti-search"></i><span>검색</span></button>
     <button class="tab-btn" data-tab="mypage" onclick="goScreen('mypage')"><i class="ti ti-user"></i><span>마이페이지</span></button>
+    <button class="tab-btn" data-tab="iikoto" onclick="goIikoto()"><i class="ti ti-flower"></i><span>이이코토</span></button>
   </div>
 
 </div>
