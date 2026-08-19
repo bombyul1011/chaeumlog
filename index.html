@@ -28,11 +28,51 @@
   #app-topbar {
     flex-shrink:0;
     background:#FDFEFC;
-    padding:calc(env(safe-area-inset-top) + 14px) 20px 14px;
-    font-size:13px;
-    color:#8FB89E;
     border-bottom:1px solid #DDE6DC;
   }
+
+  #topbar-main {
+    padding:47px 24px 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  #topbar-main .brand {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    background:none;
+    border:none;
+    padding:0;
+  }
+
+  #topbar-main .brand .app-name {
+    font-size:12px;
+    letter-spacing:1px;
+    color:#8FB89E;
+    font-weight:400;
+  }
+
+  #topbar-main .date {
+    font-size:11px;
+    letter-spacing:0.5px;
+    color:#a3b5a8;
+  }
+
+  #topbar-sub {
+    display:none;
+    align-items:center;
+    justify-content:space-between;
+    gap:6px;
+    padding:0 24px 12px;
+    font-size:14px;
+    color:#2B332E;
+    font-weight:600;
+  }
+
+  #topbar-sub.show { display:flex; }
 
   #app-scroll {
     flex:1 1 auto;
@@ -92,7 +132,17 @@
 
 <div id="app">
 
-  <div id="app-topbar">채움로그 · 골격 재검증</div>
+  <div id="app-topbar">
+    <div id="topbar-main">
+      <button class="brand">
+        <span class="app-name">chaeumlog</span>
+      </button>
+      <span class="date" id="topbar-date"></span>
+    </div>
+    <div id="topbar-sub">
+      <span>서브줄</span>
+    </div>
+  </div>
 
   <div id="app-scroll">
     <div class="screen active" id="screen-home">
@@ -127,6 +177,11 @@
 </div>
 
 <div class="debug-marker"></div>
+
+<script>
+  const d = new Date();
+  document.getElementById('topbar-date').textContent = `${d.getMonth()+1}.${d.getDate()}`;
+</script>
 
 </body>
 </html>
