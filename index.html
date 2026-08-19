@@ -46,6 +46,7 @@
     color: var(--ink);
     overscroll-behavior-y: none;
     position:fixed; inset:0;
+    overflow:hidden;
     /* height 지정 제거: inset:0이 이미 뷰포트 4변에 고정. 100dvh와 중복 지정하면 iOS에서 실제 높이가 짧게 잡혀 탭바가 화면 중간에 뜨는 문제 발생 */
   }
   button { font-family:inherit; }
@@ -57,7 +58,7 @@
 
   #app { position:fixed; inset:0; display:flex; flex-direction:column; }
   #app-topbar { flex-shrink:0; background:var(--bg); padding-top:env(safe-area-inset-top); position:relative; z-index:10; }
-  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:12px; }
+  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:12px; background:var(--bg); }
 
   /* 로딩 상태 (스플래시) — iikoto와 동일한 구조: fadeUp 애니메이션, 일정 시간 후 hide */
   #loading {
