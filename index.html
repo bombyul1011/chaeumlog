@@ -86,7 +86,7 @@
   #app-tabbar:empty { display:none; }
   .fab-wrap { position:fixed; right:20px; bottom:calc(2px + env(safe-area-inset-bottom)); z-index:60; }
   @media (min-width: 480px) {
-    .fab-wrap { bottom:calc(70px + env(safe-area-inset-bottom)); }
+    .fab-wrap { bottom:calc(110px + env(safe-area-inset-bottom)); }
   }
   .fab-btn {
     width:52px; height:52px; border-radius:50%;
@@ -944,6 +944,10 @@ function getRoute() {
 // 각 라우트 함수는 지금처럼 topbar를 포함한 전체 HTML을 그대로 리턴하면 되고,
 // 여기서 첫 번째 <div class="topbar"...>...</div>만 정규식으로 뽑아 고정 영역으로 옮긴다.
 // topbar가 없는 화면(로딩 스피너 등)은 스크롤 영역에 전체가 들어가고 고정 영역은 비워둔다.
+function commonTopbarHtml() {
+  return `<div class="topbar">${renderLogoGroup()}<div class="topbar-date">${todayDisplay()}</div></div>`;
+}
+
 function mountRoute(html) {
   const topbarEl = document.getElementById('app-topbar');
   const scrollEl = document.getElementById('app-scroll');
@@ -1001,8 +1005,17 @@ function mountRoute(html) {
   }
   const topbarHtml = htmlNoTabbar.slice(startIdx, topbarEnd);
   const restHtml = htmlNoTabbar.slice(0, startIdx) + htmlNoTabbar.slice(topbarEnd);
-  topbarEl.innerHTML = topbarHtml;
-  scrollEl.innerHTML = restHtml;
+  // 공용 고정 topbar(로고+날짜)는 항상 유지하고, 라우트가 제공한 topbar 블록이
+  // "뒤로가기(back) 전용" 형태(로고 그룹이 없는 경우)면 고정 영역에 넣지 않고
+  // 스크롤 영역 맨 위로 되돌려, 공용 topbar 아래 서브 헤더처럼 보이게 한다.
+  const isBackOnlyTopbar = topbarHtml.indexOf('logo-group') === -1 && topbarHtml.indexOf('renderLogoGroup') === -1;
+  if (isBackOnlyTopbar) {
+    topbarEl.innerHTML = commonTopbarHtml();
+    scrollEl.innerHTML = topbarHtml + restHtml;
+  } else {
+    topbarEl.innerHTML = topbarHtml;
+    scrollEl.innerHTML = restHtml;
+  }
   scrollEl.scrollTop = 0;
 }
 
@@ -1408,8 +1421,14 @@ function mountInner(outerId, innerHtml) {
   const topbarHtml = htmlNoTabbar.slice(startIdx, topbarEnd);
   const restHtml = htmlNoTabbar.slice(0, startIdx) + htmlNoTabbar.slice(topbarEnd);
   const topbarEl = document.getElementById('app-topbar');
-  if (topbarEl) topbarEl.innerHTML = topbarHtml;
-  outerEl.innerHTML = restHtml;
+  const isBackOnlyTopbar = topbarHtml.indexOf('logo-group') === -1;
+  if (isBackOnlyTopbar) {
+    if (topbarEl) topbarEl.innerHTML = commonTopbarHtml();
+    outerEl.innerHTML = topbarHtml + restHtml;
+  } else {
+    if (topbarEl) topbarEl.innerHTML = topbarHtml;
+    outerEl.innerHTML = restHtml;
+  }
 }
 
 function renderSession(id) {
