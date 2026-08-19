@@ -54,11 +54,13 @@
     display:flex;
     flex-direction:column;
     background:var(--bg);
-    visibility:hidden; /* 스플래시가 확실히 덮은 뒤에만 노출 — 초기 프레임 깜빡임 방지 */
+    opacity:0; /* 스플래시가 확실히 덮은 뒤에만 노출 — 초기 프레임 깜빡임 방지 */
+    pointer-events:none;
   }
 
   #app.app-ready {
-    visibility:visible;
+    opacity:1;
+    pointer-events:auto;
   }
 
   /* ===== 로딩 상태 (스플래시) — 페이드업 애니메이션, 일정 시간 후 hide ===== */
