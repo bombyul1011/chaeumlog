@@ -300,29 +300,6 @@
     text-transform:uppercase;
   }
 
-  .archive-label-row {
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-  }
-
-  .archive-sort-select {
-    -webkit-appearance:none;
-    appearance:none;
-    background:transparent;
-    border:none;
-    font-family:var(--font-mono);
-    font-size:10px;
-    color:var(--sub-ink);
-    letter-spacing:1px;
-    text-transform:uppercase;
-    padding:0 14px 0 0;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='6' viewBox='0 0 8 6'><path d='M0 0L4 6L8 0Z' fill='%237E8A7F'/></svg>");
-    background-repeat:no-repeat;
-    background-position:right center;
-    background-size:8px 6px;
-  }
-
   /* ===== 오늘의 기록 카드 (좌우 화살표 네비게이션) ===== */
   .today-card {
     background:var(--paper);
@@ -599,7 +576,7 @@
   }
 
   /* ===== 아카이브 카테고리 상세 (뒤로가기 + 히어로 + 타임라인) ===== */
-  .detail-hero { padding:0; }
+  .detail-hero { padding:0; margin-top:-12px; }
   .detail-code { font-family:var(--font-mono); font-size:11px; color:var(--sage); letter-spacing:1px; }
   .detail-title { font-family:var(--font-serif); font-size:26px; font-weight:700; margin:8px 0 20px; }
   .detail-stats { display:flex; gap:28px; margin-bottom:8px; }
@@ -616,7 +593,7 @@
   .t-badge { width:24px; height:24px; border-radius:50%; border:1.5px solid var(--accent-yellow); background:var(--accent-yellow); color:var(--ink); display:flex; align-items:center; justify-content:center; font-size:11px; }
 
   /* ===== paper 화면 관련 CSS ===== */
-  .paper-detail { padding-bottom:40px; }
+  .paper-detail { padding-bottom:40px; margin-top:-12px; }
   .pd-masthead { text-align:center; padding:18px 0 14px; border-bottom:2px solid var(--ink); margin-bottom:18px; }
   .pd-masthead .name { font-family:var(--font-serif); font-size:15px; font-weight:700; letter-spacing:3px; }
   .pd-masthead .vol { font-family:var(--font-mono); font-size:9px; color:var(--sage); margin-top:4px; letter-spacing:1px; }
@@ -935,7 +912,6 @@
           <div class="mini-dots" id="home-mini-dots"></div>
         </div>
       </div>
-      <div class="divider-thin"></div>
 
       <div id="today-card-wrap"></div>
       <div class="today-nav">
@@ -944,14 +920,7 @@
         <button class="today-nav-btn" id="today-nav-next" onclick="goTodayCard(1)"><i class="ti ti-chevron-right"></i></button>
       </div>
 
-      <div class="section-label archive-label-row" style="padding-top:16px;">
-        <span></span>
-        <select id="home-archive-sort" class="archive-sort-select" onchange="renderArchiveTabAndHomeGrid()">
-          <option value="recent">최신순</option>
-          <option value="usage">사용순</option>
-        </select>
-      </div>
-      <div class="archive-grid" id="home-archive-grid">
+      <div class="archive-grid" id="home-archive-grid" style="margin-top:16px;">
         <div class="grid-card" data-category="시사" onclick="goScreen('archive-detail','시사')">
           <i class="ti ti-news grid-card-icon" style="color:#DEB07E;"></i>
           <div class="grid-card-foot">
@@ -1004,27 +973,27 @@
     <div class="screen" id="screen-archive">
       <div class="section-label" style="padding-top:0;">전체 아카이브 · 6개 갈래</div>
       <div class="archive-cluster">
-        <div class="cluster-row" onclick="goScreen('archive-detail','시사')">
+        <div class="cluster-row" data-category="시사" onclick="goScreen('archive-detail','시사')">
           <div class="cluster-left"><i class="ti ti-news cluster-cat-icon"></i><span class="cluster-code">C</span><span class="cluster-name">시사</span></div>
           <div class="cluster-right"><span class="cluster-n">1</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
         </div>
-        <div class="cluster-row" onclick="goScreen('archive-detail','예술')">
+        <div class="cluster-row" data-category="예술" onclick="goScreen('archive-detail','예술')">
           <div class="cluster-left"><i class="ti ti-palette cluster-cat-icon"></i><span class="cluster-code">A</span><span class="cluster-name">예술</span></div>
           <div class="cluster-right"><span class="cluster-n">1</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
         </div>
-        <div class="cluster-row" onclick="goScreen('archive-detail','역사')">
+        <div class="cluster-row" data-category="역사" onclick="goScreen('archive-detail','역사')">
           <div class="cluster-left"><i class="ti ti-hourglass cluster-cat-icon"></i><span class="cluster-code">H</span><span class="cluster-name">역사</span></div>
           <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
         </div>
-        <div class="cluster-row" onclick="goScreen('archive-detail','음악')">
+        <div class="cluster-row" data-category="음악" onclick="goScreen('archive-detail','음악')">
           <div class="cluster-left"><i class="ti ti-music cluster-cat-icon"></i><span class="cluster-code">M</span><span class="cluster-name">음악</span></div>
           <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
         </div>
-        <div class="cluster-row" onclick="goScreen('archive-detail','영화')">
+        <div class="cluster-row" data-category="영화" onclick="goScreen('archive-detail','영화')">
           <div class="cluster-left"><i class="ti ti-movie cluster-cat-icon"></i><span class="cluster-code">F</span><span class="cluster-name">영화</span></div>
           <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
         </div>
-        <div class="cluster-row" onclick="goScreen('archive-detail','건축')">
+        <div class="cluster-row" data-category="건축" onclick="goScreen('archive-detail','건축')">
           <div class="cluster-left"><i class="ti ti-building cluster-cat-icon"></i><span class="cluster-code">B</span><span class="cluster-name">건축</span></div>
           <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
         </div>
@@ -1412,29 +1381,25 @@
     const clusterLabel = document.querySelector('#screen-archive .section-label');
     if (clusterLabel) clusterLabel.textContent = `전체 아카이브 · ${totalBranches}개 갈래`;
 
-    // 홈탭 아카이브 그리드 카드 순서를 최신순/사용순으로 재배열
-    const sortSelect = document.getElementById('home-archive-sort');
-    const sortMode = sortSelect ? sortSelect.value : 'recent';
-    const gridWrap = document.getElementById('home-archive-grid');
-    if (gridWrap) {
-      const cards = Array.from(gridWrap.querySelectorAll('.grid-card'));
-      const scored = cards.map(card => {
-        const category = card.dataset.category;
-        const items = appState.archive.filter(s => s.category === category);
-        let score;
-        if (sortMode === 'usage') {
-          score = items.length;
-        } else {
-          score = items.reduce((latest, s) => {
-            const t = new Date(s.date).getTime();
-            return isNaN(t) ? latest : Math.max(latest, t);
-          }, 0);
-        }
-        return { card, score };
+    // 홈탭 아카이브 그리드 + 아카이브탭 클러스터 목록을 최신 활동순으로 재배열
+    const sortByRecent = (container, selector) => {
+      if (!container) return;
+      const items = Array.from(container.querySelectorAll(selector));
+      const scored = items.map(el => {
+        const category = el.dataset.category;
+        const sessions = appState.archive.filter(s => s.category === category);
+        const score = sessions.reduce((latest, s) => {
+          const t = new Date(s.date).getTime();
+          return isNaN(t) ? latest : Math.max(latest, t);
+        }, 0);
+        return { el, score };
       });
       scored.sort((a, b) => b.score - a.score);
-      scored.forEach(({ card }) => gridWrap.appendChild(card));
-    }
+      scored.forEach(({ el }) => container.appendChild(el));
+    };
+
+    sortByRecent(document.getElementById('home-archive-grid'), '.grid-card');
+    sortByRecent(document.querySelector('#screen-archive .archive-cluster'), '.cluster-row');
   }
 
   // 홈/마이페이지 상단 통계(Days/Sessions/Branches)와 최근 7일 미니닷을 실제 데이터로 채운다
