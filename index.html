@@ -529,7 +529,7 @@
   }
 
   /* ===== 아카이브 카테고리 상세 (뒤로가기 + 히어로 + 타임라인) ===== */
-  .detail-hero { padding:20px 0 0; }
+  .detail-hero { padding:0; }
   .detail-code { font-family:var(--font-mono); font-size:11px; color:var(--sage); letter-spacing:1px; }
   .detail-title { font-family:var(--font-serif); font-size:26px; font-weight:700; margin:8px 0 20px; }
   .detail-stats { display:flex; gap:28px; margin-bottom:8px; }
@@ -2261,7 +2261,14 @@ ${outlineLines}
     if (Math.abs(dx) < 60) return; // 60px 이상 이동해야 인정
 
     const curIdx = TAB_ORDER.indexOf(currentScreen);
-    if (curIdx === -1) return; // 탭 화면이 아니면(상세 화면 등) 무시
+    if (curIdx === -1) {
+      // 탭 화면이 아닌 상세 화면(archive-detail, paper, pick, finish, edit)에서는
+      // 오른쪽으로 스와이프하면 뒤로가기(상단 "‹" 버튼과 동일 동작)
+      if (dx > 0 && BACK_TARGETS[currentScreen]) {
+        goBack();
+      }
+      return;
+    }
 
     if (dx < 0) {
       // 왼쪽으로 스와이프 → 다음 탭
