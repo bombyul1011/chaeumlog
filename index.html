@@ -96,6 +96,26 @@
 
   #topbar-sub.show { display:flex; }
 
+  #topbar-sub .back-btn {
+    display:inline-flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:2px;
+    height:28px;
+    margin-left:-6px;
+    padding:0 6px;
+    border:none;
+    background:none;
+    color:#8FB89E;
+    font-size:12px;
+    white-space:nowrap;
+    cursor:pointer;
+  }
+
+  #topbar-sub .back-btn .ti {
+    font-size:16px;
+  }
+
   #app-scroll {
     flex:1 1 auto;
     min-height:0;
@@ -570,13 +590,15 @@
 
   <div id="app-topbar">
     <div id="topbar-main">
-      <button class="brand">
+      <button class="brand" onclick="goHome()">
         <span class="app-name">chaeumlog</span>
       </button>
       <span class="date" id="topbar-date"></span>
     </div>
     <div id="topbar-sub">
-      <span>서브줄</span>
+      <button class="back-btn" onclick="goBack()"><i class="ti ti-chevron-left"></i> <span id="topbar-back-label"></span></button>
+      <span id="topbar-sub-title"></span>
+      <span id="topbar-sub-action"></span>
     </div>
   </div>
 
@@ -882,7 +904,7 @@
         <div class="today-tags">${s.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
         <div class="today-foot">
           <span class="read-time">${isDone ? '학습 완료' : '학습 진행 중'}</span>
-          <span class="start-link">이어서 보기 <i class="ti ti-arrow-right"></i></span>
+          <button class="start-link" onclick="goScreen('${isDone ? 'paper' : 'pick'}')">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
         </div>
       </div>`;
   }
@@ -911,17 +933,51 @@
   boot();
 
   // ===== 화면 전환 =====
+  const TAB_SCREENS = ['home', 'archive', 'search', 'mypage'];
   const TAB_ORDER = ['home', 'archive', 'search', 'mypage'];
-  let currentScreen = 'home';
+  const BACK_TARGETS = { 'archive-detail': 'archive', 'paper': 'archive-detail', 'pick': 'home', 'finish': 'pick' };
+  const BACK_LABELS = { 'archive-detail': '아카이브', 'paper': '아카이브', 'finish': '뒤로' };
+  const PARENT_TAB = { 'archive-detail': 'archive', 'paper': 'archive', 'pick': 'home', 'finish': 'home' };
 
-  function goScreen(name) {
+  let currentScreen = 'home';
+  let currentArchiveCategory = null;
+
+  function goScreen(name, subTitle) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     document.getElementById('screen-' + name).classList.add('active');
     document.getElementById('app-scroll').scrollTop = 0;
     currentScreen = name;
+
+    if (name === 'archive-detail' && subTitle) {
+      currentArchiveCategory = subTitle;
+    }
+
+    const tabName = TAB_SCREENS.includes(name) ? name : (PARENT_TAB[name] || name.split('-')[0]);
     document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tab === name);
+      btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
+
+    const subBar = document.getElementById('topbar-sub');
+    if (!TAB_SCREENS.includes(name)) {
+      const backLabel = document.getElementById('topbar-back-label');
+      if (backLabel) backLabel.textContent = BACK_LABELS[name] || '뒤로';
+      subBar.classList.add('show');
+    } else {
+      subBar.classList.remove('show');
+    }
+  }
+
+  function goBack() {
+    const target = BACK_TARGETS[currentScreen] || 'home';
+    goScreen(target, target === 'archive-detail' ? currentArchiveCategory : undefined);
+  }
+
+  function goHome() {
+    goScreen('home');
+  }
+
+  function finalizeSession() {
+    goScreen('paper');
   }
 
   // ===== 실제 파일의 document 레벨 touch 리스너 재현 (오늘의 기록 카드 스와이프) =====
