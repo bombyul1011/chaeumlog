@@ -60,7 +60,7 @@
     display:flex; flex-direction:column; background:var(--bg); overflow:hidden;
   }
   #app-topbar { flex-shrink:0; background:var(--bg); padding-top:env(safe-area-inset-top); position:relative; z-index:10; }
-  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:calc(28px + env(safe-area-inset-bottom)); }
+  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:env(safe-area-inset-bottom); }
 
   /* 로딩 상태 (스플래시) — iikoto와 동일한 구조: fadeUp 애니메이션, 일정 시간 후 hide */
   #loading {
@@ -1525,7 +1525,7 @@ function renderSessionInner(session) {
 
   return `
     <div class="session-wrap">
-      <div class="topbar" style="padding:8px 0 0; justify-content:flex-end;">
+      <div class="topbar" style="padding:8px 24px 0; justify-content:flex-end;">
         <button class="icon-btn" onclick="showInProgressActionMenu('${session.id}')"><i class="ti ti-dots"></i></button>
       </div>
       <div class="s-meta">${escapeHtml(session.category)}</div>
@@ -1667,7 +1667,7 @@ function renderComplete(id) {
 function renderCompleteInner(session) {
   return `
     <div class="complete-wrap">
-      <div class="topbar" style="padding:8px 0 0; justify-content:flex-end;">
+      <div class="topbar" style="padding:8px 24px 0; justify-content:flex-end;">
         <button class="icon-btn"><i class="ti ti-dots"></i></button>
       </div>
       <div class="paper-card" onclick="navigate('paper', {id: '${session.id}'})" style="cursor:pointer;">
