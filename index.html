@@ -635,13 +635,15 @@ function renderTabbar(active) {
     { id: 'iikoto', icon: 'ti-macro', label: '이이코토', onclick: "window.location.href='https://bombyul1011.github.io/iikoto/'" }
   ];
   return `
-    <div class="tabbar-real">
-      ${barItems.map(it => `
-        <button class="tabbar-item ${active === it.id ? 'active' : ''}" onclick="${it.onclick}">
-          <i class="ti ${it.icon}"></i>
-          <span>${it.label}</span>
-        </button>
-      `).join('')}
+    <div class="tabbar">
+      <div class="tabbar-real">
+        ${barItems.map(it => `
+          <button class="tabbar-item ${active === it.id ? 'active' : ''}" onclick="${it.onclick}">
+            <i class="ti ${it.icon}"></i>
+            <span>${it.label}</span>
+          </button>
+        `).join('')}
+      </div>
     </div>
   `;
 }
