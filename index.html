@@ -51,8 +51,7 @@
   /* ===== TOPBAR: 고정, flex-shrink:0 ===== */
   #app-topbar {
     flex-shrink:0;
-    background:var(--card);
-    border-bottom:1px solid var(--line);
+    background:var(--bg);
   }
 
   #topbar-main {
@@ -280,6 +279,11 @@
     border-radius:16px;
     padding:18px;
     position:relative;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    min-height:236px;
+    box-sizing:border-box;
   }
 
   .today-badge {
@@ -319,6 +323,9 @@
     line-height:1.9;
     margin-bottom:12px;
     word-break:keep-all;
+    display:flex;
+    align-items:center;
+    min-height:72px;
   }
 
   .today-tags {
@@ -703,6 +710,29 @@
   }
 
   renderTodayCardWrap();
+
+  // ===== 오늘의 기록 카드 스와이프 제스처 =====
+  (function setupTodaySwipeGesture() {
+    const wrap = document.getElementById('today-card-wrap');
+    let startX = 0, startY = 0, tracking = false;
+
+    wrap.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      tracking = true;
+    }, { passive: true });
+
+    wrap.addEventListener('touchend', (e) => {
+      if (!tracking) return;
+      tracking = false;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      // 세로 스크롤과 헷갈리지 않도록: 가로 이동이 세로보다 뚜렷하고, 최소 40px 이상일 때만 전환
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        goTodayCard(dx < 0 ? 1 : -1);
+      }
+    }, { passive: true });
+  })();
 </script>
 
 </body>
