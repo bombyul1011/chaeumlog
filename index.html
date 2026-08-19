@@ -56,9 +56,9 @@
   .start-link { display:inline-flex; align-items:center; gap:4px; }
   .cta { display:flex; align-items:center; justify-content:center; gap:6px; }
 
-  #app { position:fixed; inset:0; display:flex; flex-direction:column; }
+  #app { position:fixed; inset:0; height:var(--app-h, 100dvh); display:flex; flex-direction:column; }
   #app-topbar { flex-shrink:0; background:var(--bg); padding-top:env(safe-area-inset-top); position:relative; z-index:10; }
-  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:12px; background:var(--bg); }
+  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:12px; background:var(--bg); transform:translateZ(0); }
 
   /* 로딩 상태 (스플래시) — iikoto와 동일한 구조: fadeUp 애니메이션, 일정 시간 후 hide */
   #loading {
@@ -1069,6 +1069,20 @@ window.addEventListener('pageshow', (e) => {
     window.location.reload();
   }
 });
+
+// #app 높이를 실제 window.innerHeight(px)로 강제 고정.
+// iOS/일부 브라우저에서 100dvh/inset:0만으로는 최초 로드 시점 뷰포트 값에
+// 고정되어 버리는 경우가 있어(회전 등 resize 이벤트가 나야만 재계산됨),
+// JS로 직접 측정해 --app-h 변수로 주입하고 resize/orientationchange마다 갱신한다.
+function setAppHeight() {
+  document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+}
+setAppHeight();
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 50));
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', setAppHeight);
+}
 
 /* ==========================================================
    주제 선택 화면 (3분기: 랜덤 / 카테고리 / 꼬리물기)
