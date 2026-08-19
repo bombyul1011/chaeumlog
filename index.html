@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -193,6 +194,29 @@
 <script>
   const d = new Date();
   document.getElementById('topbar-date').textContent = `${d.getMonth()+1}.${d.getDate()}`;
+
+  // ===== 실제 boot() 흐름 재현: Supabase 클라이언트 생성 + 비동기 fetch 후 DOM 재작성 =====
+  const SUPABASE_URL = 'https://sqeyoqpchiljvinuqxjf.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNxZXlvcXBjaGlsanZpbnVxeGpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5ODY5NTksImV4cCI6MjEwMjU2Mjk1OX0.H_JNNYz7_eguAqds-Wm6cwK926U74aVPaS_XwGRKeB0';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function boot() {
+    try {
+      const { data, error } = await sb.from('sessions').select('id').limit(1);
+      console.log('fetch result:', data, error);
+    } catch (err) {
+      console.error('fetch error:', err);
+    }
+
+    // 실제 데이터로 홈 화면 콘텐츠를 다시 그리는 것을 흉내
+    const scrollEl = document.getElementById('screen-home');
+    const extra = document.createElement('div');
+    extra.className = 'block';
+    extra.textContent = '서버에서 받아온 것처럼 나중에 추가된 블록';
+    scrollEl.appendChild(extra);
+  }
+
+  boot();
 </script>
 
 </body>
