@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>채움로그 - 레이아웃 골격 테스트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
 
 <style>
@@ -17,6 +19,10 @@
     --line: #DDE6DC;
     --muted: #a3b5a8;
     --sub-ink: #6b8074;
+    --accent-yellow: #F5C947;
+    --accent-brown: #9C6B3E;
+    --accent-yellow-bg: #FFF6DC;
+    --font-serif: 'Noto Serif KR', serif;
     --font-sans: 'Pretendard', -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
@@ -50,23 +56,40 @@
   }
 
   #topbar-main {
-    padding:calc(env(safe-area-inset-top) + 14px) 20px 12px;
+    padding:calc(env(safe-area-inset-top) + 14px) 24px 12px;
     display:flex;
     align-items:center;
     justify-content:space-between;
   }
 
-  #topbar-main .logo {
+  #topbar-main .brand {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    background:none;
+    border:none;
+    padding:0;
+  }
+
+  #topbar-main .brand img {
+    width:26px;
+    height:26px;
+    object-fit:contain;
+  }
+
+  #topbar-main .brand .app-name {
     font-family:var(--font-mono);
-    font-size:13px;
+    font-size:12px;
     letter-spacing:1px;
     color:var(--sage);
-    font-weight:600;
+    font-weight:400;
   }
 
   #topbar-main .date {
     font-family:var(--font-mono);
-    font-size:12px;
+    font-size:11px;
+    letter-spacing:0.5px;
     color:var(--muted);
   }
 
@@ -75,7 +98,7 @@
     display:none;
     align-items:center;
     gap:6px;
-    padding:0 20px 12px;
+    padding:0 24px 12px;
     font-size:14px;
     color:var(--ink);
     font-weight:600;
@@ -102,7 +125,7 @@
     min-height:0;
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
-    padding:20px;
+    padding:20px 24px;
   }
 
   #app-scroll .block {
@@ -161,6 +184,228 @@
     font-size:14px;
   }
 
+  /* ===== 홈 상단 통계 카운터 + 연속 스트릭 ===== */
+  .stats-row {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-bottom:16px;
+    margin-bottom:16px;
+    border-bottom:1px solid var(--line);
+  }
+
+  .stat-index {
+    display:flex;
+  }
+
+  .stat-nums {
+    flex:0 0 66.6667%;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+  }
+
+  .stat-nums .item { text-align:left; }
+
+  .stat-nums .n {
+    font-family:var(--font-mono);
+    font-size:34px;
+    font-weight:500;
+    color:var(--ink);
+    line-height:1;
+  }
+
+  .stat-nums .l {
+    font-family:var(--font-mono);
+    font-size:9px;
+    color:var(--sage);
+    letter-spacing:0.5px;
+    margin-top:6px;
+    text-transform:uppercase;
+    height:11px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+  }
+
+  .stat-recent {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding-left:16px;
+    border-left:1px dashed var(--line);
+  }
+
+  .stat-recent .spacer { height:34px; }
+
+  .mini-dots {
+    display:flex;
+    justify-content:flex-end;
+    gap:5px;
+    margin-top:6px;
+    height:11px;
+    align-items:center;
+  }
+
+  .mini-dot {
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--line);
+  }
+
+  .mini-dot.on { background:var(--accent-yellow); }
+
+  .divider-thin {
+    height:1px;
+    background:var(--line);
+    margin:20px 0 0;
+  }
+
+  /* ===== 섹션 라벨 ===== */
+  .section-label {
+    padding:22px 0 12px;
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--sub-ink);
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+  }
+
+  /* ===== 오늘의 기록 카드 (좌우 화살표 네비게이션) ===== */
+  .today-card {
+    background:var(--paper);
+    background-image:repeating-linear-gradient(to bottom, transparent, transparent 35px, #E4ECE0 35px, #E4ECE0 36px);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px;
+    position:relative;
+  }
+
+  .today-badge {
+    position:absolute;
+    top:-9px;
+    left:18px;
+    background:var(--accent-yellow);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    font-size:9px;
+    font-weight:500;
+    letter-spacing:0.5px;
+    padding:4px 10px;
+    border-radius:20px;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+  }
+
+  .today-badge.done { background:var(--sage); color:#fff; }
+  .today-badge .ti { font-size:13px; }
+
+  .today-meta {
+    display:flex;
+    justify-content:space-between;
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--sage);
+    margin-bottom:10px;
+    padding-top:4px;
+  }
+
+  .today-title {
+    font-family:var(--font-serif);
+    font-size:19px;
+    font-weight:700;
+    line-height:1.9;
+    margin-bottom:12px;
+    word-break:keep-all;
+  }
+
+  .today-tags {
+    display:flex;
+    gap:6px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+
+  .today-tags .tag {
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:#5b7a63;
+    background:var(--lime);
+    padding:4px 10px;
+    border-radius:20px;
+  }
+
+  .today-foot {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+
+  .read-time {
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--muted);
+  }
+
+  .start-link {
+    font-family:var(--font-sans);
+    font-size:13px;
+    font-weight:600;
+    color:var(--accent-brown);
+    display:flex;
+    align-items:center;
+    gap:4px;
+    cursor:pointer;
+    background:none;
+    border:none;
+  }
+
+  /* 오늘의 기록 카드 좌우 네비게이션 */
+  .today-nav {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    padding:12px 0 0;
+  }
+
+  .today-nav-btn {
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:none;
+    background:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    color:var(--muted);
+  }
+
+  .today-nav-btn:disabled { opacity:0.3; cursor:default; }
+  .today-nav-btn .ti { font-size:16px; }
+
+  .today-nav-dots {
+    display:flex;
+    gap:5px;
+  }
+
+  .today-nav-dots span {
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:var(--line);
+  }
+
+  .today-nav-dots span.active {
+    background:var(--accent-yellow);
+    width:14px;
+    border-radius:3px;
+    transition:width 0.2s;
+  }
+
   /* ===== 아카이브 카드 그리드 ===== */
   .archive-grid {
     display:grid;
@@ -203,7 +448,10 @@
 
   <div id="app-topbar">
     <div id="topbar-main">
-      <span class="logo">채움로그</span>
+      <button class="brand" onclick="goHome()">
+        <img src="data:image/png;base64,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" alt="chaeumlog">
+        <span class="app-name">chaeumlog</span>
+      </button>
       <span class="date" id="topbar-date"></span>
     </div>
     <div id="topbar-sub">
@@ -215,11 +463,44 @@
   <div id="app-scroll">
 
     <div class="screen active" id="screen-home">
-      <div class="block">홈 화면 · 오늘의 기록 카드 영역</div>
+
+      <div class="stat-index">
+        <div class="stat-nums">
+          <div class="item">
+            <div class="n" style="color:var(--accent-yellow);">01</div>
+            <div class="l">Days</div>
+          </div>
+          <div class="item">
+            <div class="n">02</div>
+            <div class="l">Sessions</div>
+          </div>
+          <div class="item">
+            <div class="n">02</div>
+            <div class="l">Branches</div>
+          </div>
+        </div>
+        <div class="stat-recent">
+          <div class="spacer"></div>
+          <div class="mini-dots">
+            <span class="mini-dot"></span><span class="mini-dot"></span><span class="mini-dot on"></span>
+            <span class="mini-dot on"></span><span class="mini-dot"></span><span class="mini-dot on"></span><span class="mini-dot"></span>
+          </div>
+        </div>
+      </div>
+      <div class="divider-thin"></div>
+
+      <div class="section-label">오늘의 기록</div>
+      <div id="today-card-wrap"></div>
+      <div class="today-nav">
+        <button class="today-nav-btn" id="today-nav-prev" onclick="goTodayCard(-1)"><i class="ti ti-chevron-left"></i></button>
+        <div class="today-nav-dots" id="today-nav-dots"></div>
+        <button class="today-nav-btn" id="today-nav-next" onclick="goTodayCard(1)"><i class="ti ti-chevron-right"></i></button>
+      </div>
+
+      <div class="section-label" style="padding-top:16px;">아카이브</div>
       <div class="block" onclick="goScreen('archive')" style="cursor:pointer;">
         아카이브 요약 그리드 영역 (탭하면 아카이브 탭으로 이동) →
       </div>
-      <div class="block">통계 영역</div>
     </div>
 
     <div class="screen" id="screen-archive">
@@ -254,6 +535,10 @@
       <div class="block">스크롤 테스트용 블록</div>
       <div class="block">스크롤 테스트용 블록</div>
       <div class="block">여기까지 스크롤되어도 탭바가 화면 맨 아래 고정되어야 합니다.</div>
+    </div>
+
+    <div class="screen" id="screen-pick">
+      <div class="empty-state">주제 선택 화면 자리 (다음 단계에서 작업)</div>
     </div>
 
     <div class="screen" id="screen-search">
@@ -334,14 +619,90 @@
     window.location.href = 'https://bombyul1011.github.io/iikoto/';
   }
 
-  // 상단 날짜 표시
+  // 상단 날짜 표시 (예: 08.19 WED)
   function renderDate() {
     const d = new Date();
-    const days = ['일','월','화','수','목','금','토'];
-    document.getElementById('topbar-date').textContent =
-      `${d.getMonth() + 1}.${d.getDate()} (${days[d.getDay()]})`;
+    const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    document.getElementById('topbar-date').textContent = `${mm}.${dd} ${days[d.getDay()]}`;
   }
   renderDate();
+
+  // ===== 오늘의 기록 카드 (좌우 화살표 네비게이션) =====
+  const todayKey = '2026-08-19';
+
+  const todaySlots = [
+    {
+      id: 1, status: 'active', category: '시사',
+      title: '왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학',
+      tags: ['국제경제', '통화정책', '시사']
+    },
+    {
+      id: 2, status: 'completed', category: '예술',
+      title: '인상주의는 왜 처음엔 조롱받았을까',
+      tags: ['미술사', '인상주의']
+    },
+    null // 새 주제 뽑기 슬롯
+  ];
+
+  let todayCardIndex = 0;
+
+  function renderTodayCard(s) {
+    if (s === null) {
+      return `
+      <div class="today-card">
+        <span class="today-badge"><i class="ti ti-plus"></i> 선택</span>
+        <div class="today-meta"><span>${todayKey}</span><span>&nbsp;</span></div>
+        <div class="today-title">오늘 다룰 다른 이야기를<br>골라볼까요?</div>
+        <div class="today-tags"></div>
+        <div class="today-foot">
+          <span class="read-time">&nbsp;</span>
+          <button class="start-link" onclick="goScreen('pick')">주제 고르기 <i class="ti ti-arrow-right"></i></button>
+        </div>
+      </div>`;
+    }
+    const isDone = s.status === 'completed';
+    return `
+      <div class="today-card">
+        <span class="today-badge${isDone ? ' done' : ''}"><i class="ti ${isDone ? 'ti-check' : 'ti-clover'}"></i> ${isDone ? '완료' : 'TODAY'}</span>
+        <div class="today-meta"><span>${todayKey}</span><span>${s.category}</span></div>
+        <div class="today-title">${s.title}</div>
+        <div class="today-tags">${s.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        <div class="today-foot">
+          <span class="read-time">${isDone ? '학습 완료' : '학습 진행 중'}</span>
+          <button class="start-link" onclick="goScreen('${isDone ? 'archive-detail' : 'pick'}')">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
+        </div>
+      </div>`;
+  }
+
+  function renderTodayNav() {
+    const dotsWrap = document.getElementById('today-nav-dots');
+    const prevBtn = document.getElementById('today-nav-prev');
+    const nextBtn = document.getElementById('today-nav-next');
+    if (!dotsWrap) return;
+
+    dotsWrap.innerHTML = todaySlots.map((_, i) =>
+      `<span class="${i === todayCardIndex ? 'active' : ''}"></span>`
+    ).join('');
+
+    prevBtn.disabled = todayCardIndex === 0;
+    nextBtn.disabled = todayCardIndex === todaySlots.length - 1;
+  }
+
+  function renderTodayCardWrap() {
+    document.getElementById('today-card-wrap').innerHTML = renderTodayCard(todaySlots[todayCardIndex]);
+    renderTodayNav();
+  }
+
+  function goTodayCard(dir) {
+    const next = todayCardIndex + dir;
+    if (next < 0 || next >= todaySlots.length) return;
+    todayCardIndex = next;
+    renderTodayCardWrap();
+  }
+
+  renderTodayCardWrap();
 </script>
 
 </body>
