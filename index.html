@@ -545,6 +545,23 @@
   .pd-footer-note { background:var(--paper); border:1px dashed var(--lime); border-radius:12px; padding:16px; }
   .pd-footer-label { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:1px; margin-bottom:8px; text-transform:uppercase; }
   .pd-footer-text { font-family:var(--font-serif); font-size:13px; font-style:italic; color:var(--sub-ink); line-height:1.6; }
+
+  /* ===== pick/finish 화면 관련 CSS ===== */
+  .session-wrap { padding-bottom:20px; }
+  .s-meta { font-family:var(--font-mono); font-size:11px; color:var(--sage); margin:0 0 6px; }
+  .s-date { font-family:var(--font-mono); font-size:11px; color:var(--muted); margin-bottom:18px; }
+  .title-card { background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:26px 22px; margin-bottom:28px; }
+  h1.s-title { font-family:var(--font-serif); font-size:24px; font-weight:700; line-height:1.5; margin-bottom:16px; word-break:keep-all; }
+  .s-tags { display:flex; gap:6px; flex-wrap:wrap; }
+  .outline-label { font-family:var(--font-mono); font-size:10px; color:var(--sage); letter-spacing:1px; margin-bottom:14px; text-transform:uppercase; }
+  .outline { list-style:none; margin-bottom:8px; padding:0; }
+  .outline li { padding:14px 2px; border-bottom:1.5px dashed var(--lime); display:flex; justify-content:space-between; align-items:center; font-size:15px; line-height:1.6; cursor:pointer; }
+  .outline li:first-child { padding-top:0; }
+  .outline li .mark { font-size:13px; color:var(--line); flex-shrink:0; margin-left:12px; }
+  .outline li.done .mark { color:var(--accent-yellow); }
+  .outline li.done .otxt { color:var(--sub-ink); }
+
+  .cta { width:100%; background:var(--sage); color:#fff; border:none; padding:16px; border-radius:14px; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:6px; }
 </style>
 </head>
 <body>
@@ -706,8 +723,63 @@
       <div class="block">마이페이지 블록 1</div>
       <div class="block">마이페이지 블록 2</div>
     </div>
-    <div class="screen" id="screen-pick"><div class="block">pick (숨김)</div></div>
-    <div class="screen" id="screen-finish"><div class="block">finish (숨김)</div></div>
+    <div class="screen" id="screen-pick">
+      <div class="session-wrap">
+        <div class="s-meta" id="pick-category">시사</div>
+        <div class="s-date" id="pick-date">2026-08-19 · 랜덤</div>
+
+        <div class="title-card">
+          <h1 class="s-title" id="pick-title">왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학</h1>
+          <div class="s-tags" id="pick-tags">
+            <span class="tag">국제경제</span>
+            <span class="tag">통화정책</span>
+            <span class="tag">시사</span>
+          </div>
+        </div>
+
+        <div class="pd-body-preview" id="pick-brief" style="margin:0 0 20px; padding:0;">에콰도르, 엘살바도르 같은 나라들은 자국 화폐를 버리고 미국 달러를 공식 화폐로 채택했어요. 통화주권을 포기하는 극단적 선택을 왜 했을까요? 그 결과는 예상과 같았을까요, 아니면 전혀 다른 이야기가 펼쳐졌을까요.</div>
+
+        <div class="outline-label">오늘 다룰 흐름</div>
+        <ul class="outline" id="pick-outline">
+          <li><span class="otxt">초인플레이션의 악몽, 통화 신뢰 붕괴의 순간들</span><span class="mark">1</span></li>
+          <li><span class="otxt">달러화 채택이라는 극단적 결단의 배경</span><span class="mark">2</span></li>
+          <li><span class="otxt">중앙은행 없는 나라의 딜레마: 통화정책 자율성 상실</span><span class="mark">3</span></li>
+          <li><span class="otxt">오늘날 비트코인 법정화폐 실험과의 묘한 연결고리</span><span class="mark">4</span></li>
+        </ul>
+
+        <button class="cta" onclick="copyLearningPrompt()">
+          <i class="ti ti-copy"></i> 학습 프롬프트 복사하기
+        </button>
+        <div style="font-size:11px; color:var(--muted); text-align:center; margin-bottom:18px; font-family:var(--font-mono);">
+          Claude 앱에 붙여넣고 30분 학습해보세요
+        </div>
+
+        <button class="cta" style="background:var(--ink);" onclick="goScreen('finish')">
+          학습 다 했어요, 완료하기 <i class="ti ti-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-finish">
+      <div class="session-wrap">
+        <div class="pick-lead" style="padding:8px 0 20px;">
+          <h2 style="font-family:var(--font-serif); font-size:19px; font-weight:700; line-height:1.5;">오늘 배운 걸 한 줄로 남겨볼까요?</h2>
+        </div>
+        <div class="title-card" style="margin-bottom:16px;">
+          <h1 class="s-title" style="font-size:18px;" id="finish-title">왜 어떤 나라는 화폐를 스스로 포기했을까 - 달러화의 정치경제학</h1>
+        </div>
+
+        <div class="outline-label">코멘트 (선택)</div>
+        <textarea id="summary-input" placeholder="오늘 배운 것 중 기억하고 싶은 부분을 적어보세요..." style="width:100%; min-height:140px; padding:16px; border:1px solid var(--line); border-radius:14px; font-family:var(--font-sans); font-size:14px; line-height:1.6; resize:vertical; margin-bottom:20px; box-sizing:border-box;"></textarea>
+
+        <div class="outline-label">다음에 이어보고 싶은 주제 (선택)</div>
+        <div style="font-size:12px; color:var(--muted); margin:-8px 0 10px; line-height:1.5;">비워두면 오늘 목차를 기준으로 AI가 알아서 다음 주제를 확장해요. 적어두면 "지난 배움에서 이어서" 뽑을 때 이 내용을 최우선으로 반영해요. 뉴스페이퍼 화면에는 노출되지 않아요.</div>
+        <textarea id="connection-input" placeholder="예: 노키아·블록버스터 같은 다른 붕괴 사례와 비교해보고 싶어요" style="width:100%; min-height:80px; padding:16px; border:1px solid var(--line); border-radius:14px; font-family:var(--font-sans); font-size:14px; line-height:1.6; resize:vertical; margin-bottom:20px; box-sizing:border-box;"></textarea>
+
+        <button class="cta" onclick="finalizeSession()">완료하기 <i class="ti ti-arrow-right"></i></button>
+      </div>
+    </div>
+
     <div class="screen" id="screen-paper">
       <div class="paper-detail">
         <div class="pd-masthead">
