@@ -217,6 +217,74 @@
   }
 
   boot();
+
+  // ===== 실제 파일의 document 레벨 touch 리스너 재현 (오늘의 기록 카드 스와이프) =====
+  let _todaySwipeStartX = null;
+  let _todaySwipeStartY = null;
+  let _todaySwipeDragging = false;
+  let _todaySwipeDirLocked = false;
+
+  document.addEventListener('touchstart', (e) => {
+    const wrap = e.target.closest('#today-card-wrap');
+    if (!wrap) return;
+    _todaySwipeStartX = e.touches[0].clientX;
+    _todaySwipeStartY = e.touches[0].clientY;
+    _todaySwipeDragging = false;
+    _todaySwipeDirLocked = false;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (_todaySwipeStartX === null) return;
+    const dx = e.touches[0].clientX - _todaySwipeStartX;
+    const dy = e.touches[0].clientY - _todaySwipeStartY;
+    if (!_todaySwipeDirLocked) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      _todaySwipeDirLocked = true;
+      _todaySwipeDragging = Math.abs(dx) > Math.abs(dy);
+    }
+    if (!_todaySwipeDragging) return;
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchend', () => {
+    _todaySwipeStartX = null;
+    _todaySwipeStartY = null;
+    _todaySwipeDragging = false;
+    _todaySwipeDirLocked = false;
+  }, { passive: true });
+
+  // ===== 탭 스와이프 리스너도 재현 =====
+  let _tabSwipeStartX = null;
+  let _tabSwipeStartY = null;
+  let _tabSwipeDirLocked = false;
+  let _tabSwipeIsHorizontal = false;
+
+  document.addEventListener('touchstart', (e) => {
+    const scrollEl = e.target.closest('#app-scroll');
+    if (!scrollEl) return;
+    _tabSwipeStartX = e.touches[0].clientX;
+    _tabSwipeStartY = e.touches[0].clientY;
+    _tabSwipeDirLocked = false;
+    _tabSwipeIsHorizontal = false;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (_tabSwipeStartX === null) return;
+    const dx = e.touches[0].clientX - _tabSwipeStartX;
+    const dy = e.touches[0].clientY - _tabSwipeStartY;
+    if (!_tabSwipeDirLocked) {
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+      _tabSwipeDirLocked = true;
+      _tabSwipeIsHorizontal = Math.abs(dx) > Math.abs(dy) * 1.5;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    _tabSwipeStartX = null;
+    _tabSwipeStartY = null;
+    _tabSwipeDirLocked = false;
+    _tabSwipeIsHorizontal = false;
+  }, { passive: true });
 </script>
 
 </body>
