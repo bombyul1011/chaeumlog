@@ -438,6 +438,96 @@
   .dots span { width:5px; height:5px; border-radius:50%; background:var(--lime); display:inline-block; }
   .dots span.d1 { background:var(--sage); }
   .dots span.d2 { background:var(--accent-yellow); }
+
+  /* ===== 아카이브 화면 관련 CSS (실제 파일에서 이식) ===== */
+  .archive-cluster {
+    margin-bottom:2px;
+  }
+
+  .cluster-row {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+  }
+
+  .cluster-left {
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .cluster-cat-icon {
+    font-size:15px;
+    color:var(--muted);
+    line-height:1;
+    display:inline-flex;
+    align-items:center;
+  }
+
+  .cluster-code {
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--sage);
+    width:16px;
+    line-height:1;
+    display:inline-flex;
+    align-items:center;
+  }
+
+  .cluster-name {
+    font-family:var(--font-serif);
+    font-size:15px;
+    font-weight:600;
+    line-height:1;
+    display:inline-flex;
+    align-items:center;
+  }
+
+  .cluster-right {
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .cluster-n {
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--muted);
+  }
+
+  .cluster-arrow {
+    color:var(--accent-yellow);
+    font-size:13px;
+    font-weight:700;
+  }
+
+  .empty-archive {
+    padding:60px 24px;
+    text-align:center;
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  /* ===== 아카이브 카테고리 상세 (뒤로가기 + 히어로 + 타임라인) ===== */
+  .detail-hero { padding:20px 0 0; }
+  .detail-code { font-family:var(--font-mono); font-size:11px; color:var(--sage); letter-spacing:1px; }
+  .detail-title { font-family:var(--font-serif); font-size:26px; font-weight:700; margin:8px 0 20px; }
+  .detail-stats { display:flex; gap:28px; margin-bottom:8px; }
+  .detail-stats .n { font-family:var(--font-mono); font-size:20px; }
+  .detail-stats .l { font-family:var(--font-mono); font-size:9px; color:var(--sage); }
+
+  .timeline { padding:4px 0 20px; position:relative; }
+  .timeline::before { content:''; position:absolute; left:54px; top:8px; bottom:24px; width:1px; background:var(--line); }
+  .t-item { display:grid; grid-template-columns:44px 20px 1fr 32px; align-items:flex-start; padding:16px 0; position:relative; cursor:pointer; }
+  .t-date { font-family:var(--font-mono); font-size:10px; color:var(--muted); padding-top:3px; }
+  .t-dot-col { display:flex; justify-content:center; padding-top:5px; }
+  .t-dot { width:7px; height:7px; border-radius:50%; background:var(--sage); z-index:1; }
+  .t-text { font-size:14px; line-height:1.55; padding-right:8px; }
+  .t-badge { width:24px; height:24px; border-radius:50%; border:1.5px solid var(--accent-yellow); background:var(--accent-yellow); color:var(--ink); display:flex; align-items:center; justify-content:center; font-size:11px; }
 </style>
 </head>
 <body>
@@ -541,11 +631,56 @@
       </div>
     </div>
     <div class="screen" id="screen-archive">
-      <div class="block">아카이브 블록 1</div>
-      <div class="block">아카이브 블록 2</div>
-      <div class="block">아카이브 블록 3</div>
+      <div class="section-label" style="padding-top:0;">전체 아카이브 · 6개 갈래</div>
+      <div class="archive-cluster">
+        <div class="cluster-row" onclick="goScreen('archive-detail','시사')">
+          <div class="cluster-left"><i class="ti ti-news cluster-cat-icon"></i><span class="cluster-code">C</span><span class="cluster-name">시사</span></div>
+          <div class="cluster-right"><span class="cluster-n">1</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+        </div>
+        <div class="cluster-row" onclick="goScreen('archive-detail','예술')">
+          <div class="cluster-left"><i class="ti ti-palette cluster-cat-icon"></i><span class="cluster-code">A</span><span class="cluster-name">예술</span></div>
+          <div class="cluster-right"><span class="cluster-n">1</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+        </div>
+        <div class="cluster-row" onclick="goScreen('archive-detail','역사')">
+          <div class="cluster-left"><i class="ti ti-hourglass cluster-cat-icon"></i><span class="cluster-code">H</span><span class="cluster-name">역사</span></div>
+          <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+        </div>
+        <div class="cluster-row" onclick="goScreen('archive-detail','음악')">
+          <div class="cluster-left"><i class="ti ti-music cluster-cat-icon"></i><span class="cluster-code">M</span><span class="cluster-name">음악</span></div>
+          <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+        </div>
+        <div class="cluster-row" onclick="goScreen('archive-detail','영화')">
+          <div class="cluster-left"><i class="ti ti-movie cluster-cat-icon"></i><span class="cluster-code">F</span><span class="cluster-name">영화</span></div>
+          <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+        </div>
+        <div class="cluster-row" onclick="goScreen('archive-detail','건축')">
+          <div class="cluster-left"><i class="ti ti-building cluster-cat-icon"></i><span class="cluster-code">B</span><span class="cluster-name">건축</span></div>
+          <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+        </div>
+      </div>
     </div>
-    <div class="screen" id="screen-archive-detail"><div class="block">상세 (숨김)</div></div>
+
+    <div class="screen" id="screen-archive-detail">
+      <div class="detail-hero">
+        <div class="detail-code" id="detail-code">ARCHIVE / A</div>
+        <div class="detail-title" id="detail-title">예술</div>
+        <div class="detail-stats">
+          <div>
+            <div class="n" id="detail-count">1</div>
+            <div class="l">Sessions</div>
+          </div>
+        </div>
+      </div>
+      <div class="divider-thin"></div>
+      <div class="timeline" id="detail-timeline">
+        <div class="t-item" onclick="goScreen('paper')">
+          <div class="t-date">08.18</div>
+          <div class="t-dot-col"><div class="t-dot"></div></div>
+          <div class="t-text">화가들이 검은 물감 대신 파란색과 갈색을 섞어 쓴 이유</div>
+          <div class="t-badge"><i class="ti ti-check"></i></div>
+        </div>
+      </div>
+    </div>
     <div class="screen" id="screen-search">
       <div class="block">검색 블록 1</div>
       <div class="block">검색 블록 2</div>
