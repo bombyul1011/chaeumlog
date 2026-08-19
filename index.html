@@ -223,7 +223,7 @@
   /* ===== 홈 화면 관련 CSS (실제 파일에서 이식) ===== */
   .stat-index {
     display:flex;
-    margin-top:-8px;
+    margin-top:4px;
   }
 
   .stat-nums {
@@ -913,7 +913,7 @@
         </div>
       </div>
 
-      <div id="today-card-wrap"></div>
+      <div id="today-card-wrap" style="margin-top:16px;"></div>
       <div class="today-nav">
         <button class="today-nav-btn" id="today-nav-prev" onclick="goTodayCard(-1)"><i class="ti ti-chevron-left"></i></button>
         <div class="today-nav-dots" id="today-nav-dots"></div>
@@ -1363,6 +1363,23 @@
     `).join('');
   }
 
+  // 카테고리 컨테이너(그리드 카드 or 클러스터 행)를 각 카테고리의 최신 완료 시각 기준으로 정렬
+  function sortCategoryElsByRecent(container, selector) {
+    if (!container) return;
+    const items = Array.from(container.querySelectorAll(selector));
+    const scored = items.map(el => {
+      const category = el.dataset.category;
+      const sessions = appState.archive.filter(s => s.category === category);
+      const score = sessions.reduce((latest, s) => {
+        const t = new Date(s.completed_at || s.date).getTime();
+        return isNaN(t) ? latest : Math.max(latest, t);
+      }, 0);
+      return { el, score };
+    });
+    scored.sort((a, b) => b.score - a.score);
+    scored.forEach(({ el }) => container.appendChild(el));
+  }
+
   // 홈 화면 아카이브 그리드 + 아카이브 탭의 카테고리별 카운트를 실제 데이터로 채운다
   function renderArchiveTabAndHomeGrid() {
     Object.keys(CATEGORY_META).forEach(category => {
@@ -1381,25 +1398,9 @@
     const clusterLabel = document.querySelector('#screen-archive .section-label');
     if (clusterLabel) clusterLabel.textContent = `전체 아카이브 · ${totalBranches}개 갈래`;
 
-    // 홈탭 아카이브 그리드 + 아카이브탭 클러스터 목록을 최신 활동순으로 재배열
-    const sortByRecent = (container, selector) => {
-      if (!container) return;
-      const items = Array.from(container.querySelectorAll(selector));
-      const scored = items.map(el => {
-        const category = el.dataset.category;
-        const sessions = appState.archive.filter(s => s.category === category);
-        const score = sessions.reduce((latest, s) => {
-          const t = new Date(s.date).getTime();
-          return isNaN(t) ? latest : Math.max(latest, t);
-        }, 0);
-        return { el, score };
-      });
-      scored.sort((a, b) => b.score - a.score);
-      scored.forEach(({ el }) => container.appendChild(el));
-    };
-
-    sortByRecent(document.getElementById('home-archive-grid'), '.grid-card');
-    sortByRecent(document.querySelector('#screen-archive .archive-cluster'), '.cluster-row');
+    // 홈탭 아카이브 그리드 + 아카이브탭 클러스터 목록을 최신 활동순으로 재배열 (동일 함수 재사용)
+    sortCategoryElsByRecent(document.getElementById('home-archive-grid'), '.grid-card');
+    sortCategoryElsByRecent(document.querySelector('#screen-archive .archive-cluster'), '.cluster-row');
   }
 
   // 홈/마이페이지 상단 통계(Days/Sessions/Branches)와 최근 7일 미니닷을 실제 데이터로 채운다
