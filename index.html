@@ -605,7 +605,7 @@
   /* ===== 기록 수정 폼 ===== */
   .edit-field-label { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:0.5px; text-transform:uppercase; margin:16px 0 6px; }
   .edit-field-label:first-child { margin-top:0; }
-  .edit-input, .edit-textarea { width:100%; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit; color:var(--ink); background:var(--card); box-sizing:border-box; }
+  .edit-input, .edit-textarea { width:100%; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:16px; font-family:inherit; color:var(--ink); background:var(--card); box-sizing:border-box; }
   .edit-textarea { resize:vertical; min-height:60px; line-height:1.6; }
   .edit-outline-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
   .edit-outline-row .num { font-family:var(--font-mono); font-size:11px; color:var(--muted); width:16px; flex-shrink:0; }
@@ -634,7 +634,7 @@
     outline:none;
     background:none;
     font-family:var(--font-sans);
-    font-size:14px;
+    font-size:16px;
     color:var(--ink);
     min-width:0;
   }
@@ -763,7 +763,7 @@
     border:1px solid var(--line);
     border-radius:10px;
     font-family:var(--font-mono);
-    font-size:12px;
+    font-size:16px;
     margin-bottom:10px;
     box-sizing:border-box;
     background:var(--paper);
@@ -1062,11 +1062,11 @@
         </div>
 
         <div class="outline-label">코멘트 (선택)</div>
-        <textarea id="summary-input" placeholder="오늘 배운 것 중 기억하고 싶은 부분을 적어보세요..." style="width:100%; min-height:140px; padding:16px; border:1px solid var(--line); border-radius:14px; font-family:var(--font-sans); font-size:14px; line-height:1.6; resize:vertical; margin-bottom:20px; box-sizing:border-box;"></textarea>
+        <textarea id="summary-input" placeholder="오늘 배운 것 중 기억하고 싶은 부분을 적어보세요..." style="width:100%; min-height:140px; padding:16px; border:1px solid var(--line); border-radius:14px; font-family:var(--font-sans); font-size:16px; line-height:1.6; resize:vertical; margin-bottom:20px; box-sizing:border-box;"></textarea>
 
         <div class="outline-label">다음에 이어보고 싶은 주제 (선택)</div>
         <div style="font-size:12px; color:var(--muted); margin:-8px 0 10px; line-height:1.5;">비워두면 오늘 목차를 기준으로 AI가 알아서 다음 주제를 확장해요. 적어두면 "지난 배움에서 이어서" 뽑을 때 이 내용을 최우선으로 반영해요. 뉴스페이퍼 화면에는 노출되지 않아요.</div>
-        <textarea id="connection-input" placeholder="예: 노키아·블록버스터 같은 다른 붕괴 사례와 비교해보고 싶어요" style="width:100%; min-height:80px; padding:16px; border:1px solid var(--line); border-radius:14px; font-family:var(--font-sans); font-size:14px; line-height:1.6; resize:vertical; margin-bottom:20px; box-sizing:border-box;"></textarea>
+        <textarea id="connection-input" placeholder="예: 노키아·블록버스터 같은 다른 붕괴 사례와 비교해보고 싶어요" style="width:100%; min-height:80px; padding:16px; border:1px solid var(--line); border-radius:14px; font-family:var(--font-sans); font-size:16px; line-height:1.6; resize:vertical; margin-bottom:20px; box-sizing:border-box;"></textarea>
 
         <button class="cta" onclick="finalizeSession()">완료하기 <i class="ti ti-arrow-right"></i></button>
       </div>
