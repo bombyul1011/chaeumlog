@@ -85,7 +85,8 @@
   #app-tabbar { flex-shrink:0; height:0; z-index:50; }
   #app-tabbar:empty { display:none; }
   .fab-wrap { position:fixed; right:20px; bottom:calc(2px + env(safe-area-inset-bottom)); z-index:60; }
-  @media (min-width: 480px) {
+  /* 마우스 기반 환경(PC)이면 창 크기를 줄여도 항상 여유 간격 유지 */
+  @media (hover: hover) and (pointer: fine) {
     .fab-wrap { bottom:calc(110px + env(safe-area-inset-bottom)); }
   }
   .fab-btn {
