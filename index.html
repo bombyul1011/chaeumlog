@@ -2099,8 +2099,7 @@ ${outlineLines}
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const el = document.getElementById('loading');
-          if (el) el.classList.add('hide');
-          // DOM에서 완전히 제거하지 않음 — reflow로 배경이 잠깐 씹히는 현상 방지
+          if (el) el.remove(); // 진단용: hide 클래스 대신 완전 제거
         });
       });
     }, remaining);
