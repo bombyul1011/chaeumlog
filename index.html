@@ -586,6 +586,41 @@
     font-size:12px;
     color:var(--muted);
   }
+
+  /* ===== 아카이브 카테고리 상세 (뒤로가기 + 히어로 + 타임라인) ===== */
+  .detail-hero { padding:20px 0 0; }
+  .detail-code { font-family:var(--font-mono); font-size:11px; color:var(--sage); letter-spacing:1px; }
+  .detail-title { font-family:var(--font-serif); font-size:26px; font-weight:700; margin:8px 0 20px; }
+  .detail-stats { display:flex; gap:28px; margin-bottom:8px; }
+  .detail-stats .n { font-family:var(--font-mono); font-size:20px; }
+  .detail-stats .l { font-family:var(--font-mono); font-size:9px; color:var(--sage); }
+
+  .timeline { padding:4px 0 20px; position:relative; }
+  .timeline::before { content:''; position:absolute; left:54px; top:8px; bottom:24px; width:1px; background:var(--line); }
+  .t-item { display:grid; grid-template-columns:44px 20px 1fr 32px; align-items:flex-start; padding:16px 0; position:relative; cursor:pointer; }
+  .t-date { font-family:var(--font-mono); font-size:10px; color:var(--muted); padding-top:3px; }
+  .t-dot-col { display:flex; justify-content:center; padding-top:5px; }
+  .t-dot { width:7px; height:7px; border-radius:50%; background:var(--sage); z-index:1; }
+  .t-text { font-size:14px; line-height:1.55; padding-right:8px; }
+  .t-badge { width:24px; height:24px; border-radius:50%; border:1.5px solid var(--accent-yellow); background:var(--accent-yellow); color:var(--ink); display:flex; align-items:center; justify-content:center; font-size:11px; }
+
+  /* ===== 개별 세션 상세 (신문 지면 스타일) ===== */
+  .paper-detail { padding-bottom:40px; }
+  .pd-masthead { text-align:center; padding:18px 0 14px; border-bottom:2px solid var(--ink); margin-bottom:18px; }
+  .pd-masthead .name { font-family:var(--font-serif); font-size:15px; font-weight:700; letter-spacing:3px; }
+  .pd-masthead .vol { font-family:var(--font-mono); font-size:9px; color:var(--sage); margin-top:4px; letter-spacing:1px; }
+  .pd-meta-row { display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:10px; color:var(--muted); margin-bottom:16px; }
+  .pd-title { font-family:var(--font-serif); font-size:23px; font-weight:700; line-height:1.5; margin-bottom:14px; word-break:keep-all; }
+  .pd-tags { display:flex; gap:6px; margin-bottom:24px; flex-wrap:wrap; }
+  .pd-body-preview { font-size:14px; line-height:1.8; color:#3d463f; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); margin-bottom:24px; }
+  .pd-section { margin-bottom:22px; }
+  .pd-num { font-family:var(--font-mono); font-size:10px; color:var(--accent-yellow); background:var(--ink); display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; margin-bottom:8px; }
+  .pd-sub { font-family:var(--font-serif); font-size:16px; font-weight:600; margin-bottom:8px; }
+  .pd-divider { height:1px; background:var(--line); margin:26px 0; }
+  .pd-footer-note { background:var(--paper); border:1px dashed var(--lime); border-radius:12px; padding:16px; }
+  .pd-footer-label { font-family:var(--font-mono); font-size:9px; color:var(--sage); letter-spacing:1px; margin-bottom:8px; text-transform:uppercase; }
+  .pd-footer-text { font-family:var(--font-serif); font-size:13px; font-style:italic; color:var(--sub-ink); line-height:1.6; }
+  .pd-comment-box { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:16px; padding:14px 16px; border:1px dashed var(--line); border-radius:12px; font-family:var(--font-mono); font-size:11px; color:var(--muted); }
 </style>
 </head>
 <body>
@@ -606,7 +641,7 @@
       <span class="date" id="topbar-date"></span>
     </div>
     <div id="topbar-sub">
-      <button class="back-btn" onclick="goHome()"><i class="ti ti-chevron-left"></i></button>
+      <button class="back-btn" onclick="goBack()"><i class="ti ti-chevron-left"></i> <span id="topbar-back-label"></span></button>
       <span id="topbar-sub-title"></span>
     </div>
   </div>
@@ -726,12 +761,66 @@
     </div>
 
     <div class="screen" id="screen-archive-detail">
-      <div class="block">여기는 서브줄(뒤로가기)이 있는 화면입니다.</div>
-      <div class="block">스크롤 테스트용 블록</div>
-      <div class="block">스크롤 테스트용 블록</div>
-      <div class="block">스크롤 테스트용 블록</div>
-      <div class="block">스크롤 테스트용 블록</div>
-      <div class="block">여기까지 스크롤되어도 탭바가 화면 맨 아래 고정되어야 합니다.</div>
+      <div class="detail-hero">
+        <div class="detail-code" id="detail-code">ARCHIVE / A</div>
+        <div class="detail-title" id="detail-title">예술</div>
+        <div class="detail-stats">
+          <div>
+            <div class="n" id="detail-count">1</div>
+            <div class="l">Sessions</div>
+          </div>
+        </div>
+      </div>
+      <div class="divider-thin"></div>
+      <div class="timeline" id="detail-timeline">
+        <div class="t-item" onclick="goScreen('paper')">
+          <div class="t-date">08.18</div>
+          <div class="t-dot-col"><div class="t-dot"></div></div>
+          <div class="t-text">화가들이 검은 물감 대신 파란색과 갈색을 섞어 쓴 이유</div>
+          <div class="t-badge"><i class="ti ti-check"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-paper">
+      <div class="paper-detail">
+        <div class="pd-masthead">
+          <div class="name">C H A E U M L O G</div>
+          <div class="vol">예술 EDITION</div>
+        </div>
+        <div class="pd-meta-row">
+          <span>2026-08-18 14:05</span>
+        </div>
+        <div class="pd-title">화가들이 검은 물감 대신 파란색과 갈색을 섞어 쓴 이유</div>
+        <div class="pd-tags">
+          <span class="tag">미술사</span>
+          <span class="tag">인상주의</span>
+          <span class="tag">색채이론</span>
+        </div>
+
+        <div class="pd-section">
+          <div class="pd-num">01</div>
+          <div class="pd-sub">그림자는 사실 검은색이 아니다</div>
+        </div>
+        <div class="pd-section">
+          <div class="pd-num">02</div>
+          <div class="pd-sub">인상주의자들의 발견</div>
+        </div>
+        <div class="pd-section">
+          <div class="pd-num">03</div>
+          <div class="pd-sub">왜 파란색이 자연스러운가</div>
+        </div>
+        <div class="pd-section">
+          <div class="pd-num">04</div>
+          <div class="pd-sub">지금도 이어지는 기법</div>
+        </div>
+
+        <div class="pd-divider"></div>
+        <div class="pd-footer-note">
+          <div class="pd-footer-label">Comment</div>
+          <div class="pd-footer-text">테스트</div>
+        </div>
+      </div>
     </div>
 
     <div class="screen" id="screen-pick">
@@ -784,15 +873,22 @@
 
   // ===== 화면 전환 (최소 골격) =====
   const TAB_SCREENS = ['home', 'archive', 'search', 'mypage']; // 탭바에 직접 대응되는 화면
-  const SUB_TITLES = { 'archive-detail': '카테고리 상세' };
+  const SUB_TITLES = {}; // 원본 디자인은 별도 서브 제목 없이 "< 아카이브" 형태의 뒤로가기 라벨만 사용
+  // 서브줄 뒤로가기가 어디로 갈지: 지정 없으면 기본값으로 홈
+  const BACK_TARGETS = { 'archive-detail': 'archive', 'paper': 'archive-detail', 'pick': 'home' };
+  const BACK_LABELS = { 'archive-detail': '아카이브', 'paper': '아카이브' };
+  const PARENT_TAB = { 'archive-detail': 'archive', 'paper': 'archive', 'pick': 'home' };
+
+  let currentScreen = 'home';
 
   function goScreen(name, subTitle) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     document.getElementById('screen-' + name).classList.add('active');
     document.getElementById('app-scroll').scrollTop = 0;
+    currentScreen = name;
 
     // 탭바 active 표시: 탭에 직접 속하지 않는 화면(예: archive-detail)은 상위 탭 유지
-    const tabName = TAB_SCREENS.includes(name) ? name : name.split('-')[0];
+    const tabName = TAB_SCREENS.includes(name) ? name : (PARENT_TAB[name] || name.split('-')[0]);
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
@@ -801,10 +897,17 @@
     const subBar = document.getElementById('topbar-sub');
     if (!TAB_SCREENS.includes(name)) {
       document.getElementById('topbar-sub-title').textContent = subTitle || SUB_TITLES[name] || '';
+      const backLabel = document.getElementById('topbar-back-label');
+      if (backLabel) backLabel.textContent = BACK_LABELS[name] || '뒤로';
       subBar.classList.add('show');
     } else {
       subBar.classList.remove('show');
     }
+  }
+
+  function goBack() {
+    const target = BACK_TARGETS[currentScreen] || 'home';
+    goScreen(target);
   }
 
   function goHome() {
@@ -868,7 +971,7 @@
         <div class="today-tags">${s.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
         <div class="today-foot">
           <span class="read-time">${isDone ? '학습 완료' : '학습 진행 중'}</span>
-          <button class="start-link" onclick="goScreen('${isDone ? 'archive-detail' : 'pick'}')">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
+          <button class="start-link" onclick="goScreen('${isDone ? 'paper' : 'pick'}')">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
         </div>
       </div>`;
   }
