@@ -85,6 +85,9 @@
   #app-tabbar { flex-shrink:0; height:0; z-index:50; }
   #app-tabbar:empty { display:none; }
   .fab-wrap { position:fixed; right:20px; bottom:calc(2px + env(safe-area-inset-bottom)); z-index:60; }
+  @media (min-width: 480px) {
+    .fab-wrap { bottom:calc(70px + env(safe-area-inset-bottom)); }
+  }
   .fab-btn {
     width:52px; height:52px; border-radius:50%;
     background:var(--sage); color:var(--card);
@@ -184,7 +187,11 @@
   .read-time { font-family:var(--font-mono); font-size:10px; color:var(--muted); }
   .start-link { font-family:var(--font-sans); font-size:13px; font-weight:600; color:var(--accent-brown); display:flex; align-items:center; gap:4px; cursor:pointer; background:none; border:none; }
 
-  .empty-today { margin:0 24px; background:var(--card); border:1.5px dashed var(--line); border-radius:16px; padding:28px 20px; text-align:center; }
+  .empty-today {
+    margin:0 24px; background:var(--paper);
+    background-image: repeating-linear-gradient(to bottom, transparent, transparent 35px, #E4ECE0 35px, #E4ECE0 36px);
+    border:1px solid var(--line); border-radius:16px; padding:28px 20px; text-align:center;
+  }
   .empty-today .msg { font-family:var(--font-serif); font-size:15px; color:var(--sub-ink); margin-bottom:16px; }
 
   .archive-cluster { padding:0 24px; margin-bottom:2px; }
