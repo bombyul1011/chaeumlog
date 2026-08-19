@@ -32,10 +32,10 @@
     color:var(--ink);
   }
 
-  /* #app: 뷰포트를 꽉 채우는 flex column. 여기 안에서만 topbar/scroll/tabbar를 나눈다. */
+  /* #app: position:fixed로 뷰포트 4방향에 직접 고정. body는 fixed 아님(이중 fixed 방지) */
   #app {
-    width:100%;
-    height:100%;
+    position:fixed;
+    inset:0;
     display:flex;
     flex-direction:column;
     background:var(--bg);
