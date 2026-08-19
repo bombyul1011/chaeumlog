@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>chaeumlog - 골격 재검증</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
 
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -32,7 +35,7 @@
   }
 
   #topbar-main {
-    padding:47px 24px 12px;
+    padding:env(safe-area-inset-top) 24px 12px;
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -108,9 +111,18 @@
     flex:1;
     border:none;
     background:none;
-    padding:12px 4px;
-    font-size:12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    padding:10px 4px 4px;
+    font-size:11px;
     color:#a3b5a8;
+  }
+
+  #app-tabbar button .ti {
+    font-size:22px;
   }
 
   #app-tabbar button.active {
@@ -168,10 +180,10 @@
   </div>
 
   <div id="app-tabbar">
-    <button class="active">홈</button>
-    <button>아카이브</button>
-    <button>검색</button>
-    <button>마이페이지</button>
+    <button class="active"><i class="ti ti-home"></i><span>홈</span></button>
+    <button><i class="ti ti-books"></i><span>아카이브</span></button>
+    <button><i class="ti ti-search"></i><span>검색</span></button>
+    <button><i class="ti ti-user"></i><span>마이페이지</span></button>
   </div>
 
 </div>
