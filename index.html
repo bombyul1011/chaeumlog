@@ -1240,6 +1240,17 @@
       </div>
     </div>
 
+    <div class="screen" id="screen-delete-confirm">
+      <div class="pick-lead" style="padding:8px 0 20px;">
+        <h2 style="font-size:19px; font-weight:700; margin:0;">이 기록을 삭제할까요?</h2>
+      </div>
+      <div style="font-size:13px; color:var(--sub-ink); line-height:1.6; margin-bottom:24px;">삭제하면 되돌릴 수 없어요. 제목, 목차, 요약이 모두 사라져요.</div>
+      <div class="toast-btn-row">
+        <button class="toast-btn-secondary" onclick="goScreen(DELETE_CANCEL_TO)">취소</button>
+        <button class="cta" style="flex:1; background:#c0504d;" onclick="executeDeleteSession()">삭제하기</button>
+      </div>
+    </div>
+
     <div class="screen" id="screen-edit">
       <div class="edit-field-label">제목</div>
       <input class="edit-input" id="edit-title">
@@ -1908,31 +1919,21 @@ ${outlineLines}
     }
   }
 
-  // 삭제 확인 — redirectTo: 삭제 후 돌아갈 화면
+  // 삭제 확인 — redirectTo: 삭제 후 돌아갈 화면. 팝업(fixed 오버레이) 대신 일반 화면 전환으로
+  // 처리해 iOS PWA 노치 상태바 색상 어긋남 버그를 피한다 (수정하기 화면과 동일한 이유).
+  let DELETE_REDIRECT_TO = 'archive';
+  let DELETE_CANCEL_TO = 'home';
   function confirmDeleteSession(redirectTo) {
-    const el = document.createElement('div');
-    el.id = 'delete-confirm-toast';
-    el.className = 'toast-backdrop';
-    el.onclick = (e) => { if (e.target === el) el.remove(); };
-    el.innerHTML = `
-      <div class="toast-sheet">
-        <div class="toast-icon" style="background:#f5e5e3; color:#c0504d;"><i class="ti ti-alert-triangle"></i></div>
-        <div class="toast-title">이 기록을 삭제할까요?</div>
-        <div class="toast-sub">삭제하면 되돌릴 수 없어요. 제목, 목차, 요약이 모두 사라져요.</div>
-        <div class="toast-btn-row">
-          <button class="toast-btn-secondary" onclick="document.getElementById('delete-confirm-toast').remove()">취소</button>
-          <button class="cta" style="flex:1; background:#c0504d;" onclick="executeDeleteSession('${redirectTo || 'archive'}')">삭제하기</button>
-        </div>
-      </div>`;
-    document.body.appendChild(el);
+    DELETE_REDIRECT_TO = redirectTo || 'archive';
+    DELETE_CANCEL_TO = currentScreen; // 취소하면 삭제를 시도한 화면(pick 또는 paper)으로 되돌아간다
+    goScreen('delete-confirm');
   }
 
-  async function executeDeleteSession(redirectTo) {
-    const toast = document.getElementById('delete-confirm-toast');
-    if (toast) toast.remove();
+  async function executeDeleteSession() {
+    const redirectTo = DELETE_REDIRECT_TO;
 
-    // 삭제 대상은 지금 보고 있는 화면 기준: pick이면 진행중 세션, paper면 완료 세션
-    const target = currentScreen === 'paper' ? CURRENT_PAPER_SESSION : CURRENT_PICK_SESSION;
+    // 삭제 대상은 진입 시점 화면 기준: pick에서 왔으면 진행중 세션, paper에서 왔으면 완료 세션
+    const target = redirectTo === 'archive-detail' ? CURRENT_PAPER_SESSION : CURRENT_PICK_SESSION;
     if (!target) { goScreen(redirectTo === 'archive-detail' ? 'archive' : redirectTo); return; }
 
     try {
@@ -1961,9 +1962,10 @@ ${outlineLines}
   const TAB_SCREENS = ['home', 'archive', 'search', 'mypage']; // 탭바에 직접 대응되는 화면
   const SUB_TITLES = {}; // 원본 디자인은 별도 서브 제목 없이 "< 아카이브" 형태의 뒤로가기 라벨만 사용
   // 서브줄 뒤로가기가 어디로 갈지: 지정 없으면 기본값으로 홈
-  const BACK_TARGETS = { 'archive-detail': 'archive', 'paper': 'archive-detail', 'pick': 'home', 'finish': 'pick', 'edit': 'paper', 'pick-select': 'home', 'pick-category': 'pick-select', 'pick-tailchain': 'pick-select' };
-  const BACK_LABELS = { 'archive-detail': '아카이브', 'paper': '아카이브', 'finish': '뒤로', 'edit': '뒤로', 'pick-select': '뒤로', 'pick-category': '뒤로', 'pick-tailchain': '뒤로' };
-  const PARENT_TAB = { 'archive-detail': 'archive', 'paper': 'archive', 'pick': 'home', 'finish': 'home', 'edit': 'archive', 'pick-select': 'home', 'pick-category': 'home', 'pick-tailchain': 'home' };
+  const BACK_TARGETS = { 'archive-detail': 'archive', 'paper': 'archive-detail', 'pick': 'home', 'finish': 'pick', 'edit': 'paper', 'pick-select': 'home', 'pick-category': 'pick-select', 'pick-tailchain': 'pick-select', 'delete-confirm': 'home' };
+  const BACK_LABELS = { 'archive-detail': '아카이브', 'paper': '아카이브', 'finish': '뒤로', 'edit': '뒤로', 'pick-category': '뒤로', 'pick-tailchain': '뒤로', 'delete-confirm': '뒤로' };
+  const PARENT_TAB = { 'archive-detail': 'archive', 'paper': 'archive', 'pick': 'home', 'finish': 'home', 'edit': 'archive', 'pick-select': 'home', 'pick-category': 'home', 'pick-tailchain': 'home', 'delete-confirm': 'home' };
+  const NO_SUBBAR_SCREENS = ['pick-select']; // 서브바(뒤로가기 줄) 자체를 숨기는 화면 — 로고가 이미 홈 버튼 역할
 
   let currentScreen = 'home';
   let currentArchiveCategory = null; // 아카이브 상세에서 보고 있는 카테고리
@@ -1986,9 +1988,10 @@ ${outlineLines}
       btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
 
-    // topbar 서브줄: 탭바에 없는 화면(상세 화면)이면 뒤로가기 서브줄 노출
+    // topbar 서브줄: 탭바에 없는 화면(상세 화면)이면 뒤로가기 서브줄 노출.
+    // 단, NO_SUBBAR_SCREENS로 지정된 화면은 로고(홈 버튼)가 이미 있어 서브바 자체를 숨긴다.
     const subBar = document.getElementById('topbar-sub');
-    if (!TAB_SCREENS.includes(name)) {
+    if (!TAB_SCREENS.includes(name) && !NO_SUBBAR_SCREENS.includes(name)) {
       const backLabel = document.getElementById('topbar-back-label');
       if (backLabel) backLabel.textContent = BACK_LABELS[name] || '뒤로';
       subBar.classList.add('show');
@@ -2010,6 +2013,10 @@ ${outlineLines}
   }
 
   function goBack() {
+    if (currentScreen === 'delete-confirm') {
+      goScreen(DELETE_CANCEL_TO);
+      return;
+    }
     const target = BACK_TARGETS[currentScreen] || 'home';
     goScreen(target, target === 'archive-detail' ? currentArchiveCategory : undefined);
   }
@@ -2397,10 +2404,7 @@ ${userDirection}
       showMaxInProgressToast();
       return;
     }
-    if (!isMobileDevice()) {
-      alert('모바일에서 카드를 고를 수 있어요.');
-      return;
-    }
+    if (!isMobileDevice()) return; // 카드 자체가 안내 문구로 대체되어 보통 여기 도달하지 않음(방어 코드)
     renderPickSelectOptions();
     goScreen('pick-select');
   }
@@ -2532,6 +2536,7 @@ ${userDirection}
 
   function renderTodayCard(s) {
     if (s === null) {
+      const canPick = isMobileDevice();
       return `
       <div class="today-card">
         <span class="today-badge"><i class="ti ti-plus"></i> 선택</span>
@@ -2540,7 +2545,9 @@ ${userDirection}
         <div class="today-tags"></div>
         <div class="today-foot">
           <span class="read-time">&nbsp;</span>
-          <button class="start-link" onclick="goPickNewTopic()">주제 고르기 <i class="ti ti-arrow-right"></i></button>
+          ${canPick
+            ? `<button class="start-link" onclick="goPickNewTopic()">주제 고르기 <i class="ti ti-arrow-right"></i></button>`
+            : `<span class="start-link" style="cursor:default; opacity:0.6;">모바일에서 카드를 고를 수 있어요</span>`}
         </div>
       </div>`;
     }
