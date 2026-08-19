@@ -46,7 +46,6 @@
     color: var(--ink);
     overscroll-behavior-y: none;
     position:fixed; inset:0;
-    overflow:hidden;
     /* height 지정 제거: inset:0이 이미 뷰포트 4변에 고정. 100dvh와 중복 지정하면 iOS에서 실제 높이가 짧게 잡혀 탭바가 화면 중간에 뜨는 문제 발생 */
   }
   button { font-family:inherit; }
@@ -56,9 +55,9 @@
   .start-link { display:inline-flex; align-items:center; gap:4px; }
   .cta { display:flex; align-items:center; justify-content:center; gap:6px; }
 
-  #app { position:fixed; inset:0; height:var(--app-h, 100dvh); display:flex; flex-direction:column; }
+  #app { position:fixed; inset:0; display:flex; flex-direction:column; }
   #app-topbar { flex-shrink:0; background:var(--bg); padding-top:env(safe-area-inset-top); position:relative; z-index:10; }
-  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:12px; background:var(--bg); transform:translateZ(0); }
+  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:calc(28px + env(safe-area-inset-bottom)); }
 
   /* 로딩 상태 (스플래시) — iikoto와 동일한 구조: fadeUp 애니메이션, 일정 시간 후 hide */
   #loading {
@@ -80,27 +79,11 @@
   @keyframes splashFadeUp { to{ opacity:1; transform:translateY(0); } }
 
   /* ===== 홈 화면 ===== */
-  .phone { max-width:420px; margin:0 auto; padding-bottom:16px; }
+  .phone { max-width:420px; margin:0 auto; padding-bottom:88px; }
 
-  /* ===== 하단 탭바 (2026-08-19 재도입: FAB 이전, flex 흐름 기반) ===== */
-  #app-tabbar { flex-shrink:0; z-index:50; background:var(--card); }
+  /* 하단 플로팅 메뉴 버튼(FAB) + 위로 펼쳐지는 메뉴 */
+  #app-tabbar { flex-shrink:0; height:0; z-index:50; }
   #app-tabbar:empty { display:none; }
-  .tabbar-real {
-    display:flex; align-items:stretch;
-    padding-bottom:env(safe-area-inset-bottom);
-    border-top:1px solid var(--line);
-  }
-  .tabbar-item {
-    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:3px; padding:9px 0 8px; background:none; border:none; cursor:pointer;
-    font-family:var(--font-mono); font-size:10px; color:var(--muted);
-  }
-  .tabbar-item i.ti { font-size:20px; }
-  .tabbar-item.active { color:var(--sage); }
-  .tabbar-item.active i.ti { color:var(--accent-yellow); }
-
-  /* 하단 플로팅 메뉴 버튼(FAB) — 현재 미사용, 롤백용으로 CSS만 보존 */
-  #app-tabbar.fab-mode { height:0; background:none; }
   .fab-wrap { position:fixed; right:20px; bottom:calc(2px + env(safe-area-inset-bottom)); z-index:60; }
   .fab-btn {
     width:52px; height:52px; border-radius:50%;
@@ -637,13 +620,19 @@ function renderTabbar(active) {
   ];
   return `
     <div class="tabbar">
-      <div class="tabbar-real">
-        ${barItems.map(it => `
-          <button class="tabbar-item ${active === it.id ? 'active' : ''}" onclick="${it.onclick}">
-            <i class="ti ${it.icon}"></i>
-            <span>${it.label}</span>
-          </button>
-        `).join('')}
+      <div class="fab-backdrop" onclick="closeFabMenu()"></div>
+      <div class="fab-wrap" id="fab-wrap">
+        <div class="fab-menu">
+          ${menuItems.map(it => `
+            <div class="fab-item ${active === it.id ? 'active' : ''}" onclick="${it.onclick}; closeFabMenu();">
+              <span class="fab-item-label">${it.label}</span>
+              <span class="fab-item-icon"><i class="ti ${it.icon}"></i></span>
+            </div>
+          `).join('')}
+        </div>
+        <button class="fab-btn" id="fab-btn" onclick="toggleFabMenu()">
+          <i class="ti ti-plus"></i>
+        </button>
       </div>
     </div>
   `;
@@ -1069,20 +1058,6 @@ window.addEventListener('pageshow', (e) => {
     window.location.reload();
   }
 });
-
-// #app 높이를 실제 window.innerHeight(px)로 강제 고정.
-// iOS/일부 브라우저에서 100dvh/inset:0만으로는 최초 로드 시점 뷰포트 값에
-// 고정되어 버리는 경우가 있어(회전 등 resize 이벤트가 나야만 재계산됨),
-// JS로 직접 측정해 --app-h 변수로 주입하고 resize/orientationchange마다 갱신한다.
-function setAppHeight() {
-  document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
-}
-setAppHeight();
-window.addEventListener('resize', setAppHeight);
-window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 50));
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', setAppHeight);
-}
 
 /* ==========================================================
    주제 선택 화면 (3분기: 랜덤 / 카테고리 / 꼬리물기)
