@@ -55,9 +55,9 @@
   .start-link { display:inline-flex; align-items:center; gap:4px; }
   .cta { display:flex; align-items:center; justify-content:center; gap:6px; }
 
-  #app { height:100%; display:flex; flex-direction:column; }
+  #app { position:fixed; inset:0; display:flex; flex-direction:column; }
   #app-topbar { flex-shrink:0; background:var(--bg); padding-top:env(safe-area-inset-top); position:relative; z-index:10; }
-  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:calc(28px + env(safe-area-inset-bottom)); }
+  #app-scroll { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; padding-bottom:12px; }
 
   /* 로딩 상태 (스플래시) — iikoto와 동일한 구조: fadeUp 애니메이션, 일정 시간 후 hide */
   #loading {
@@ -79,11 +79,27 @@
   @keyframes splashFadeUp { to{ opacity:1; transform:translateY(0); } }
 
   /* ===== 홈 화면 ===== */
-  .phone { max-width:420px; margin:0 auto; padding-bottom:88px; }
+  .phone { max-width:420px; margin:0 auto; padding-bottom:16px; }
 
-  /* 하단 플로팅 메뉴 버튼(FAB) + 위로 펼쳐지는 메뉴 */
-  #app-tabbar { flex-shrink:0; height:0; z-index:50; }
+  /* ===== 하단 탭바 (2026-08-19 재도입: FAB 이전, flex 흐름 기반) ===== */
+  #app-tabbar { flex-shrink:0; z-index:50; background:var(--card); }
   #app-tabbar:empty { display:none; }
+  .tabbar-real {
+    display:flex; align-items:stretch;
+    padding-bottom:env(safe-area-inset-bottom);
+    border-top:1px solid var(--line);
+  }
+  .tabbar-item {
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:3px; padding:9px 0 8px; background:none; border:none; cursor:pointer;
+    font-family:var(--font-mono); font-size:10px; color:var(--muted);
+  }
+  .tabbar-item i.ti { font-size:20px; }
+  .tabbar-item.active { color:var(--sage); }
+  .tabbar-item.active i.ti { color:var(--accent-yellow); }
+
+  /* 하단 플로팅 메뉴 버튼(FAB) — 현재 미사용, 롤백용으로 CSS만 보존 */
+  #app-tabbar.fab-mode { height:0; background:none; }
   .fab-wrap { position:fixed; right:20px; bottom:calc(2px + env(safe-area-inset-bottom)); z-index:60; }
   .fab-btn {
     width:52px; height:52px; border-radius:50%;
@@ -611,22 +627,21 @@ function renderTabbar(active) {
     { id: 'iikoto', icon: 'ti-macro', label: '이이코토', onclick: "window.location.href='https://bombyul1011.github.io/iikoto/'" },
     ...items.slice().reverse().map(it => ({ id: it.id, icon: it.icon, label: it.label, onclick: `navigate('${it.route}')` }))
   ];
+  const barItems = [
+    { id: 'home', icon: 'ti-home', label: '홈', onclick: "navigate('home')" },
+    { id: 'archive', icon: 'ti-books', label: '아카이브', onclick: "navigate('archive')" },
+    { id: 'search', icon: 'ti-search', label: '검색', onclick: "navigate('search')" },
+    { id: 'my', icon: 'ti-user', label: '마이페이지', onclick: "navigate('my')" },
+    { id: 'iikoto', icon: 'ti-macro', label: '이이코토', onclick: "window.location.href='https://bombyul1011.github.io/iikoto/'" }
+  ];
   return `
-    <div class="tabbar">
-      <div class="fab-backdrop" onclick="closeFabMenu()"></div>
-      <div class="fab-wrap" id="fab-wrap">
-        <div class="fab-menu">
-          ${menuItems.map(it => `
-            <div class="fab-item ${active === it.id ? 'active' : ''}" onclick="${it.onclick}; closeFabMenu();">
-              <span class="fab-item-label">${it.label}</span>
-              <span class="fab-item-icon"><i class="ti ${it.icon}"></i></span>
-            </div>
-          `).join('')}
-        </div>
-        <button class="fab-btn" id="fab-btn" onclick="toggleFabMenu()">
-          <i class="ti ti-plus"></i>
+    <div class="tabbar-real">
+      ${barItems.map(it => `
+        <button class="tabbar-item ${active === it.id ? 'active' : ''}" onclick="${it.onclick}">
+          <i class="ti ${it.icon}"></i>
+          <span>${it.label}</span>
         </button>
-      </div>
+      `).join('')}
     </div>
   `;
 }
