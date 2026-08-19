@@ -2081,11 +2081,12 @@ ${outlineLines}
       console.error('[chaeumlog] boot fetch error:', err);
     }
 
-    renderTodayCardWrap();
-    renderHomeAccumDots();
-    renderMyKeyStatus();
-    renderArchiveTabAndHomeGrid();
-    renderStats();
+    // ===== 진단용: render 호출 임시 비활성화 =====
+    // renderTodayCardWrap();
+    // renderHomeAccumDots();
+    // renderMyKeyStatus();
+    // renderArchiveTabAndHomeGrid();
+    // renderStats();
 
     const elapsed = Date.now() - splashStart;
     const remaining = Math.max(0, minSplashMs - elapsed);
