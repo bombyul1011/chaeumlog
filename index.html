@@ -87,7 +87,7 @@
   .fab-wrap { position:fixed; right:20px; bottom:calc(2px + env(safe-area-inset-bottom)); z-index:60; }
   /* 마우스 기반 환경(PC)이면 창 크기를 줄여도 항상 여유 간격 유지 */
   @media (hover: hover) and (pointer: fine) {
-    .fab-wrap { bottom:calc(110px + env(safe-area-inset-bottom)); }
+    .fab-wrap { bottom:calc(58px + env(safe-area-inset-bottom)); }
   }
   .fab-btn {
     width:52px; height:52px; border-radius:50%;
@@ -941,6 +941,57 @@ function getRoute() {
   return { route: route || 'home', params };
 }
 
+// ---- 탭 간 오른쪽 스와이프 전환 ----
+// 왼쪽으로 밀면(오른쪽 스와이프 제스처는 기존 브라우저 "뒤로가기"와 겹치므로),
+// 탭 화면(홈/아카이브/검색/마이페이지)에서 "오른쪽으로 밀면" 다음 탭으로 이동한다.
+// 오늘의 기록 카드(#today-card-wrap) 위에서의 스와이프와 겹치지 않도록 그 영역은 제외.
+const TAB_ORDER = ['home', 'archive', 'search', 'my'];
+let _tabSwipeStartX = null;
+let _tabSwipeStartY = null;
+let _tabSwipeDirLocked = false;
+let _tabSwipeIsHorizontal = false;
+
+document.addEventListener('touchstart', (e) => {
+  if (e.target.closest('#today-card-wrap')) return; // 카드 스와이프와 충돌 방지
+  const scrollEl = e.target.closest('#app-scroll');
+  if (!scrollEl) return;
+  _tabSwipeStartX = e.touches[0].clientX;
+  _tabSwipeStartY = e.touches[0].clientY;
+  _tabSwipeDirLocked = false;
+  _tabSwipeIsHorizontal = false;
+}, { passive: true });
+
+document.addEventListener('touchmove', (e) => {
+  if (_tabSwipeStartX === null) return;
+  const dx = e.touches[0].clientX - _tabSwipeStartX;
+  const dy = e.touches[0].clientY - _tabSwipeStartY;
+  if (!_tabSwipeDirLocked) {
+    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+    _tabSwipeDirLocked = true;
+    _tabSwipeIsHorizontal = Math.abs(dx) > Math.abs(dy) * 1.5; // 세로 스크롤 오인 방지, 확실히 가로일 때만
+  }
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  if (_tabSwipeStartX === null) return;
+  const dx = e.changedTouches[0].clientX - _tabSwipeStartX;
+  const wasHorizontal = _tabSwipeIsHorizontal;
+  _tabSwipeStartX = null;
+  _tabSwipeStartY = null;
+  _tabSwipeDirLocked = false;
+  _tabSwipeIsHorizontal = false;
+  if (!wasHorizontal) return;
+  if (dx >= -60) return; // 오른쪽에서 왼쪽으로(화면을 오른쪽으로 미는 제스처) 60px 이상 이동해야 인정
+
+  const { route } = getRoute();
+  const curIdx = TAB_ORDER.indexOf(route);
+  if (curIdx === -1) return; // 탭 화면이 아니면(상세 화면 등) 무시
+  const nextIdx = curIdx + 1;
+  if (nextIdx > TAB_ORDER.length - 1) return; // 마지막 탭에서는 더 이동하지 않음
+  navigate(TAB_ORDER[nextIdx]);
+}, { passive: true });
+
+
 // ---- 라우트 HTML을 고정 topbar(#app-topbar)와 스크롤 영역(#app-scroll)으로 분리해 꽂는 헬퍼 ----
 // 각 라우트 함수는 지금처럼 topbar를 포함한 전체 HTML을 그대로 리턴하면 되고,
 // 여기서 첫 번째 <div class="topbar"...>...</div>만 정규식으로 뽑아 고정 영역으로 옮긴다.
@@ -1089,10 +1140,7 @@ function renderPick() {
 
   return `
     <div class="phone">
-      <div class="topbar">
-        <button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button>
-        <button class="icon-btn"><i class="ti ti-dots"></i></button>
-      </div>
+      <div class="topbar"></div>
       <div class="pick-lead">
         <h2>오늘은 어떻게 시작해볼까요?</h2>
       </div>
@@ -1323,7 +1371,11 @@ async function handleGenerate(params) {
     return;
   }
 
-  navigate('session', { id: data.id });
+  // generating(뽑는 중) 단계는 히스토리에 남기지 않는다.
+  // hash를 그냥 바꾸면 뒤로가기 시 generating으로 돌아가 새 주제를 또 뽑아버리므로,
+  // replaceState로 현재 히스토리 항목을 세션 화면으로 "교체"해 뒤로가기가 pick으로 바로 가게 한다.
+  history.replaceState(null, '', '#session?id=' + encodeURIComponent(data.id));
+  render();
 }
 
 function renderApiKeyPrompt() {
@@ -1470,9 +1522,8 @@ function renderSessionInner(session) {
 
   return `
     <div class="session-wrap">
-      <div class="topbar" style="padding:8px 0 0;">
-        <button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button>
-        <button class="icon-btn" onclick="showInProgressActionMenu('${session.id}')"><i class="ti ti-dots"></i></button>
+      <div class="topbar" style="padding:8px 0 0; justify-content:flex-end;">
+        <button class="icon-btn" onclick="showInProgressActionMenu('${session.id}')" style="margin-right:-6px;"><i class="ti ti-dots"></i></button>
       </div>
       <div class="s-meta">${escapeHtml(session.category)}</div>
       <div class="s-date">${session.date_key} · ${session.source_type === 'tailchain' ? '이어가기' : session.source_type === 'relearn' ? '다시 학습' : session.source_type === 'category' ? '카테고리 선택' : '랜덤'}</div>
@@ -1613,9 +1664,8 @@ function renderComplete(id) {
 function renderCompleteInner(session) {
   return `
     <div class="complete-wrap">
-      <div class="topbar" style="padding:8px 0 0;">
-        <button class="back" onclick="navigate('home')"><i class="ti ti-chevron-left"></i> 홈</button>
-        <button class="icon-btn"><i class="ti ti-dots"></i></button>
+      <div class="topbar" style="padding:8px 0 0; justify-content:flex-end;">
+        <button class="icon-btn" style="margin-right:-6px;"><i class="ti ti-dots"></i></button>
       </div>
       <div class="paper-card" onclick="navigate('paper', {id: '${session.id}'})" style="cursor:pointer;">
         <div class="paper-vol-row">
