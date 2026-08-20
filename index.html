@@ -1370,10 +1370,12 @@
     return new Set(archive.map(s => s.category)).size;
   }
 
+  // 미완료(in_progress) 카드는 뽑은 날짜와 무관하게 완료되거나 수기 삭제되기 전까지 계속 노출한다.
+  // (기존엔 date_key = 오늘로만 필터링해서, 어제 뽑고 학습 안 한 카드가 다음날 화면에서 사라져버리는 문제가 있었음)
   async function fetchTodaySessions() {
     const { data, error } = await sb.from('sessions')
       .select('*')
-      .eq('date_key', todayKey())
+      .eq('status', 'in_progress')
       .order('created_at', { ascending: false });
     if (error) { console.error(error); return []; }
     return data || [];
@@ -2389,7 +2391,7 @@ ${userDirection}
   // ===== 오늘의 기록 카드 (좌우 화살표 네비게이션) =====
   const MAX_IN_PROGRESS = 3; // 미완료(진행 중) 카드는 최대 3개까지만 동시 보유 가능
 
-  // 오늘 date_key로 뽑힌 세션 전체(진행중+완료) + 맨 뒤 "새 주제 뽑기" 가상 슬롯(null)
+  // 미완료 세션 전체(appState.todaySessions, 날짜 무관) + 맨 뒤 "새 주제 뽑기" 가상 슬롯(null)
   function getTodaySlots() {
     return [...appState.todaySessions, null];
   }
