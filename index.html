@@ -971,50 +971,7 @@
         <button class="today-nav-btn" id="today-nav-next" onclick="goTodayCard(1)"><i class="ti ti-chevron-right"></i></button>
       </div>
 
-      <div class="archive-grid" id="home-archive-grid" style="margin-top:16px;">
-        <div class="grid-card" data-category="시사" onclick="goScreen('archive-detail','시사')">
-          <i class="ti ti-news grid-card-icon" style="color:#DEB07E;"></i>
-          <div class="grid-card-foot">
-            <span class="grid-card-label"><span class="grid-card-code">C</span><span class="grid-card-name">시사</span></span>
-            <span class="grid-card-n" id="grid-count-시사" style="color:#DEB07E;">0</span>
-          </div>
-        </div>
-        <div class="grid-card" data-category="예술" onclick="goScreen('archive-detail','예술')">
-          <i class="ti ti-palette grid-card-icon" style="color:#CA8080;"></i>
-          <div class="grid-card-foot">
-            <span class="grid-card-label"><span class="grid-card-code">A</span><span class="grid-card-name">예술</span></span>
-            <span class="grid-card-n" id="grid-count-예술" style="color:#CA8080;">0</span>
-          </div>
-        </div>
-        <div class="grid-card" data-category="역사" onclick="goScreen('archive-detail','역사')">
-          <i class="ti ti-hourglass grid-card-icon" style="color:#C2B9A9;"></i>
-          <div class="grid-card-foot">
-            <span class="grid-card-label"><span class="grid-card-code">H</span><span class="grid-card-name">역사</span></span>
-            <span class="grid-card-n" id="grid-count-역사" style="color:#C2B9A9;">0</span>
-          </div>
-        </div>
-        <div class="grid-card" data-category="음악" onclick="goScreen('archive-detail','음악')">
-          <i class="ti ti-music grid-card-icon" style="color:#B198C7;"></i>
-          <div class="grid-card-foot">
-            <span class="grid-card-label"><span class="grid-card-code">M</span><span class="grid-card-name">음악</span></span>
-            <span class="grid-card-n" id="grid-count-음악" style="color:#B198C7;">0</span>
-          </div>
-        </div>
-        <div class="grid-card" data-category="영화" onclick="goScreen('archive-detail','영화')">
-          <i class="ti ti-movie grid-card-icon" style="color:#8FB5D1;"></i>
-          <div class="grid-card-foot">
-            <span class="grid-card-label"><span class="grid-card-code">F</span><span class="grid-card-name">영화</span></span>
-            <span class="grid-card-n" id="grid-count-영화" style="color:#8FB5D1;">0</span>
-          </div>
-        </div>
-        <div class="grid-card" data-category="건축" onclick="goScreen('archive-detail','건축')">
-          <i class="ti ti-building grid-card-icon" style="color:#7E8DBE;"></i>
-          <div class="grid-card-foot">
-            <span class="grid-card-label"><span class="grid-card-code">B</span><span class="grid-card-name">건축</span></span>
-            <span class="grid-card-n" id="grid-count-건축" style="color:#7E8DBE;">0</span>
-          </div>
-        </div>
-      </div>
+      <div class="archive-grid" id="home-archive-grid" style="margin-top:16px;"></div>
 
       <div class="accum-wrap">
         <div class="accum-label">YOUR KNOWLEDGE, GROWING</div>
@@ -1046,6 +1003,10 @@
         </div>
         <div class="cluster-row" data-category="건축" onclick="goScreen('archive-detail','건축')">
           <div class="cluster-left"><i class="ti ti-building cluster-cat-icon"></i><span class="cluster-code">B</span><span class="cluster-name">건축</span></div>
+          <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+        </div>
+        <div class="cluster-row" data-category="기타" onclick="goScreen('archive-detail','기타')">
+          <div class="cluster-left"><i class="ti ti-tag cluster-cat-icon"></i><span class="cluster-code">X</span><span class="cluster-name">기타</span></div>
           <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
         </div>
       </div>
@@ -1141,6 +1102,17 @@
         <h2 style="font-size:19px; font-weight:700; margin:0;">어떤 배움에서 이어갈까요?</h2>
       </div>
       <div id="pick-tailchain-list"></div>
+    </div>
+
+    <div class="screen" id="screen-pick-ask">
+      <div class="pick-lead" style="padding:8px 0 20px;">
+        <h2 style="font-size:19px; font-weight:700; margin:0;">평소 궁금했던 걸 물어보세요</h2>
+        <div style="font-size:12px; color:var(--sub-ink); margin-top:8px; line-height:1.6;">질문을 그대로 다루기보다, 이 질문에서 출발해 더 깊고 넓게 파볼 수 있는 학습 주제로 만들어드려요.</div>
+      </div>
+      <textarea class="edit-textarea" id="pick-ask-input" placeholder="예: 왜 어떤 나라는 자국 화폐를 포기할까?" style="min-height:120px;"></textarea>
+      <div class="toast-btn-row" style="margin-top:20px;">
+        <button class="cta" style="flex:1; background:var(--accent-yellow); color:#2B332E;" onclick="submitPickAsk()">이 질문으로 학습 만들기</button>
+      </div>
     </div>
 
     <div class="screen" id="screen-pick">
@@ -1304,7 +1276,8 @@
     '역사': { code: 'H', icon: 'ti-hourglass', color: '#C2B9A9' },
     '음악': { code: 'M', icon: 'ti-music', color: '#B198C7' },
     '영화': { code: 'F', icon: 'ti-movie', color: '#8FB5D1' },
-    '건축': { code: 'B', icon: 'ti-building', color: '#7E8DBE' }
+    '건축': { code: 'B', icon: 'ti-building', color: '#7E8DBE' },
+    '기타': { code: 'X', icon: 'ti-tag', color: '#9AA79B' }
   };
 
   // ===== 실제 데이터 상태 (Supabase) =====
@@ -1442,7 +1415,7 @@
       <div class="t-item" onclick="openPaper('${s.id}')">
         <div class="t-date">${s.date}</div>
         <div class="t-dot-col"><div class="t-dot"></div></div>
-        <div class="t-text">${escapeHtml(s.title)}</div>
+        <div class="t-text">${s.source_type === 'ask' ? '<i class="ti ti-message-question" style="font-size:12px; color:var(--accent-yellow); margin-right:4px;"></i>' : ''}${escapeHtml(s.title)}</div>
         <div class="t-badge"><i class="ti ti-check"></i></div>
       </div>
     `).join('');
@@ -1465,16 +1438,55 @@
     scored.forEach(({ el }) => container.appendChild(el));
   }
 
+  // 홈탭 아카이브 그리드용 grid-card 1개 HTML 생성
+  function buildGridCardHtml(category) {
+    const meta = CATEGORY_META[category] || { code: '?', icon: 'ti-bookmark', color: 'var(--sage)' };
+    const count = appState.archive.filter(s => s.category === category).length;
+    return `<div class="grid-card" data-category="${category}" onclick="goScreen('archive-detail','${category}')">
+      <i class="ti ${meta.icon} grid-card-icon" style="color:${meta.color};"></i>
+      <div class="grid-card-foot">
+        <span class="grid-card-label"><span class="grid-card-code">${meta.code}</span><span class="grid-card-name">${category}</span></span>
+        <span class="grid-card-n" id="grid-count-${category}" style="color:${meta.color};">${count}</span>
+      </div>
+    </div>`;
+  }
+
+  // 홈탭 그리드는 항상 6칸만 노출한다 (전체 카테고리가 7개('기타' 포함)로 늘어났으므로).
+  // 규칙: 최근 활동이 있는 카테고리를 최신순으로 우선 채우고, 6개가 안 차면
+  // 아직 활동이 없는 카테고리를 가나다순으로 이어 채운다.
+  function renderHomeArchiveGrid() {
+    const gridWrap = document.getElementById('home-archive-grid');
+    if (!gridWrap) return;
+
+    const allCategories = Object.keys(CATEGORY_META);
+    const withActivity = [];
+    const withoutActivity = [];
+
+    allCategories.forEach(category => {
+      const sessions = appState.archive.filter(s => s.category === category);
+      if (sessions.length) {
+        const latest = sessions.reduce((max, s) => {
+          const t = new Date(s.completed_at || s.date_key).getTime();
+          return isNaN(t) ? max : Math.max(max, t);
+        }, 0);
+        withActivity.push({ category, latest });
+      } else {
+        withoutActivity.push(category);
+      }
+    });
+
+    withActivity.sort((a, b) => b.latest - a.latest);
+    withoutActivity.sort((a, b) => a.localeCompare(b, 'ko'));
+
+    const ordered = [...withActivity.map(x => x.category), ...withoutActivity].slice(0, 6);
+    gridWrap.innerHTML = ordered.map(buildGridCardHtml).join('');
+  }
+
   // 홈 화면 아카이브 그리드 + 아카이브 탭의 카테고리별 카운트를 실제 데이터로 채운다
   function renderArchiveTabAndHomeGrid() {
     Object.keys(CATEGORY_META).forEach(category => {
-      const count = appState.archive.filter(s => s.category === category).length;
-
-      const gridEl = document.getElementById(`grid-count-${category}`);
-      if (gridEl) gridEl.textContent = count;
-
       const clusterEl = document.querySelector(`#screen-archive .cluster-row[onclick*="'${category}'"] .cluster-n`);
-      if (clusterEl) clusterEl.textContent = count;
+      if (clusterEl) clusterEl.textContent = appState.archive.filter(s => s.category === category).length;
     });
 
     const totalBranches = Object.keys(CATEGORY_META).filter(category =>
@@ -1483,8 +1495,9 @@
     const clusterLabel = document.querySelector('#screen-archive .section-label');
     if (clusterLabel) clusterLabel.textContent = `전체 아카이브 · ${totalBranches}개 갈래`;
 
-    // 홈탭 아카이브 그리드 + 아카이브탭 클러스터 목록을 최신 활동순으로 재배열 (동일 함수 재사용)
-    sortCategoryElsByRecent(document.getElementById('home-archive-grid'), '.grid-card');
+    // 홈탭 그리드는 매번 6개만 새로 그려서 채운다
+    renderHomeArchiveGrid();
+    // 아카이브탭 클러스터 목록(7개 전체)은 최신 활동순으로 재배열
     sortCategoryElsByRecent(document.querySelector('#screen-archive .archive-cluster'), '.cluster-row');
   }
 
@@ -1651,7 +1664,7 @@
   // pick 화면에 지금 표시 중인 세션 — todaySlots 중 현재 인덱스가 가리키는 진행중 세션과 동기화된다.
   let CURRENT_PICK_SESSION = null;
 
-  const SOURCE_TYPE_LABEL = { tailchain: '이어가기', relearn: '다시 학습', category: '카테고리 선택', random: '랜덤' };
+  const SOURCE_TYPE_LABEL = { tailchain: '이어가기', relearn: '다시 학습', category: '카테고리 선택', random: '랜덤', ask: '질문하기' };
 
   function renderPickFromCurrent() {
     const s = CURRENT_PICK_SESSION;
@@ -1826,7 +1839,10 @@ ${outlineLines}
     if (!s) return;
     document.getElementById('paper-vol').textContent = `${s.category} EDITION`;
     document.getElementById('paper-title').textContent = s.title;
-    document.getElementById('paper-tags').innerHTML = (s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+    const askBadge = s.source_type === 'ask'
+      ? `<span class="tag" style="background:var(--accent-yellow-bg); color:#8a6d00; font-weight:600;"><i class="ti ti-message-question" style="font-size:11px; margin-right:2px;"></i>직접 질문</span>`
+      : '';
+    document.getElementById('paper-tags').innerHTML = askBadge + (s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
 
     const briefEl = document.getElementById('paper-brief');
     if (s.brief_summary) {
@@ -1969,9 +1985,9 @@ ${outlineLines}
   const TAB_SCREENS = ['home', 'archive', 'search', 'mypage']; // 탭바에 직접 대응되는 화면
   const SUB_TITLES = {}; // 원본 디자인은 별도 서브 제목 없이 "< 아카이브" 형태의 뒤로가기 라벨만 사용
   // 서브줄 뒤로가기가 어디로 갈지: 지정 없으면 기본값으로 홈
-  const BACK_TARGETS = { 'archive-detail': 'archive', 'paper': 'archive-detail', 'pick': 'home', 'finish': 'pick', 'edit': 'paper', 'pick-select': 'home', 'pick-category': 'pick-select', 'pick-tailchain': 'pick-select', 'delete-confirm': 'home' };
-  const BACK_LABELS = { 'archive-detail': '아카이브', 'paper': '아카이브', 'finish': '뒤로', 'edit': '뒤로', 'pick-category': '뒤로', 'pick-tailchain': '뒤로', 'delete-confirm': '뒤로' };
-  const PARENT_TAB = { 'archive-detail': 'archive', 'paper': 'archive', 'pick': 'home', 'finish': 'home', 'edit': 'archive', 'pick-select': 'home', 'pick-category': 'home', 'pick-tailchain': 'home', 'delete-confirm': 'home' };
+  const BACK_TARGETS = { 'archive-detail': 'archive', 'paper': 'archive-detail', 'pick': 'home', 'finish': 'pick', 'edit': 'paper', 'pick-select': 'home', 'pick-category': 'pick-select', 'pick-tailchain': 'pick-select', 'pick-ask': 'pick-select', 'delete-confirm': 'home' };
+  const BACK_LABELS = { 'archive-detail': '아카이브', 'paper': '아카이브', 'finish': '뒤로', 'edit': '뒤로', 'pick-category': '뒤로', 'pick-tailchain': '뒤로', 'pick-ask': '뒤로', 'delete-confirm': '뒤로' };
+  const PARENT_TAB = { 'archive-detail': 'archive', 'paper': 'archive', 'pick': 'home', 'finish': 'home', 'edit': 'archive', 'pick-select': 'home', 'pick-category': 'home', 'pick-tailchain': 'home', 'pick-ask': 'home', 'delete-confirm': 'home' };
   const NO_SUBBAR_SCREENS = ['pick-select']; // 서브바(뒤로가기 줄) 자체를 숨기는 화면 — 로고가 이미 홈 버튼 역할
 
   let currentScreen = 'home';
@@ -2136,9 +2152,10 @@ ${outlineLines}
     }
   }
 
-  // sourceType: 'random' | 'category' | 'tailchain'
+  // sourceType: 'random' | 'category' | 'tailchain' | 'ask'
   // recentTitles: 최근 7일 내 완료/진행중 세션 제목 목록 (겹침 방지용)
-  function buildGeneratePrompt(sourceType, category, parentSession, recentTitles) {
+  // userQuestion: 'ask'일 때 사용자가 직접 입력한 질문
+  function buildGeneratePrompt(sourceType, category, parentSession, recentTitles, userQuestion) {
     const avoidLine = recentTitles && recentTitles.length
       ? (sourceType === 'tailchain'
           ? `최근 일주일 안에 이미 다룬 주제들: ${recentTitles.join(', ')} — 방금 세션에서 자연스럽게 이어지되, 위 목록과 소재·사례가 겹치지 않는 "더 발전된" 다음 단계로 만들어주세요. 같은 이야기를 다른 각도로 반복하는 건 피해주세요.`
@@ -2165,18 +2182,35 @@ ${userDirection}
 - 제목이나 소재가 방금 세션과 겹치지 않아야 해요`;
     }
 
+    let askLine = '';
+    if (sourceType === 'ask' && userQuestion) {
+      askLine = `사용자가 평소 궁금했던 걸 아래처럼 직접 질문했습니다.
+[사용자 질문]
+"${userQuestion}"
+
+이 질문을 그대로 좁은 답변으로 다루지 말고, 이 질문에서 출발해 더 전문적이고 확장된 학습 주제로 발전시켜주세요.
+- 질문의 핵심 호기심은 반드시 살리되, 배경지식·맥락·더 넓은 함의까지 포함하는 하나의 완결된 이야기로 확장해주세요
+- 질문에 대한 단답이 아니라, 그 질문이 속한 더 큰 주제를 30분짜리 학습 콘텐츠로 설계한다고 생각해주세요
+- category 필드에는 이 질문이 가장 잘 속하는 대주제를 아래 중 하나로 직접 골라 넣어주세요: 시사, 예술, 역사, 음악, 영화, 건축 (어디에도 뚜렷이 속하지 않으면 "기타"로)`;
+    }
+
     const dataContext = [
-      `오늘의 대주제: ${category}`,
+      sourceType === 'ask' ? null : `오늘의 대주제: ${category}`,
       connectionLine,
+      askLine,
       avoidLine
     ].filter(Boolean).join('\n\n');
 
-    const sys = `당신은 학습 큐레이터예요. 주어진 대주제 안에서 하루 30분 정도 깊이 파볼 만한 구체적인 소주제 하나를 만들어주세요.
+    const categoryFieldNote = sourceType === 'ask'
+      ? `\n  "category": "시사/예술/역사/음악/영화/건축 중 하나, 어디에도 안 맞으면 기타",`
+      : '';
+
+    const sys = `당신은 학습 큐레이터예요. ${sourceType === 'ask' ? '사용자의 질문을 바탕으로' : '주어진 대주제 안에서'} 하루 30분 정도 깊이 파볼 만한 구체적인 소주제 하나를 만들어주세요.
 소주제는 "기승전결이 있는 하나의 완결된 이야기"여야 해요 — 서로 다른 네 개의 소재를 나열하는 게 아니라, 하나의 질문에서 시작해 네 단계를 거쳐 결론에 도달하는 흐름이어야 합니다.
 사용자가 최근에 배운 내용과 절대 겹치면 안 돼요 — 아래 최근 학습 목록이 주어지면 반드시 확인하고 피해주세요.
 
 반드시 아래 JSON 형식으로만 응답해요. 다른 텍스트나 마크다운 코드블록 없이 순수 JSON만 출력해요.
-{
+{${categoryFieldNote}
   "title": "흥미를 끄는 구체적인 소주제 제목 (한 줄)",
   "shortTitle": "핵심 키워드만 5-10자 내외로 짧게",
   "tags": ["태그1", "태그2"],
@@ -2193,7 +2227,10 @@ ${userDirection}
   // 새 주제 생성 실제 처리 — API 호출 → JSON 파싱 → sessions insert → pick 화면 이동
   // sourceType: 'random' | 'category' | 'tailchain', category는 category일 때만 필수
   // parentSessionId: 'tailchain'일 때 사용자가 고른 특정 완료 세션 id (없으면 가장 최근 완료 세션)
-  async function handleGenerate(sourceType, category, parentSessionId) {
+  // sourceType: 'random' | 'category' | 'tailchain' | 'ask', category는 category일 때만 필수
+  // parentSessionId: 'tailchain'일 때 사용자가 고른 특정 완료 세션 id (없으면 가장 최근 완료 세션)
+  // userQuestion: 'ask'일 때 사용자가 입력한 질문 원문
+  async function handleGenerate(sourceType, category, parentSessionId, userQuestion) {
     if (countInProgressSlots() >= MAX_IN_PROGRESS) {
       showMaxInProgressToast();
       return;
@@ -2214,6 +2251,8 @@ ${userDirection}
         ? appState.archive.find(s => s.id === parentSessionId)
         : appState.archive[0];
       if (parentSession) category = parentSession.category;
+    } else if (sourceType === 'ask') {
+      // category는 AI 응답의 parsed.category로 이후 확정 (질문 내용 기반 자동 분류)
     } else if (!category) {
       category = categories.length
         ? categories[Math.floor(Math.random() * categories.length)].name_ko
@@ -2235,7 +2274,7 @@ ${userDirection}
     const todayTitles = appState.todaySessions.map(s => s.title).filter(Boolean);
     const recentTitles = Array.from(new Set([...recentArchiveTitles, ...todayTitles].filter(Boolean)));
 
-    const { sys, dataContext } = buildGeneratePrompt(sourceType, category, parentSession, recentTitles);
+    const { sys, dataContext } = buildGeneratePrompt(sourceType, category, parentSession, recentTitles, userQuestion);
 
     const reply = await callClaude(sys, [{ role: 'user', content: dataContext }], 600);
 
@@ -2255,6 +2294,11 @@ ${userDirection}
       hideGeneratingOverlay();
       alert('생성 결과를 해석하지 못했어요 (응답이 잘렸을 수 있어요). 다시 시도해주세요.');
       return;
+    }
+
+    // 'ask'는 AI가 질문 내용을 보고 고른 카테고리를 채택. 6개 중 어디에도 안 맞으면 '기타'로 분류.
+    if (sourceType === 'ask') {
+      category = (parsed.category && CATEGORY_META[parsed.category] && parsed.category !== '기타') ? parsed.category : '기타';
     }
 
     const outline = (parsed.outline || []).map(text => ({ text }));
@@ -2449,6 +2493,14 @@ ${userDirection}
           <div class="o-sub">시사, 예술, 역사 등 갈래 안에서 소주제를 뽑아요</div>
         </div>
       </div>
+      <div class="option-card" onclick="goScreen('pick-ask')">
+        <div class="option-icon"><i class="ti ti-message-question"></i></div>
+        <div class="option-body">
+          <div class="o-label">질문하기</div>
+          <div class="o-title">평소 궁금했던 걸 물어보기</div>
+          <div class="o-sub">질문을 바탕으로 더 전문적이고 확장된 주제를 만들어요</div>
+        </div>
+      </div>
       <div class="option-card" onclick="startGenerate('random')">
         <div class="option-icon"><i class="ti ti-dice-5"></i></div>
         <div class="option-body">
@@ -2503,12 +2555,25 @@ ${userDirection}
 
   // 실제 생성 시작 — 진행중 개수 재확인 후 handleGenerate 호출
   // parentSessionId: 'tailchain'일 때 사용자가 목록에서 고른 특정 세션 id (없으면 가장 최근 세션 사용)
-  function startGenerate(sourceType, category, parentSessionId) {
+  // userQuestion: 'ask'일 때 사용자가 입력한 질문 원문
+  function startGenerate(sourceType, category, parentSessionId, userQuestion) {
     if (countInProgressSlots() >= MAX_IN_PROGRESS) {
       showMaxInProgressToast();
       return;
     }
-    handleGenerate(sourceType, category, parentSessionId);
+    handleGenerate(sourceType, category, parentSessionId, userQuestion);
+  }
+
+  // "질문하기" 화면 제출 처리
+  function submitPickAsk() {
+    const input = document.getElementById('pick-ask-input');
+    const question = input ? input.value.trim() : '';
+    if (!question) {
+      alert('궁금한 점을 입력해주세요.');
+      return;
+    }
+    if (input) input.value = '';
+    startGenerate('ask', null, null, question);
   }
 
   function showMaxInProgressToast() {
@@ -2559,12 +2624,15 @@ ${userDirection}
       </div>`;
     }
     const isDone = s.status === 'completed';
+    const askBadge = s.source_type === 'ask'
+      ? `<span class="tag" style="background:var(--accent-yellow-bg); color:#8a6d00; font-weight:600;"><i class="ti ti-message-question" style="font-size:11px; margin-right:2px;"></i>직접 질문</span>`
+      : '';
     return `
       <div class="today-card">
         <span class="today-badge${isDone ? ' done' : ''}"><i class="ti ${isDone ? 'ti-check' : 'ti-clover'}"></i> ${isDone ? '완료' : 'TODAY'}</span>
         <div class="today-meta"><span>${s.date_key}</span><span>${escapeHtml(s.category)}</span></div>
         <div class="today-title">${escapeHtml(s.title)}</div>
-        <div class="today-tags">${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+        <div class="today-tags">${askBadge}${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
         <div class="today-foot">
           <span class="read-time">${isDone ? '학습 완료' : '학습 진행 중'}</span>
           <button class="start-link" onclick="openTodaySlotByIndex(${todayCardIndex})">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
