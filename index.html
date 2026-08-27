@@ -507,6 +507,31 @@
   .dots span.d2 { background:var(--accent-yellow); }
 
   /* ===== 아카이브 화면 관련 CSS (실제 파일에서 이식) ===== */
+  .archive-seg-tabs {
+    display:flex;
+    justify-content:flex-end;
+    gap:6px;
+    margin-bottom:12px;
+  }
+  .archive-seg-btn {
+    width:34px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line);
+    border-radius:9px;
+    background:transparent;
+    color:var(--sub-ink);
+    font-size:16px;
+    cursor:pointer;
+  }
+  .archive-seg-btn.active {
+    background:var(--accent-yellow);
+    border-color:var(--accent-yellow);
+    color:#2B332E;
+  }
+
   .archive-cluster {
     margin-bottom:2px;
   }
@@ -979,36 +1004,48 @@
       </div>
     </div>
     <div class="screen" id="screen-archive">
-      <div class="section-label" style="padding-top:0;">전체 아카이브 · 6개 갈래</div>
-      <div class="archive-cluster">
-        <div class="cluster-row" data-category="시사" onclick="goScreen('archive-detail','시사')">
-          <div class="cluster-left"><i class="ti ti-news cluster-cat-icon"></i><span class="cluster-code">C</span><span class="cluster-name">시사</span></div>
-          <div class="cluster-right"><span class="cluster-n">1</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+      <div class="archive-seg-tabs">
+        <button class="archive-seg-btn active" id="archive-seg-timeline" onclick="switchArchiveSeg('timeline')" title="전체 타임라인"><i class="ti ti-timeline"></i></button>
+        <button class="archive-seg-btn" id="archive-seg-category" onclick="switchArchiveSeg('category')" title="카테고리별"><i class="ti ti-category"></i></button>
+      </div>
+
+      <div id="archive-panel-category" style="display:none;">
+        <div class="section-label" style="padding-top:0;">전체 아카이브 · 6개 갈래</div>
+        <div class="archive-cluster">
+          <div class="cluster-row" data-category="시사" onclick="goScreen('archive-detail','시사')">
+            <div class="cluster-left"><i class="ti ti-news cluster-cat-icon"></i><span class="cluster-code">C</span><span class="cluster-name">시사</span></div>
+            <div class="cluster-right"><span class="cluster-n">1</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+          </div>
+          <div class="cluster-row" data-category="예술" onclick="goScreen('archive-detail','예술')">
+            <div class="cluster-left"><i class="ti ti-palette cluster-cat-icon"></i><span class="cluster-code">A</span><span class="cluster-name">예술</span></div>
+            <div class="cluster-right"><span class="cluster-n">1</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+          </div>
+          <div class="cluster-row" data-category="역사" onclick="goScreen('archive-detail','역사')">
+            <div class="cluster-left"><i class="ti ti-hourglass cluster-cat-icon"></i><span class="cluster-code">H</span><span class="cluster-name">역사</span></div>
+            <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+          </div>
+          <div class="cluster-row" data-category="음악" onclick="goScreen('archive-detail','음악')">
+            <div class="cluster-left"><i class="ti ti-music cluster-cat-icon"></i><span class="cluster-code">M</span><span class="cluster-name">음악</span></div>
+            <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+          </div>
+          <div class="cluster-row" data-category="영화" onclick="goScreen('archive-detail','영화')">
+            <div class="cluster-left"><i class="ti ti-movie cluster-cat-icon"></i><span class="cluster-code">F</span><span class="cluster-name">영화</span></div>
+            <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+          </div>
+          <div class="cluster-row" data-category="건축" onclick="goScreen('archive-detail','건축')">
+            <div class="cluster-left"><i class="ti ti-building cluster-cat-icon"></i><span class="cluster-code">B</span><span class="cluster-name">건축</span></div>
+            <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+          </div>
+          <div class="cluster-row" data-category="기타" onclick="goScreen('archive-detail','기타')">
+            <div class="cluster-left"><i class="ti ti-tag cluster-cat-icon"></i><span class="cluster-code">X</span><span class="cluster-name">기타</span></div>
+            <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
+          </div>
         </div>
-        <div class="cluster-row" data-category="예술" onclick="goScreen('archive-detail','예술')">
-          <div class="cluster-left"><i class="ti ti-palette cluster-cat-icon"></i><span class="cluster-code">A</span><span class="cluster-name">예술</span></div>
-          <div class="cluster-right"><span class="cluster-n">1</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
-        </div>
-        <div class="cluster-row" data-category="역사" onclick="goScreen('archive-detail','역사')">
-          <div class="cluster-left"><i class="ti ti-hourglass cluster-cat-icon"></i><span class="cluster-code">H</span><span class="cluster-name">역사</span></div>
-          <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
-        </div>
-        <div class="cluster-row" data-category="음악" onclick="goScreen('archive-detail','음악')">
-          <div class="cluster-left"><i class="ti ti-music cluster-cat-icon"></i><span class="cluster-code">M</span><span class="cluster-name">음악</span></div>
-          <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
-        </div>
-        <div class="cluster-row" data-category="영화" onclick="goScreen('archive-detail','영화')">
-          <div class="cluster-left"><i class="ti ti-movie cluster-cat-icon"></i><span class="cluster-code">F</span><span class="cluster-name">영화</span></div>
-          <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
-        </div>
-        <div class="cluster-row" data-category="건축" onclick="goScreen('archive-detail','건축')">
-          <div class="cluster-left"><i class="ti ti-building cluster-cat-icon"></i><span class="cluster-code">B</span><span class="cluster-name">건축</span></div>
-          <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
-        </div>
-        <div class="cluster-row" data-category="기타" onclick="goScreen('archive-detail','기타')">
-          <div class="cluster-left"><i class="ti ti-tag cluster-cat-icon"></i><span class="cluster-code">X</span><span class="cluster-name">기타</span></div>
-          <div class="cluster-right"><span class="cluster-n">0</span><span class="cluster-arrow"><i class="ti ti-arrow-right"></i></span></div>
-        </div>
+      </div>
+
+      <div id="archive-panel-timeline">
+        <div class="section-label" style="padding-top:0;" id="archive-timeline-label">전체 타임라인 · 0개 기록</div>
+        <div class="timeline" id="archive-full-timeline"></div>
       </div>
     </div>
 
@@ -1376,8 +1413,51 @@
       .map(s => ({
         id: s.id,
         date: (s.completed_at || s.date_key || '').slice(5, 10).replace('-', '.'),
-        title: s.title
+        title: s.title,
+        source_type: s.source_type
       }));
+  }
+
+  // ===== 아카이브탭 세그먼트 전환 (카테고리별 / 전체 타임라인) =====
+  function switchArchiveSeg(seg) {
+    const isTimeline = seg === 'timeline';
+    document.getElementById('archive-seg-category').classList.toggle('active', !isTimeline);
+    document.getElementById('archive-seg-timeline').classList.toggle('active', isTimeline);
+    document.getElementById('archive-panel-category').style.display = isTimeline ? 'none' : '';
+    document.getElementById('archive-panel-timeline').style.display = isTimeline ? '' : 'none';
+    if (isTimeline) renderArchiveFullTimeline();
+  }
+
+  // 전체 완료 세션을 카테고리 구분 없이 최신순으로 모아 타임라인으로 렌더링 (카테고리별 상세와 동일한 디자인 재사용)
+  function renderArchiveFullTimeline() {
+    const timelineEl = document.getElementById('archive-full-timeline');
+    const labelEl = document.getElementById('archive-timeline-label');
+    if (!timelineEl) return;
+
+    const sessions = [...appState.archive].sort((a, b) => {
+      const ta = new Date(a.completed_at || a.date_key).getTime();
+      const tb = new Date(b.completed_at || b.date_key).getTime();
+      return (isNaN(tb) ? 0 : tb) - (isNaN(ta) ? 0 : ta);
+    });
+
+    if (labelEl) labelEl.textContent = `전체 타임라인 · ${sessions.length}개 기록`;
+
+    if (!sessions.length) {
+      timelineEl.innerHTML = `<div class="empty-archive">아직 완료한 기록이 없어요</div>`;
+      return;
+    }
+
+    timelineEl.innerHTML = sessions.map(s => {
+      const meta = CATEGORY_META[s.category] || {};
+      const date = (s.completed_at || s.date_key || '').slice(5, 10).replace('-', '.');
+      return `
+      <div class="t-item" onclick="openPaper('${s.id}')">
+        <div class="t-date">${date}</div>
+        <div class="t-dot-col"><div class="t-dot"></div></div>
+        <div class="t-text"><span style="color:${meta.color || 'var(--sage)'}; font-family:var(--font-mono); font-size:10px; margin-right:6px;">${meta.code || '?'}</span>${escapeHtml(s.title)}${s.source_type === 'ask' ? ' <i class="ti ti-message-question" style="font-size:12px; color:var(--accent-yellow); vertical-align:middle;"></i>' : ''}</div>
+        <div class="t-badge"><i class="ti ti-check"></i></div>
+      </div>`;
+    }).join('');
   }
 
   function escapeHtml(str) {
@@ -1415,7 +1495,7 @@
       <div class="t-item" onclick="openPaper('${s.id}')">
         <div class="t-date">${s.date}</div>
         <div class="t-dot-col"><div class="t-dot"></div></div>
-        <div class="t-text">${s.source_type === 'ask' ? '<i class="ti ti-message-question" style="font-size:12px; color:var(--accent-yellow); margin-right:4px;"></i>' : ''}${escapeHtml(s.title)}</div>
+        <div class="t-text">${escapeHtml(s.title)}${s.source_type === 'ask' ? ' <i class="ti ti-message-question" style="font-size:12px; color:var(--accent-yellow); vertical-align:middle;"></i>' : ''}</div>
         <div class="t-badge"><i class="ti ti-check"></i></div>
       </div>
     `).join('');
@@ -1492,8 +1572,11 @@
     const totalBranches = Object.keys(CATEGORY_META).filter(category =>
       appState.archive.some(s => s.category === category)
     ).length;
-    const clusterLabel = document.querySelector('#screen-archive .section-label');
+    const clusterLabel = document.querySelector('#archive-panel-category .section-label');
     if (clusterLabel) clusterLabel.textContent = `전체 아카이브 · ${totalBranches}개 갈래`;
+
+    // 전체 타임라인 탭 렌더링
+    renderArchiveFullTimeline();
 
     // 홈탭 그리드는 매번 6개만 새로 그려서 채운다
     renderHomeArchiveGrid();
@@ -1838,11 +1921,11 @@ ${outlineLines}
     const s = CURRENT_PAPER_SESSION;
     if (!s) return;
     document.getElementById('paper-vol').textContent = `${s.category} EDITION`;
-    document.getElementById('paper-title').textContent = s.title;
-    const askBadge = s.source_type === 'ask'
-      ? `<span class="tag" style="background:var(--accent-yellow-bg); color:#8a6d00; font-weight:600;"><i class="ti ti-message-question" style="font-size:11px; margin-right:2px;"></i>직접 질문</span>`
+    const askIcon = s.source_type === 'ask'
+      ? ` <i class="ti ti-message-question" style="font-size:0.7em; color:var(--accent-yellow); vertical-align:middle;"></i>`
       : '';
-    document.getElementById('paper-tags').innerHTML = askBadge + (s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
+    document.getElementById('paper-title').innerHTML = `${escapeHtml(s.title)}${askIcon}`;
+    document.getElementById('paper-tags').innerHTML = (s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('');
 
     const briefEl = document.getElementById('paper-brief');
     if (s.brief_summary) {
@@ -2624,15 +2707,15 @@ ${userDirection}
       </div>`;
     }
     const isDone = s.status === 'completed';
-    const askBadge = s.source_type === 'ask'
-      ? `<span class="tag" style="background:var(--accent-yellow-bg); color:#8a6d00; font-weight:600;"><i class="ti ti-message-question" style="font-size:11px; margin-right:2px;"></i>직접 질문</span>`
+    const askIcon = s.source_type === 'ask'
+      ? ` <i class="ti ti-message-question" style="font-size:15px; color:var(--accent-yellow); vertical-align:middle;"></i>`
       : '';
     return `
       <div class="today-card">
         <span class="today-badge${isDone ? ' done' : ''}"><i class="ti ${isDone ? 'ti-check' : 'ti-clover'}"></i> ${isDone ? '완료' : 'TODAY'}</span>
         <div class="today-meta"><span>${s.date_key}</span><span>${escapeHtml(s.category)}</span></div>
-        <div class="today-title">${escapeHtml(s.title)}</div>
-        <div class="today-tags">${askBadge}${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+        <div class="today-title">${escapeHtml(s.title)}${askIcon}</div>
+        <div class="today-tags">${(s.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
         <div class="today-foot">
           <span class="read-time">${isDone ? '학습 완료' : '학습 진행 중'}</span>
           <button class="start-link" onclick="openTodaySlotByIndex(${todayCardIndex})">${isDone ? '다시 보기' : '이어서 보기'} <i class="ti ti-arrow-right"></i></button>
